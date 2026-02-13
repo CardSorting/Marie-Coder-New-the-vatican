@@ -2,7 +2,13 @@
 // This provides minimal stub implementations for VS Code APIs used by the codebase
 
 export const workspace = {
-    workspaceFolders: null,
+    workspaceFolders: [
+        {
+            uri: { fsPath: process.cwd(), scheme: 'file', path: process.cwd() },
+            name: 'mock-workspace',
+            index: 0
+        }
+    ],
     getConfiguration: () => ({
         get: (key, defaultValue) => defaultValue,
         update: () => Promise.resolve()
@@ -20,6 +26,7 @@ export const workspace = {
     }),
     applyEdit: () => Promise.resolve(true),
     saveAll: () => Promise.resolve(true),
+    asRelativePath: (path) => path,
     fs: {
         readFile: () => Promise.resolve(Buffer.from('')),
         writeFile: () => Promise.resolve(),
@@ -62,6 +69,16 @@ export const window = {
         hide: () => { },
         dispose: () => { }
     }),
+    createStatusBarItem: (alignment, priority) => ({
+        alignment,
+        priority,
+        text: '',
+        tooltip: '',
+        command: undefined,
+        show: () => { },
+        hide: () => { },
+        dispose: () => { }
+    }),
     activeTextEditor: undefined,
     visibleTextEditors: [],
     onDidChangeActiveTextEditor: () => ({ dispose: () => { } }),
@@ -90,7 +107,21 @@ export const commands = {
 };
 
 export const extensions = {
-    getExtension: () => undefined,
+    getExtension: (id) => {
+        if (id === 'cardsorting.marie') {
+            return {
+                id: 'cardsorting.marie',
+                isActive: true,
+                activate: () => Promise.resolve(),
+                exports: {
+                    getWebviewHtml: () => '<html><head><meta http-equiv="Content-Security-Policy" content="..."></head><body><script src="main.js"></script><link rel="stylesheet" href="main.css"></body></html>'
+                },
+                extensionPath: '.',
+                extensionUri: Uri.file('.')
+            };
+        }
+        return undefined;
+    },
     all: []
 };
 

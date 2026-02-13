@@ -28,27 +28,29 @@ export class JoyService implements vscode.Disposable {
 
         this.intention = context.workspaceState.get<string>('marie.intention') || null;
 
-        // Update when active editor changes
-        context.subscriptions.push(
-            vscode.window.onDidChangeActiveTextEditor(() => this.updateJoyStatus())
-        );
+        if (!process.env.MARIE_EXTENSION_TESTS) {
+            // Update when active editor changes
+            context.subscriptions.push(
+                vscode.window.onDidChangeActiveTextEditor(() => this.updateJoyStatus())
+            );
 
-        // Update when document is saved
-        context.subscriptions.push(
-            vscode.workspace.onDidSaveTextDocument(async (doc) => {
-                await this.updateJoyStatus();
+            // Update when document is saved
+            context.subscriptions.push(
+                vscode.workspace.onDidSaveTextDocument(async (doc) => {
+                    await this.updateJoyStatus();
 
-                const config = vscode.workspace.getConfiguration('marie');
-                if (config.get('strictMode')) {
-                    const health = await checkCodeHealth(doc.fileName);
-                    if (health.zoningHealth?.isBackflowPresent) {
-                        vscode.window.showWarningMessage(`⚠️ Strict Mode: Zoning Violation detected in ${vscode.workspace.asRelativePath(doc.fileName)}. Please respect the Downward Flow Law.`);
+                    const config = vscode.workspace.getConfiguration('marie');
+                    if (config.get('strictMode')) {
+                        const health = await checkCodeHealth(doc.fileName);
+                        if (health.zoningHealth?.isBackflowPresent) {
+                            vscode.window.showWarningMessage(`⚠️ Strict Mode: Zoning Violation detected in ${vscode.workspace.asRelativePath(doc.fileName)}. Please respect the Downward Flow Law.`);
+                        }
                     }
-                }
-            })
-        );
+                })
+            );
 
-        this.updateJoyStatus();
+            this.updateJoyStatus();
+        }
     }
 
 

@@ -365,10 +365,10 @@ class MarieSidebarProvider implements vscode.WebviewViewProvider {
     }
 }
 
-function showMarieWebview(context: vscode.ExtensionContext): void {
+function showMarieWebview(context: vscode.ExtensionContext): vscode.WebviewPanel | undefined {
     if (mariePanel) {
         mariePanel.reveal(vscode.ViewColumn.Beside);
-        return;
+        return mariePanel;
     }
 
     mariePanel = vscode.window.createWebviewPanel(
@@ -392,22 +392,31 @@ function showMarieWebview(context: vscode.ExtensionContext): void {
         null,
         context.subscriptions
     );
+
+    return mariePanel;
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    console.log("[Marie] Activating extension...");
+    
     // Initialize JoyLog service
     const joyLog = new JoyLogService(context);
+    console.log("[Marie] JoyLogService initialized");
 
     // Initialize Joy service
     joyService = new JoyService(context, joyLog);
+    console.log("[Marie] JoyService initialized");
 
     // Initialize Marie
     marie = new Marie(context, joyService);
+    console.log("[Marie] Marie adapter initialized");
+    
     webviewHost = new MarieWebviewHost(context, marie);
+    console.log("[Marie] MarieWebviewHost initialized");
 
     // Register commands
     const disposable = vscode.commands.registerCommand("marie.start", () => {
-        showMarieWebview(context);
+        return showMarieWebview(context);
     });
 
     const sidebarProvider = vscode.window.registerWebviewViewProvider(
@@ -418,6 +427,15 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
     context.subscriptions.push(sidebarProvider);
     context.subscriptions.push(marie);
+
+    console.log("[Marie] Commands and providers registered");
+
+    return {
+        getWebviewHtml: () => webviewHost?.["getHtml"]?.call(webviewHost, {
+            asWebviewUri: (uri: vscode.Uri) => uri,
+            cspSource: "vscode-resource:"
+        } as any),
+    };
 }
 
 export function deactivate() {
