@@ -1,4 +1,4 @@
-export type AscensionTechnique = 'EXECUTE' | 'RESEARCH' | 'DEBUG' | 'PANIC' | 'HYPE';
+export type AscensionTechnique = 'EXECUTE' | 'RESEARCH' | 'DEBUG' | 'PANIC' | 'HYPE' | 'LIMIT_BREAK';
 export type SpiritMood = 'AGGRESSIVE' | 'CAUTIOUS' | 'INQUISITIVE' | 'ZEN' | 'EUPHORIA' | 'DOUBT' | 'FRICTION' | 'STABLE' | 'FLUIDITY' | 'HESITATION';
 export type SpiritUrgency = 'LOW' | 'MEDIUM' | 'HIGH';
 export type AscensionStopCondition = 'landed' | 'structural_uncertainty';
@@ -21,6 +21,9 @@ export interface AscensionDecree {
     requiredActions: string[];
     blockedBy: string[];
     stopCondition: AscensionStopCondition;
+    heroicVow?: string;
+    vowLockMs?: number;
+    sacrificeTriggered?: boolean;
     profile: 'demo_day' | 'balanced' | 'recovery';
     raw: string;
 }
@@ -40,5 +43,8 @@ export interface AscensionState {
     wiringAlerts: string[];
     lastDecree?: AscensionDecree;
     mood: SpiritMood;
+    isSpiritBurstActive: boolean;
+    isAwakened: boolean;
+    karmaBond?: string;
     panicCoolDown: number;
 }

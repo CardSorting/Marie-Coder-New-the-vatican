@@ -68,7 +68,7 @@ Required Actions must be <= ${maxRequiredActions}.`;
             });
 
             const raw = MarieResponse.wrap(providerResponse.content).getText().substring(0, 1200);
-            return this.parseDecree(raw, messages, profile, aggression, maxRequiredActions, state.victoryStreak);
+            return this.parseDecree(raw, messages, state, profile, aggression, maxRequiredActions, state.victoryStreak);
         } catch (error) {
             console.error("MarieAscendant evaluation error", error);
             return {
@@ -90,6 +90,7 @@ Required Actions must be <= ${maxRequiredActions}.`;
     private parseDecree(
         raw: string,
         messages: any[],
+        state: AscensionState,
         profile: 'demo_day' | 'balanced' | 'recovery',
         aggression: number,
         maxRequiredActions: number,
@@ -103,6 +104,9 @@ Required Actions must be <= ${maxRequiredActions}.`;
         const uncertaintyMatch = normalized.match(/Structural\s*Uncertainty\s*:\s*(YES|NO|TRUE|FALSE)/i);
         const continueMatch = normalized.match(/Continue\s*Directive\s*:\s*(YES|NO|TRUE|FALSE)/i);
         const requiredActionsMatch = normalized.match(/Required\s*Actions\s*:\s*(.+)/i);
+        const vowMatch = normalized.match(/Heroic\s*Vow\s*:\s*(.+)/i);
+        const bondMatch = normalized.match(/Karma\s*Bond\s*:\s*(.+)/i);
+        const sacrificeMatch = normalized.match(/Sacrifice\s*Triggered\s*:\s*(YES|NO|TRUE|FALSE)/i);
         const blockedByMatch = normalized.match(/Blocked\s*By\s*:\s*(.+)/i);
         const stopConditionMatch = normalized.match(/Stop\s*Condition\s*:\s*(landed|structural_uncertainty)/i);
         const reasonMatch = normalized.match(/Reason\s*:\s*(.+)/i);
@@ -115,10 +119,21 @@ Required Actions must be <= ${maxRequiredActions}.`;
         const isContinueDirective = this.parseBoolean(continueMatch?.[1]) || this.hasContinueDirective(messages) || /continue\s+immediately/i.test(normalized);
 
         const requiredActions = this.parseDelimitedList(requiredActionsMatch?.[1]).slice(0, maxRequiredActions);
+        const heroicVow = vowMatch?.[1]?.trim();
+        const karmaBond = bondMatch?.[1]?.trim();
+        const sacrificeTriggered = this.parseBoolean(sacrificeMatch?.[1]);
         const blockedBy = this.parseDelimitedList(blockedByMatch?.[1]).slice(0, 4);
 
         const stopCondition = (stopConditionMatch?.[1]?.toLowerCase() as AscensionStopCondition)
             || (structuralUncertainty ? 'structural_uncertainty' : 'landed');
+
+        if (heroicVow) {
+            confidence = Math.min(3.0, confidence + 0.5); // Vow bonus
+        }
+
+        if (state.isAwakened) {
+            confidence = 3.0; // Awakened state locks confidence at maximum
+        }
 
         confidence = this.applyProfileTuning(confidence, profile, aggression, structuralUncertainty, victoryStreak);
 
@@ -140,6 +155,8 @@ Required Actions must be <= ${maxRequiredActions}.`;
             confidence,
             structuralUncertainty,
             isContinueDirective,
+            heroicVow,
+            sacrificeTriggered,
             reason: (reasonMatch?.[1] || this.defaultReason(strategy, urgency)).trim().substring(0, 220),
             requiredActions,
             blockedBy,
@@ -154,6 +171,7 @@ Required Actions must be <= ${maxRequiredActions}.`;
         if (/research|investigate|inspect/i.test(text)) return 'RESEARCH';
         if (/ship|launch|demo day|hype|singularity/i.test(text)) return 'HYPE';
         if (/panic|halt|assess\s+failure/i.test(text)) return 'PANIC';
+        if (/limit\s*break|absolute\s*conviction|no\s*limit/i.test(text)) return 'LIMIT_BREAK';
         return 'EXECUTE';
     }
 
