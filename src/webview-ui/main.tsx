@@ -1,6 +1,12 @@
 import { createRoot } from "react-dom/client"
 import App from "./App.js"
-import "./styles.css"
+
+import "./styles/theme.css"
+import "./styles/base.css"
+import "./styles/layout.css"
+import "./styles/components.css"
+import "./styles/chat.css"
+import "./styles/sessions.css"
 
 function getRootElement(): HTMLElement {
     const existing = document.getElementById("app")

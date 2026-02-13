@@ -1,0 +1,194 @@
+/* Buttons */
+button {
+    appearance: none;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: none;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all var(--motion-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    user-select: none;
+}
+
+button:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+button.secondary {
+    background: var(--surface-2);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+}
+
+button.secondary:hover:not(:disabled) {
+    background: var(--surface-3);
+    border-color: color-mix(in srgb, var(--glass-border) 150%, transparent);
+}
+
+button.icon {
+    padding: var(--space-2);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+}
+
+button.icon:hover {
+    color: var(--text-primary);
+    background: var(--surface-2);
+}
+
+/* Inputs & Selects */
+input, select, textarea {
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* Pills & Badges */
+.config-pill {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.config-pill.ok { border-color: color-mix(in srgb, var(--status-ok) 50%, transparent); color: var(--status-ok); }
+.config-pill.warn { border-color: color-mix(in srgb, var(--status-warn) 50%, transparent); color: var(--status-warn); }
+
+.stage-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    letter-spacing: 0.05em;
+}
+
+/* Modals & Overlays */
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: grid;
+    place-items: center;
+    padding: var(--space-6);
+    animation: fade-in var(--motion-medium);
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.config-modal {
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    animation: scale-in var(--motion-medium);
+}
+
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: var(--space-5);
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.control-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+}
+
+/* Header */
+.top {
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.config-pill-row {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.header-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--glass-border);
+    background: var(--surface-1);
+}

@@ -1,0 +1,77 @@
+.app-shell {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-0);
+}
+
+.session-drawer {
+    position: absolute;
+    inset: 0 40px 0 0;
+    z-index: 100;
+    background: var(--vscode-sideBar-background);
+    border-right: 1px solid var(--vscode-sideBar-border);
+    transform: translateX(-100%);
+    transition: transform var(--motion-medium);
+    visibility: hidden;
+}
+
+.session-drawer.open {
+    transform: translateX(0);
+    visibility: visible;
+    box-shadow: var(--shadow-lg);
+}
+
+.session-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0, 0, 0, 0.4);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity var(--motion-medium);
+    pointer-events: none;
+}
+
+.session-drawer.open + .session-scrim {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.workspace {
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2);
+    position: relative;
+    z-index: 1;
+}
+
+.workspace-glass {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--motion-medium);
+}
+
+.workspace-glass:focus-within {
+    box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 600px) {
+    .workspace {
+        padding: var(--space-4);
+    }
+}
