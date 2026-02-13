@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Box, useApp, useInput, Text } from "ink";
+import { Box, useApp, useInput, Text, useStdout } from "ink";
 import { Header } from "./Header.js";
 import { ChatArea } from "./ChatArea.js";
 import { InputArea } from "./InputArea.js";
@@ -185,8 +185,10 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
     );
   }
 
+  const { stdout } = useStdout();
+
   return (
-    <Box flexDirection="column" height="100%">
+    <Box flexDirection="column" height={stdout?.rows || 24}>
       <Header
         model={model}
         sessionTitle={sessionTitle}

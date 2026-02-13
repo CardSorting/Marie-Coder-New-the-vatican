@@ -27,38 +27,31 @@ export const Banner: React.FC<BannerProps> = ({ show = true }) => {
       {/* Claude Code inspired artistic banner */}
       <Box flexDirection="column" alignItems="center">
         <Text color={marieTheme.colors.primary}>
-          {"    ╭──────────────────────────────────────────────╮"}
+          {"   ███╗   ███╗ █████╗ ██████╗ ██╗███████╗"}
         </Text>
         <Text color={marieTheme.colors.primary}>
-          {"    │   ███╗   ███╗ █████╗ ██████╗ ██╗███████╗   │"}
+          {"   ████╗ ████║██╔══██╗██╔══██╗██║██╔════╝"}
         </Text>
         <Text color={marieTheme.colors.primary}>
-          {"    │   ████╗ ████║██╔══██╗██╔══██╗██║██╔════╝   │"}
+          {"   ██╔████╔██║███████║██████╔╝██║█████╗  "}
         </Text>
         <Text color={marieTheme.colors.primary}>
-          {"    │   ██╔████╔██║███████║██████╔╝██║█████╗     │"}
+          {"   ██║╚██╔╝██║██╔══██║██╔══██╗██║██╔══╝  "}
         </Text>
         <Text color={marieTheme.colors.primary}>
-          {"    │   ██║╚██╔╝██║██╔══██║██╔══██╗██║██╔══╝     │"}
+          {"   ██║ ╚═╝ ██║██║  ██║██║  ██║██║███████╗"}
         </Text>
         <Text color={marieTheme.colors.primary}>
-          {"    │   ██║ ╚═╝ ██║██║  ██║██║  ██║██║███████╗   │"}
+          {"   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝"}
         </Text>
-        <Text color={marieTheme.colors.primary}>
-          {"    │   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝   │"}
-        </Text>
-        <Text color={marieTheme.colors.primary}>
-          {"    │                                              │"}
-        </Text>
-        <Text color={marieTheme.colors.secondary}>
-          {"    │      ✦  AI Coding Assistant  ✦              │"}
-        </Text>
-        <Text color={marieTheme.colors.muted}>
-          {"    │         v0.2.0 · Ready to help              │"}
-        </Text>
-        <Text color={marieTheme.colors.primary}>
-          {"    ╰──────────────────────────────────────────────╯"}
-        </Text>
+        <Box marginTop={1}>
+          <Text color={marieTheme.colors.secondary}>
+            {"✦ AI Coding Assistant ✦ "}
+          </Text>
+          <Text color={marieTheme.colors.muted}>
+            {"v0.2.0 · Ready to help"}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
