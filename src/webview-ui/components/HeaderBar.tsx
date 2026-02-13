@@ -25,6 +25,7 @@ export function HeaderBar({
     const [toast, setToast] = useState<{ message: string; tone: "success" | "info" } | null>(null)
     const providerRef = useRef<HTMLSelectElement | null>(null)
     const toastTimerRef = useRef<number | null>(null)
+    const modelSaveTimerRef = useRef<number | null>(null)
 
     const resetDrafts = () => {
         setModelDraft(config.model)
@@ -54,6 +55,14 @@ export function HeaderBar({
     }, [availableModels, config.model])
 
     const closeConfig = () => {
+        if (modelSaveTimerRef.current) {
+            window.clearTimeout(modelSaveTimerRef.current)
+            modelSaveTimerRef.current = null
+        }
+        const nextModel = modelDraft.trim()
+        if (nextModel && nextModel !== config.model) {
+            commitModel(nextModel, false)
+        }
         resetDrafts()
         setIsConfigOpen(false)
     }
@@ -86,16 +95,25 @@ export function HeaderBar({
         if (!isConfigOpen) return
         const next = modelDraft.trim()
         if (!next || next === config.model) return
-        const handle = window.setTimeout(() => {
+        modelSaveTimerRef.current = window.setTimeout(() => {
             commitModel(next, true)
+            modelSaveTimerRef.current = null
         }, 600)
-        return () => window.clearTimeout(handle)
+        return () => {
+            if (modelSaveTimerRef.current) {
+                window.clearTimeout(modelSaveTimerRef.current)
+                modelSaveTimerRef.current = null
+            }
+        }
     }, [modelDraft, config.model, isConfigOpen])
 
     useEffect(() => {
         return () => {
             if (toastTimerRef.current) {
                 window.clearTimeout(toastTimerRef.current)
+            }
+            if (modelSaveTimerRef.current) {
+                window.clearTimeout(modelSaveTimerRef.current)
             }
         }
     }, [])
