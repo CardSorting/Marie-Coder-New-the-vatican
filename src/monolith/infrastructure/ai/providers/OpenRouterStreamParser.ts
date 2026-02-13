@@ -79,7 +79,32 @@ export class OpenRouterStreamParser {
           continue;
         }
 
-        // --- 2b. Tool Transitions ---
+        // --- 2b. Bracketed Tool Tags (New) ---
+        const isBracketToolTag = tag.startsWith("[Tool Use:");
+        const isBracketResultTag = tag.startsWith("[Tool Result:");
+
+        if (isBracketToolTag || isBracketResultTag) {
+          // Finalize previous tool if we were in tool mode
+          if (this.llamaToolMode) {
+            this.finalizeCurrentBuffer(events);
+          }
+
+          if (isBracketToolTag) {
+            this.llamaToolMode = true;
+            this.llamaBufferParts.push(tag);
+            events.push({
+              type: "stage_change",
+              stage: "calling_tool",
+              label: "Using tool...",
+            });
+          } else {
+            // Treat tool results as content
+            events.push({ type: "content_delta", text: tag });
+          }
+          continue;
+        }
+
+        // --- 2c. Tool Transitions (XML/Control Tags) ---
         // Tightened: Avoid matching loose word-tags like <Plan> or <Thought>
         const isExplicitToolTag =
           tag === "<tool>" ||
@@ -188,6 +213,39 @@ export class OpenRouterStreamParser {
     }
 
     return events;
+  }
+
+  private finalizeCurrentBuffer(events: AIStreamEvent[]) {
+    if (this.llamaBufferParts.length === 0) return;
+
+    const bufferContent = this.llamaBufferParts.join("");
+    const extracted = JsonUtils.extractToolCall(bufferContent);
+
+    if (extracted) {
+      const id = extracted.id || `call_${Date.now()}_${this.indexCount}`;
+      events.push({
+        type: "tool_call_delta",
+        index: this.indexCount,
+        id: id,
+        name: extracted.name,
+        argumentsDelta: JSON.stringify(extracted.input),
+      });
+
+      this.toolCalls[this.indexCount] = {
+        id: id,
+        name: extracted.name,
+        arguments: JSON.stringify(extracted.input),
+      };
+      this.indexCount++;
+    } else {
+      const cleaned = this.stripToolWrapperTags(bufferContent);
+      if (cleaned) {
+        events.push({ type: "content_delta", text: cleaned });
+      }
+    }
+
+    this.llamaBufferParts = [];
+    this.llamaToolMode = false;
   }
 
   /**

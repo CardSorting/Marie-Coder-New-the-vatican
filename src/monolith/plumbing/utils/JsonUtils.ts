@@ -342,7 +342,20 @@ export class JsonUtils {
     const firstBrace = contentToParse.indexOf("{");
     const lastBrace = contentToParse.lastIndexOf("}");
 
-    if (firstBrace === -1) return null; // No JSON object found
+    // NEW: Check for bracketed tool name format before the JSON: [Tool Use: name]
+    const bracketMatch = contentToParse.match(/\[Tool Use:\s*([\w.]+)\s*\]/i);
+    if (bracketMatch && !toolName) {
+      toolName = bracketMatch[1];
+      console.log(`[Marie] JsonUtils: Found bracketed tool name: ${toolName}`);
+    }
+
+    if (firstBrace === -1) {
+      // If we have a tool name but no JSON, return it with empty input (might be a parameterless tool)
+      if (toolName) {
+        return { name: toolName, input: {}, repaired: true };
+      }
+      return null;
+    }
 
     const jsonCandidate = contentToParse.substring(firstBrace);
 
@@ -363,6 +376,13 @@ export class JsonUtils {
         // Heuristic: if we had to strip markdown or prefix, it was "repaired"
         normalized.repaired = wasFixed || hasMarkdown || firstBrace > 0;
         return normalized;
+      } else if (toolName) {
+        // Use the bracketed tool name if normalization failed (JSON is just arguments)
+        return {
+          name: toolName,
+          input: parsed,
+          repaired: wasFixed || hasMarkdown || firstBrace > 0,
+        };
       }
     } catch (e) {
       // console.error("Failed to parse tool content:", e);

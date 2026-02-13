@@ -94,14 +94,15 @@ export class StreamTagDetector {
     // We only accept:
     // - LLM control tags like <|tool_call_begin|>
     // - compact call markers like call:0>
+    // - bracketed tool markers like [Tool Use: name]
     const dynamicTagPattern =
-      /<\|[\w_]{3,}(?:\|>|>)?|(?:^|[^a-zA-Z0-9_])(call:\d+>)/g;
+      /<\|[\w_]{3,}(?:\|>|>)?|(?:^|[^a-zA-Z0-9_])(call:\d+>)|(?:^|[\s,])(\[Tool (?:Use|Result):[^\]]+\])/g;
     const matches = Array.from(recentBuffer.matchAll(dynamicTagPattern));
 
     if (matches.length > 0) {
       const lastMatch = matches[matches.length - 1];
-      // If we have a capture group (index 1), use it, otherwise use the full match
-      const potentialTag = lastMatch[1] || lastMatch[0];
+      // If we have a capture group (index 1 or 2), use it, otherwise use the full match
+      const potentialTag = lastMatch[2] || lastMatch[1] || lastMatch[0];
 
       // If it's a perfect match for a known tag or matches our dynamic pattern
       // If we used a capture group, we need to adjust the index to point to that group specifically
@@ -111,8 +112,8 @@ export class StreamTagDetector {
         lastMatch.index! +
         (lastMatch[0].length - potentialTag.length);
 
-      // Check if this is a definite tag (ends with > or is a known tag)
-      if (potentialTag.endsWith(">") || this.tags.includes(potentialTag)) {
+      // Check if this is a definite tag (ends with > or ] or is a known tag)
+      if (potentialTag.endsWith(">") || potentialTag.endsWith("]") || this.tags.includes(potentialTag)) {
         const content = this.buffer.substring(0, matchIndex);
         this.buffer = this.buffer.substring(matchIndex + potentialTag.length);
         console.log(`[Marie] Dynamic tag detected: ${potentialTag}`);
