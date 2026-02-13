@@ -81,6 +81,7 @@ function AppContent() {
                                 availableModels={state.availableModels}
                                 onProvider={actions.setProvider}
                                 onModel={actions.setModel}
+                                onSetApiKey={actions.setApiKey}
                                 onOpenSettings={actions.openSettings}
                                 onRefreshModels={actions.getModels}
                             />

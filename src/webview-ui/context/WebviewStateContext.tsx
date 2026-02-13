@@ -75,6 +75,7 @@ type WebviewActions = {
     getModels: () => void
     setProvider: (provider: string) => void
     setModel: (model: string) => void
+    setApiKey: (provider: string, apiKey: string) => void
     approveTool: (approved: boolean) => void
     setAutonomyMode: (mode: string) => void
     setStage: (stage: AgentStage) => void
@@ -242,6 +243,8 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             getModels: () => vscode.postMessage({ type: "get_models" }),
             setProvider: (provider: string) => vscode.postMessage({ type: "set_provider", provider }),
             setModel: (model: string) => vscode.postMessage({ type: "set_model", model }),
+            setApiKey: (provider: string, apiKey: string) =>
+                vscode.postMessage({ type: "set_api_key", provider, apiKey }),
             approveTool: (approved: boolean) => {
                 if (!state.pendingApproval) return
                 vscode.postMessage({ type: "approve_tool", requestId: state.pendingApproval.requestId, approved })

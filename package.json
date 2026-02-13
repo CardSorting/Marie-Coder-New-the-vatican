@@ -21,6 +21,26 @@
     "onView:marieView"
   ],
   "contributes": {
+    "configuration": {
+      "title": "Marie",
+      "properties": {
+        "marie.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API key used by Marie."
+        },
+        "marie.openrouterApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API key used by Marie."
+        },
+        "marie.cerebrasApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Cerebras API key used by Marie."
+        }
+      }
+    },
     "commands": [
       {
         "command": "marie.start",

@@ -7,6 +7,7 @@ export function HeaderBar({
     availableModels,
     onProvider,
     onModel,
+    onSetApiKey,
     onOpenSettings,
     onRefreshModels,
 }: {
@@ -15,16 +16,24 @@ export function HeaderBar({
     availableModels: string[]
     onProvider: (provider: string) => void
     onModel: (model: string) => void
+    onSetApiKey: (provider: string, apiKey: string) => void
     onOpenSettings: () => void
     onRefreshModels: () => void
 }) {
     const [modelDraft, setModelDraft] = useState(config.model)
     const [isConfigOpen, setIsConfigOpen] = useState(false)
+    const [apiKeyDraft, setApiKeyDraft] = useState("")
     const providerRef = useRef<HTMLSelectElement | null>(null)
 
     useEffect(() => {
         setModelDraft(config.model)
     }, [config.model])
+
+    useEffect(() => {
+        if (!isConfigOpen) {
+            setApiKeyDraft("")
+        }
+    }, [isConfigOpen])
 
     const modelOptions = useMemo(() => {
         const merged = [...availableModels, config.model]
@@ -104,6 +113,29 @@ export function HeaderBar({
                             </label>
 
                             <label className="control-field">
+                                <span className="muted">API key</span>
+                                <input
+                                    type="password"
+                                    value={apiKeyDraft}
+                                    onChange={(e) => setApiKeyDraft(e.target.value)}
+                                    placeholder={`Enter ${config.provider} API key`}
+                                />
+                                <div className="row">
+                                    <button
+                                        className="secondary"
+                                        type="button"
+                                        onClick={() => {
+                                            const key = apiKeyDraft.trim()
+                                            if (!key) return
+                                            onSetApiKey(config.provider, key)
+                                            setApiKeyDraft("")
+                                        }}>
+                                        Save key
+                                    </button>
+                                </div>
+                            </label>
+
+                            <label className="control-field">
                                 <span className="muted">Model</span>
                                 <input
                                     list="marie-model-options"
@@ -131,7 +163,7 @@ export function HeaderBar({
                             </div>
 
                             <div className="muted">
-                                API keys are managed in VS Code settings per provider.
+                                Keys are stored in VS Code settings for the selected provider.
                             </div>
 
                             <div className="row">

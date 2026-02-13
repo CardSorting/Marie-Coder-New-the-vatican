@@ -120,6 +120,9 @@ class MarieWebviewHost {
             case "set_autonomy_mode":
                 await this.setAutonomyMode(String(message.mode || "balanced"));
                 return;
+            case "set_api_key":
+                await this.setApiKey(String(message.provider || "anthropic"), String(message.apiKey || ""));
+                return;
             case "open_settings":
                 await vscode.commands.executeCommand("workbench.action.openSettings", "@ext:cardsorting.marie");
                 return;
@@ -183,6 +186,25 @@ class MarieWebviewHost {
         await cfg.update("model", model, vscode.ConfigurationTarget.Global);
         this.marieInstance.updateSettings();
         this.post({ type: "config", config: this.getConfigSnapshot() });
+    }
+
+    private async setApiKey(rawProvider: string, rawKey: string): Promise<void> {
+        const provider = rawProvider === "openrouter" || rawProvider === "cerebras" ? rawProvider : "anthropic";
+        const apiKey = rawKey.trim();
+        if (!apiKey) return;
+
+        const cfg = vscode.workspace.getConfiguration("marie");
+        const settingKey =
+            provider === "openrouter"
+                ? "openrouterApiKey"
+                : provider === "cerebras"
+                    ? "cerebrasApiKey"
+                    : "apiKey";
+
+        await cfg.update(settingKey, apiKey, vscode.ConfigurationTarget.Global);
+        this.marieInstance.updateSettings();
+        this.post({ type: "config", config: this.getConfigSnapshot() });
+        this.post({ type: "models", models: await this.marieInstance.getModels() });
     }
 
     private async pushInitState(): Promise<void> {
