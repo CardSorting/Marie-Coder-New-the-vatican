@@ -74,7 +74,6 @@ export type MarieStreamEvent =
         lastToolName?: string;
         objectives?: ProgressObjective[];
         achieved?: string[];
-        waitingForApproval?: boolean;
         context?: string;
         lifecycleStage?: 'sprout' | 'bloom' | 'compost';
         ritualComplete?: boolean;
@@ -146,7 +145,6 @@ export type MarieStreamEvent =
         };
         elapsedMs: number;
     }
-    | { type: 'approval_request'; requestId: string; toolName: string; toolInput: any; elapsedMs: number; reasoning?: string; activeObjective?: string; diff?: { old: string, new: string } }
     | { type: 'run_error'; runId: string; elapsedMs: number; message: string };
 
 export interface RunTelemetry {
@@ -163,7 +161,6 @@ export interface RunTelemetry {
     objectives: ProgressObjective[];
     activeObjectiveId?: string;
     achieved: string[];
-    waitingForApproval?: boolean;
     currentContext?: string;
     lifecycleStage?: 'sprout' | 'bloom' | 'compost';
     ritualComplete?: boolean;

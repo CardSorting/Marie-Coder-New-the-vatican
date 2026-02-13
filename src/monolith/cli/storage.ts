@@ -23,7 +23,6 @@ export interface MarieConfig {
     cerebrasApiKey?: string;
     aiProvider: 'anthropic' | 'openrouter' | 'cerebras';
     model: string;
-    requireApproval: boolean;
     maxContextTokens: number;
     ascensionEnabled: boolean;
     ascensionProfile: 'demo_day' | 'balanced' | 'recovery';
@@ -35,13 +34,12 @@ export interface MarieConfig {
 const defaultConfig: MarieConfig = {
     aiProvider: 'openrouter',
     model: 'anthropic/claude-3.5-sonnet',
-    requireApproval: true,
     maxContextTokens: 100000,
     ascensionEnabled: true,
     ascensionProfile: 'balanced',
     ascensionIntensity: 1,
     ascensionMaxRequiredActions: 2,
-    autonomyMode: 'ascension'
+    autonomyMode: 'high'
 };
 
 export class Storage {
@@ -63,11 +61,7 @@ export class Storage {
 
             // Backward compatibility for older configs that predate autonomyMode.
             if (!parsed.autonomyMode) {
-                if (parsed.requireApproval === false) {
-                    merged.autonomyMode = 'high';
-                } else {
-                    merged.autonomyMode = 'balanced';
-                }
+                merged.autonomyMode = 'high';
             }
 
             return merged;

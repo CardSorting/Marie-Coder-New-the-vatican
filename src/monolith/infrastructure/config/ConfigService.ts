@@ -140,27 +140,18 @@ export class ConfigService {
         return (config.model as string) || "claude-3-5-sonnet-20241022";
     }
 
-    static getRequireApproval(): boolean {
-        const vscode = getVscode();
-        if (vscode) {
-            return vscode.workspace.getConfiguration("marie").get<boolean>("requireApproval", true);
-        }
-        const config = getCliConfig();
-        return config.requireApproval !== false;
-    }
-
     static getAutonomyMode(): 'balanced' | 'high' | 'ascension' {
         const vscode = getVscode();
         if (vscode) {
             const configured = vscode.workspace.getConfiguration("marie").get<'balanced' | 'high' | 'ascension'>("autonomyMode");
             if (configured) return configured;
-            return this.getRequireApproval() ? 'balanced' : 'high';
+            return 'high';
         }
 
         const config = getCliConfig();
         const configured = config.autonomyMode as 'balanced' | 'high' | 'ascension' | undefined;
         if (configured) return configured;
-        return config.requireApproval === false ? 'high' : 'balanced';
+        return 'high';
     }
 
     static getMaxContextTokens(): number {

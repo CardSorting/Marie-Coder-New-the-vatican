@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { MarieCLI } from '../../monolith/adapters/CliMarieAdapter.js';
 import { MarieCallbacks } from '../../monolith/domain/marie/MarieTypes.js';
-import { Message, ToolCall, ApprovalRequest, StreamingState } from '../types/cli.js';
+import { Message, ToolCall, StreamingState } from '../types/cli.js';
 
 interface UseMarieOptions {
     workingDir: string;
@@ -15,7 +15,6 @@ export function useMarie(options: UseMarieOptions) {
         isActive: false,
         content: '',
     });
-    const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(null);
     const [currentRun, setCurrentRun] = useState<any>(null);
     const [runElapsedMs, setRunElapsedMs] = useState(0);
     const currentToolCallsRef = useRef<ToolCall[]>([]);
@@ -132,19 +131,7 @@ export function useMarie(options: UseMarieOptions) {
                 // Handle tool execution updates
             },
             onEvent: (event: any) => {
-                if (event.type === 'approval_request') {
-                    const approval: ApprovalRequest = {
-                        id: event.requestId,
-                        toolName: event.toolName,
-                        toolInput: event.toolInput,
-                        diff: event.diff,
-                        resolve: (approved: boolean) => {
-                            marieRef.current?.handleToolApproval(event.requestId, approved);
-                            setPendingApproval(null);
-                        },
-                    };
-                    setPendingApproval(approval);
-                } else if (event.type === 'run_started') {
+                if (event.type === 'run_started') {
                     setCurrentRun(event);
                     setRunElapsedMs(0);
                 } else if (event.type === 'progress_update' && typeof event.elapsedMs === 'number') {
@@ -260,7 +247,6 @@ export function useMarie(options: UseMarieOptions) {
         messages,
         isLoading,
         streamingState,
-        pendingApproval,
         currentRun,
         runElapsedMs,
         sendMessage,

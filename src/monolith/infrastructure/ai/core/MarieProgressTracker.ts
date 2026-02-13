@@ -222,7 +222,6 @@ export class MarieProgressTracker {
             lastToolName: this.run.lastToolName,
             objectives: objectivesChanged ? objectivesSnapshot : undefined, // Compact if unchanged
             achieved: achievedChanged ? achievedSnapshot : undefined, // Compact if unchanged
-            waitingForApproval: this.run.waitingForApproval,
             context: this.run.currentContext,
             lifecycleStage: this.run.lifecycleStage,
             ritualComplete: this.run.ritualComplete,

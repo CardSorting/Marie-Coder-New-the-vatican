@@ -27,7 +27,6 @@ class MarieTerminal {
     private isRunning = false;
     private currentStream = '';
     private isStreaming = false;
-    private pendingApproval: { requestId: string; toolName: string; input: any } | null = null;
 
     constructor() {
         this.marie = new MarieCLI(process.cwd());
@@ -68,9 +67,7 @@ class MarieTerminal {
 
         // Handle Ctrl+C gracefully
         process.on('SIGINT', () => {
-            if (this.pendingApproval) {
-                this.handleApproval(false);
-            } else if (this.isStreaming) {
+            if (this.isStreaming) {
                 this.marie.stopGeneration();
                 console.log('\n\nStopped.');
                 this.showPrompt();
@@ -129,19 +126,6 @@ class MarieTerminal {
         // Handle commands
         if (input.startsWith('/')) {
             await this.handleCommand(input);
-            return;
-        }
-
-        // Handle approval responses
-        if (this.pendingApproval) {
-            const response = input.toLowerCase();
-            if (response === 'y' || response === 'yes') {
-                this.handleApproval(true);
-            } else if (response === 'n' || response === 'no') {
-                this.handleApproval(false);
-            } else {
-                console.log(`${ANSI.yellow}Please respond with 'y' or 'n'${ANSI.reset}`);
-            }
             return;
         }
 
@@ -234,7 +218,6 @@ class MarieTerminal {
         console.log(`  Provider: ${config.aiProvider}`);
         console.log(`  Model: ${config.model}`);
         console.log(`  API Key: ${config.apiKey ? '***' + config.apiKey.slice(-4) : 'Not set'}`);
-        console.log(`  Require Approval: ${config.requireApproval}`);
         console.log();
     }
 
@@ -273,26 +256,7 @@ class MarieTerminal {
                     console.log(`${ANSI.gray}▸ ${tool.name}${ANSI.reset}`);
                     process.stdout.write(`${ANSI.cyan}Marie:${ANSI.reset} `);
                 },
-                onEvent: (event) => {
-                    if (event.type === 'approval_request') {
-                        this.pendingApproval = {
-                            requestId: (event as any).requestId,
-                            toolName: (event as any).toolName,
-                            input: (event as any).toolInput,
-                        };
-                        console.log();
-                        console.log();
-                        console.log(`${ANSI.yellow}⚠ Approval Required${ANSI.reset}`);
-                        console.log(`${ANSI.bold}Tool:${ANSI.reset} ${(event as any).toolName}`);
-                        const input = (event as any).toolInput;
-                        if (input) {
-                            const inputStr = typeof input === 'string' ? input : JSON.stringify(input, null, 2);
-                            console.log(`${ANSI.bold}Input:${ANSI.reset} ${inputStr.slice(0, 200)}${inputStr.length > 200 ? '...' : ''}`);
-                        }
-                        console.log();
-                        process.stdout.write(`${ANSI.yellow}Approve? (y/n):${ANSI.reset} `);
-                    }
-                }
+                onEvent: () => { }
             });
 
             if (!this.currentStream && response) {
@@ -309,15 +273,6 @@ class MarieTerminal {
             console.log(`${ANSI.red}Error: ${error}${ANSI.reset}`);
             console.log();
             this.showPrompt();
-        }
-    }
-
-    private handleApproval(approved: boolean) {
-        if (this.pendingApproval) {
-            this.marie.handleToolApproval(this.pendingApproval.requestId, approved);
-            console.log(approved ? `${ANSI.green}✓ Approved${ANSI.reset}` : `${ANSI.red}✗ Denied${ANSI.reset}`);
-            this.pendingApproval = null;
-            // Don't show prompt - wait for stream to continue
         }
     }
 

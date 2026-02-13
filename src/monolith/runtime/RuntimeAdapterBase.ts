@@ -16,7 +16,6 @@ export abstract class RuntimeAdapterBase<TAutomation extends RuntimeAutomationPo
     public async renameSession(id: string, newTitle: string) { await this.runtime.renameSession(id, newTitle); }
     public async togglePinSession(id: string) { await this.runtime.togglePinSession(id); }
     public async handleMessage(text: string, callbacks?: MarieCallbacks): Promise<string> { return this.runtime.handleMessage(text, callbacks); }
-    public handleToolApproval(requestId: string, approved: boolean) { this.runtime.handleToolApproval(requestId, approved); }
     public async clearCurrentSession() { await this.runtime.clearCurrentSession(); }
     public stopGeneration() { this.runtime.stopGeneration(); }
     public updateSettings() { this.runtime.updateSettings(); }

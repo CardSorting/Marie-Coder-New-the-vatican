@@ -103,11 +103,6 @@ class MarieWebviewHost {
                     await this.pushSessions();
                 }
                 return;
-            case "approve_tool":
-                if (message.requestId) {
-                    this.marieInstance.handleToolApproval(String(message.requestId), Boolean(message.approved));
-                }
-                return;
             case "get_models":
                 this.post({ type: "models", models: await this.marieInstance.getModels() });
                 return;
@@ -164,7 +159,6 @@ class MarieWebviewHost {
         const mode = rawMode === "yolo" || rawMode === "high" ? rawMode : "balanced";
         const cfg = vscode.workspace.getConfiguration("marie");
         await cfg.update("autonomyMode", mode, vscode.ConfigurationTarget.Global);
-        await cfg.update("requireApproval", mode === "balanced", vscode.ConfigurationTarget.Global);
         this.marieInstance.updateSettings();
         this.post({ type: "config", config: this.getConfigSnapshot() });
     }

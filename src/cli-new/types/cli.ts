@@ -48,17 +48,6 @@ export interface StreamingState {
     toolCalls?: ToolCall[];
 }
 
-export interface ApprovalRequest {
-    id: string;
-    toolName: string;
-    toolInput: Record<string, unknown>;
-    diff?: {
-        old: string;
-        new: string;
-    };
-    resolve: (approved: boolean) => void;
-}
-
 export interface Theme {
     colors: {
         primary: string;

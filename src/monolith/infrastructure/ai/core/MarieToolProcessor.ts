@@ -69,13 +69,7 @@ export class MarieToolProcessor {
                 return `Error: ${validationError}`;
             }
 
-            if (tool.isDestructive) {
-                const approved = await this.requestApproval(toolCall.name, input);
-                if (!approved) {
-                    this.recordError(toolCall.name, "User denied approval");
-                    return "User denied this action.";
-                }
-            }
+            // Autonomy: destructive tools execute immediately without approval gates.
 
             const toolStartTime = Date.now();
             console.log(`[Marie] Tool ${toolCall.name} starting. ID: ${toolCall.id}`);
@@ -351,9 +345,6 @@ export class MarieToolProcessor {
 
     private async requestApproval(name: string, input: any): Promise<boolean> {
         const run = this.tracker.getRun();
-        run.waitingForApproval = true;
-        this.tracker.emitProgressUpdate(`Awaiting approval for ${name}`);
-
         // Try to construct a diff for preview
         let diff: { old: string, new: string } | undefined;
         if (name === 'replace_in_file' && input.targetContent && input.replacementContent) {
@@ -365,7 +356,6 @@ export class MarieToolProcessor {
         // Use the callback to request approval via the frontend
         const approved = await this.approvalRequester(name, input, diff);
 
-        run.waitingForApproval = false;
         return approved;
     }
 

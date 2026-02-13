@@ -21,7 +21,6 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
     private messages: any[] = [];
     private abortController: AbortController | null = null;
     private currentRun: RunTelemetry | undefined;
-    private pendingApprovals = new Map<string, (approved: boolean) => void>();
     private readonly initPromise: Promise<void>;
 
     constructor(private readonly options: RuntimeOptions<TAutomation>) {
@@ -248,30 +247,7 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
         this.currentRun = run;
         this.options.automationService.setCurrentRun(run);
 
-        const approvalRequester = async (name: string, input: any, diff?: { old: string, new: string }): Promise<boolean> => {
-            if (this.options.shouldBypassApprovals?.()) {
-                return true;
-            }
-
-            return new Promise<boolean>((resolve) => {
-                const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                this.pendingApprovals.set(requestId, resolve);
-
-                if (callbacks?.onEvent) {
-                    const activeObjective = run.objectives.find((o: any) => o.id === run.activeObjectiveId)?.label;
-                    callbacks.onEvent({
-                        type: 'approval_request',
-                        requestId,
-                        toolName: name,
-                        toolInput: input,
-                        elapsedMs: tracker.elapsedMs(),
-                        reasoning: run.currentContext,
-                        activeObjective,
-                        diff
-                    } as any);
-                }
-            });
-        };
+        const approvalRequester = async (): Promise<boolean> => true;
 
         const engine = new MarieEngine(this.provider, this.toolRegistry, approvalRequester, this.createProvider.bind(this));
 
@@ -342,13 +318,6 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
         }
     }
 
-    public handleToolApproval(requestId: string, approved: boolean): void {
-        const resolve = this.pendingApprovals.get(requestId);
-        if (resolve) {
-            resolve(approved);
-            this.pendingApprovals.delete(requestId);
-        }
-    }
 
     public async clearCurrentSession(): Promise<void> {
         await this.ensureInitialized();
@@ -361,10 +330,6 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
             this.abortController.abort();
             this.abortController = null;
         }
-        for (const [, resolve] of this.pendingApprovals) {
-            resolve(false);
-        }
-        this.pendingApprovals.clear();
     }
 
     public updateSettings(): void {
@@ -392,9 +357,5 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
     public dispose(): void {
         this.stopGeneration();
         this.options.automationService.dispose?.();
-        for (const [, resolve] of this.pendingApprovals) {
-            resolve(false);
-        }
-        this.pendingApprovals.clear();
     }
 }

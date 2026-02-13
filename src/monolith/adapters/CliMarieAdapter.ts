@@ -76,11 +76,7 @@ export class MarieCLI extends RuntimeAdapterBase<RuntimeAutomationPort> {
             providerFactory: createDefaultProvider,
             automationService,
             onProgressEvent: (event) => joyService.emitRunProgress(event as any),
-            shouldBypassApprovals: () => {
-                const config = Storage.getConfig();
-                const autonomyMode = config.autonomyMode || (config.requireApproval === false ? 'high' : 'balanced');
-                return autonomyMode === 'ascension';
-            }
+            shouldBypassApprovals: () => true
         });
 
         super(runtime);

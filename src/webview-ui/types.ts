@@ -12,15 +12,6 @@ export type Session = {
     title: string
     lastModified: number
     isPinned: boolean
-}
-
-export type ApprovalRequest = {
-    requestId: string
-    toolName: string
-    toolInput: unknown
-}
-
-export type UiConfig = {
     provider: string
     model: string
     autonomyMode: string
@@ -30,13 +21,20 @@ export type UiConfig = {
 
 export type AgentStage = "plan" | "execute" | "review"
 
+export type UiConfig = {
+    provider: string
+    model: string
+    autonomyMode: string
+    hasAnyApiKey: boolean
+    hasProviderApiKey: boolean
+}
+
 export type WebviewState = {
     messages: UiMessage[]
     sessions: Session[]
     currentSessionId: string
     isLoading: boolean
     streamingBuffer: string
-    pendingApproval: ApprovalRequest | null
     config: UiConfig
     availableModels: string[]
     stage: AgentStage

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
-import type { AgentStage, ApprovalRequest, UiConfig, UiMessage, WebviewState } from "../types.js"
+import type { AgentStage, UiConfig, UiMessage, WebviewState } from "../types.js"
 import { vscode } from "../vscode.js"
 
 const defaultConfig: UiConfig = {
@@ -16,7 +16,6 @@ const initialState: WebviewState = {
     currentSessionId: "default",
     isLoading: false,
     streamingBuffer: "",
-    pendingApproval: null,
     config: defaultConfig,
     availableModels: [],
     stage: "plan",
@@ -76,7 +75,6 @@ type WebviewActions = {
     setProvider: (provider: string) => void
     setModel: (model: string) => void
     setApiKey: (provider: string, apiKey: string) => void
-    approveTool: (approved: boolean) => void
     setAutonomyMode: (mode: string) => void
     setStage: (stage: AgentStage) => void
     setMissionBrief: (brief: string) => void
@@ -169,22 +167,6 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
                 case "runtime_event": {
                     const runtimeEvent = message.event
-                    if (runtimeEvent?.type === "approval_request") {
-                        const pendingApproval: ApprovalRequest = {
-                            requestId: runtimeEvent.requestId,
-                            toolName: runtimeEvent.toolName,
-                            toolInput: runtimeEvent.toolInput,
-                        }
-                        setState((prev) =>
-                            applyStage(
-                                { ...prev, pendingApproval },
-                                "execute",
-                                `Approval needed: ${runtimeEvent.toolName}`,
-                            ),
-                        )
-                        return
-                    }
-
                     if (runtimeEvent?.type === "run_error") {
                         addMessage("system", `Error: ${runtimeEvent.message || "Unknown error"}`)
                         return
@@ -244,24 +226,13 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             setModel: (model: string) => vscode.postMessage({ type: "set_model", model }),
             setApiKey: (provider: string, apiKey: string) =>
                 vscode.postMessage({ type: "set_api_key", provider, apiKey }),
-            approveTool: (approved: boolean) => {
-                if (!state.pendingApproval) return
-                vscode.postMessage({ type: "approve_tool", requestId: state.pendingApproval.requestId, approved })
-                setState((prev) =>
-                    applyStage(
-                        { ...prev, pendingApproval: null },
-                        "execute",
-                        approved ? "Approval granted" : "Approval denied",
-                    ),
-                )
-            },
             setAutonomyMode: (mode: string) => vscode.postMessage({ type: "set_autonomy_mode", mode }),
             setStage: (stage: AgentStage) =>
                 setState((prev) => applyStage(prev, stage, stageMeta[stage].label)),
             setMissionBrief: (brief: string) =>
                 setState((prev) => ({ ...prev, missionBrief: brief.trim() || prev.missionBrief })),
         }),
-        [state.pendingApproval],
+        [],
     )
 
     return <WebviewStateContext.Provider value={{ state, actions }}>{children}</WebviewStateContext.Provider>
