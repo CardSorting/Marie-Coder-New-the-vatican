@@ -30,9 +30,6 @@ export const Banner: React.FC<BannerProps> = ({ show = true }) => {
           {"    ╭──────────────────────────────────────────────╮"}
         </Text>
         <Text color={marieTheme.colors.primary}>
-          {"    │                                              │"}
-        </Text>
-        <Text color={marieTheme.colors.primary}>
           {"    │   ███╗   ███╗ █████╗ ██████╗ ██╗███████╗   │"}
         </Text>
         <Text color={marieTheme.colors.primary}>
@@ -58,9 +55,6 @@ export const Banner: React.FC<BannerProps> = ({ show = true }) => {
         </Text>
         <Text color={marieTheme.colors.muted}>
           {"    │         v0.2.0 · Ready to help              │"}
-        </Text>
-        <Text color={marieTheme.colors.primary}>
-          {"    │                                              │"}
         </Text>
         <Text color={marieTheme.colors.primary}>
           {"    ╰──────────────────────────────────────────────╯"}

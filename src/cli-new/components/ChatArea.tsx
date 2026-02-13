@@ -45,7 +45,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const availableHeight = Math.max(5, dimensions.rows - reservedHeight);
 
   return (
-    <Box flexDirection="column" height={availableHeight} overflow="hidden">
+    <Box
+      flexDirection="column"
+      height={
+        messages.length === 0 && !streamingState.isActive
+          ? undefined
+          : availableHeight
+      }
+      overflow="hidden"
+    >
       {messages.length > MAX_VISIBLE_MESSAGES && (
         <Box marginY={0} paddingX={1}>
           <MessageBubble
