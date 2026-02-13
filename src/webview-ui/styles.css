@@ -684,6 +684,24 @@ body {
     padding: var(--space-4);
 }
 
+.config-toast {
+    margin: var(--space-3) var(--space-4) 0;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--glass-border));
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface-0));
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    animation: msg-in var(--motion-medium) ease;
+}
+
+.config-toast.info {
+    border-color: var(--glass-border);
+    background: color-mix(in srgb, var(--surface-0) 85%, transparent);
+    color: var(--text-muted);
+}
+
 .modal-body .row {
     justify-content: flex-end;
 }

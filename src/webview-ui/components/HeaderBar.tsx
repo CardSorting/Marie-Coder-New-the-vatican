@@ -22,34 +22,50 @@ export function HeaderBar({
     const [providerDraft, setProviderDraft] = useState(config.provider)
     const [isConfigOpen, setIsConfigOpen] = useState(false)
     const [apiKeyDraft, setApiKeyDraft] = useState("")
+    const [toast, setToast] = useState<{ message: string; tone: "success" | "info" } | null>(null)
     const providerRef = useRef<HTMLSelectElement | null>(null)
+    const toastTimerRef = useRef<number | null>(null)
 
-    useEffect(() => {
+    const resetDrafts = () => {
         setModelDraft(config.model)
-    }, [config.model])
-
-    useEffect(() => {
         setProviderDraft(config.provider)
-    }, [config.provider])
+        setApiKeyDraft("")
+    }
+
+    const showToast = (message: string, tone: "success" | "info" = "success") => {
+        setToast({ message, tone })
+        if (toastTimerRef.current) {
+            window.clearTimeout(toastTimerRef.current)
+        }
+        toastTimerRef.current = window.setTimeout(() => {
+            setToast(null)
+            toastTimerRef.current = null
+        }, 2200)
+    }
 
     useEffect(() => {
-        if (!isConfigOpen) {
-            setApiKeyDraft("")
-        }
-    }, [isConfigOpen])
+        if (isConfigOpen) return
+        resetDrafts()
+    }, [config.model, config.provider, isConfigOpen])
 
     const modelOptions = useMemo(() => {
         const merged = [...availableModels, config.model]
         return Array.from(new Set(merged.filter(Boolean)))
     }, [availableModels, config.model])
 
-    const commitModel = () => {
-        const next = modelDraft.trim()
-        if (!next || next === config.model) return
-        onModel(next)
+    const closeConfig = () => {
+        resetDrafts()
+        setIsConfigOpen(false)
     }
 
-    const closeConfig = () => setIsConfigOpen(false)
+    const commitModel = (next: string, toastOnSave = true) => {
+        const trimmed = next.trim()
+        if (!trimmed || trimmed === config.model) return
+        onModel(trimmed)
+        if (toastOnSave) {
+            showToast(`Model set to ${trimmed}`, "success")
+        }
+    }
 
     useEffect(() => {
         if (!isConfigOpen) return
@@ -65,6 +81,24 @@ export function HeaderBar({
         window.addEventListener("keydown", onKeyDown)
         return () => window.removeEventListener("keydown", onKeyDown)
     }, [isConfigOpen])
+
+    useEffect(() => {
+        if (!isConfigOpen) return
+        const next = modelDraft.trim()
+        if (!next || next === config.model) return
+        const handle = window.setTimeout(() => {
+            commitModel(next, true)
+        }, 600)
+        return () => window.clearTimeout(handle)
+    }, [modelDraft, config.model, isConfigOpen])
+
+    useEffect(() => {
+        return () => {
+            if (toastTimerRef.current) {
+                window.clearTimeout(toastTimerRef.current)
+            }
+        }
+    }, [])
 
     return (
         <>
@@ -84,7 +118,12 @@ export function HeaderBar({
                             {config.hasAnyApiKey ? "API key connected" : "API key needed"}
                         </span>
                     </div>
-                    <button className="secondary" onClick={() => setIsConfigOpen(true)}>
+                    <button
+                        className="secondary"
+                        onClick={() => {
+                            resetDrafts()
+                            setIsConfigOpen(true)
+                        }}>
                         Configure AI
                     </button>
                 </div>
@@ -104,6 +143,11 @@ export function HeaderBar({
                                 ✕
                             </button>
                         </div>
+                        {toast && (
+                            <div className={`config-toast ${toast.tone}`} role="status">
+                                {toast.message}
+                            </div>
+                        )}
 
                         <div className="modal-body stack">
                             <label className="control-field">
@@ -114,7 +158,10 @@ export function HeaderBar({
                                     onChange={(e) => {
                                         const nextProvider = e.target.value
                                         setProviderDraft(nextProvider)
-                                        onProvider(nextProvider)
+                                        if (nextProvider !== config.provider) {
+                                            onProvider(nextProvider)
+                                            showToast(`Provider set to ${nextProvider}`, "success")
+                                        }
                                     }}>
                                     <option value="anthropic">anthropic</option>
                                     <option value="openrouter">openrouter</option>
@@ -128,7 +175,7 @@ export function HeaderBar({
                                     type="password"
                                     value={apiKeyDraft}
                                     onChange={(e) => setApiKeyDraft(e.target.value)}
-                                    placeholder={`Enter ${config.provider} API key`}
+                                    placeholder={`Enter ${providerDraft} API key`}
                                 />
                                 <div className="row">
                                     <button
@@ -137,8 +184,9 @@ export function HeaderBar({
                                         onClick={() => {
                                             const key = apiKeyDraft.trim()
                                             if (!key) return
-                                            onSetApiKey(config.provider, key)
+                                            onSetApiKey(providerDraft, key)
                                             setApiKeyDraft("")
+                                            showToast(`Saved ${providerDraft} API key`, "success")
                                         }}>
                                         Save key
                                     </button>
@@ -151,11 +199,10 @@ export function HeaderBar({
                                     list="marie-model-options"
                                     value={modelDraft}
                                     onChange={(e) => setModelDraft(e.target.value)}
-                                    onBlur={commitModel}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") {
                                             e.preventDefault()
-                                            commitModel()
+                                            commitModel(modelDraft, true)
                                         }
                                     }}
                                     placeholder="Enter model id"
@@ -177,7 +224,12 @@ export function HeaderBar({
                             </div>
 
                             <div className="row">
-                                <button className="secondary" onClick={onRefreshModels}>
+                                <button
+                                    className="secondary"
+                                    onClick={() => {
+                                        onRefreshModels()
+                                        showToast("Refreshing model list…", "info")
+                                    }}>
                                     Refresh models
                                 </button>
                                 <button onClick={closeConfig}>Done</button>
