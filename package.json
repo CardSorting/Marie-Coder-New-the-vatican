@@ -29,6 +29,21 @@
           "default": "",
           "description": "Anthropic API key used by Marie."
         },
+        "marie.aiProvider": {
+          "type": "string",
+          "default": "anthropic",
+          "enum": [
+            "anthropic",
+            "openrouter",
+            "cerebras"
+          ],
+          "description": "AI provider used by Marie."
+        },
+        "marie.model": {
+          "type": "string",
+          "default": "claude-3-5-sonnet-20241022",
+          "description": "Default model ID for the selected provider."
+        },
         "marie.openrouterApiKey": {
           "type": "string",
           "default": "",

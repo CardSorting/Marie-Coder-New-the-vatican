@@ -7,6 +7,7 @@ const defaultConfig: UiConfig = {
     model: "claude-3-5-sonnet-20241022",
     autonomyMode: "balanced",
     hasAnyApiKey: false,
+    hasProviderApiKey: false,
 }
 
 const initialState: WebviewState = {
