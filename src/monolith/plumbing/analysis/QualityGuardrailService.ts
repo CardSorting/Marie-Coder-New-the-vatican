@@ -3,7 +3,9 @@ import { TestService, TriageReport } from "./TestService.js";
 import { ComplexityService, ComplexityMetrics } from "./ComplexityService.js";
 import { checkCodeHealth, HealthReport } from "./CodeHealthService.js";
 import { SurgicalMender } from "./SurgicalMender.js";
+import { MarieSentinelService } from "./MarieSentinelService.js";
 import * as path from "node:path";
+import * as fs from "node:fs/promises";
 
 export interface GuardrailResult {
   passed: boolean;
@@ -17,6 +19,7 @@ export interface GuardrailResult {
     testsPassed: boolean | null;
     zoningHealthy: boolean;
     typeSovereignty: boolean;
+    entropy: number;
   };
 }
 
@@ -34,10 +37,21 @@ export class QualityGuardrailService {
     let autoFixed = false;
     let surgicalMends = 0;
 
-    // 1. TYPE SOVEREIGNTY (Surgical Enforcement)
+    // 1. 🛡️ SENTINEL V2 ARCHITECTURAL AUDIT
+    const sentinelReport = await MarieSentinelService.audit(cwd, filePath);
+    if (sentinelReport.zoneViolations.length > 0) {
+      violations.push(...sentinelReport.zoneViolations);
+      passed = false;
+    }
+    if (sentinelReport.entropyScore > 8) {
+      violations.push(`Entropy Alert: System instability detected (Score: ${sentinelReport.entropyScore}).`);
+      passed = false;
+    }
+
+    // 2. TYPE SOVEREIGNTY (Surgical Enforcement)
     surgicalMends += await SurgicalMender.enforceTypeSovereignty(filePath);
 
-    // 2. LINTING & SURGICAL MENDING
+    // 3. LINTING & SURGICAL MENDING
     let lintErrors = await LintService.runLintOnFile(cwd, filePath);
     
     if (lintErrors.length > 0) {
@@ -60,18 +74,11 @@ export class QualityGuardrailService {
       violations.push(`Lint Regression: ${finalCriticalLint.length} persistent error(s) found.`);
     }
 
-    // 3. SUB-ATOMIC COMPLEXITY
+    // 4. SUB-ATOMIC COMPLEXITY
     const complexity = await ComplexityService.analyze(filePath);
     if (complexity.clutterLevel === "Toxic") {
       passed = false;
       violations.push(`Complexity Alert: Cyclomatic complexity (${complexity.cyclomaticComplexity}) exceeds production safety limits.`);
-    }
-
-    // 4. ZONING ENFORCEMENT
-    const health = await checkCodeHealth(filePath);
-    if (health.zoningHealth.isBackflowPresent) {
-      passed = false;
-      violations.push(`Architectural Violation: Upward dependency flow detected.`);
     }
 
     // Hard rejection for 'any' in new code
@@ -91,10 +98,10 @@ export class QualityGuardrailService {
 
     // Scoring (0-100)
     let score = 100;
+    score -= sentinelReport.zoneViolations.length * 15;
     score -= finalCriticalLint.length * 10;
     score -= complexity.cyclomaticComplexity > 10 ? 20 : 0;
     score -= anyUsage * 5;
-    if (health.zoningHealth.isBackflowPresent) score -= 30;
     if (testReport && !testReport.success) score -= 40;
     score = Math.max(0, score);
 
@@ -108,10 +115,10 @@ export class QualityGuardrailService {
         lintErrors: finalCriticalLint.length,
         complexity: complexity.cyclomaticComplexity,
         testsPassed: testReport ? testReport.success : null,
-        zoningHealthy: !health.zoningHealth.isBackflowPresent,
+        zoningHealthy: sentinelReport.zoneViolations.length === 0,
         typeSovereignty: anyUsage === 0,
+        entropy: sentinelReport.entropyScore,
       }
     };
   }
 }
-import * as fs from "node:fs/promises";
