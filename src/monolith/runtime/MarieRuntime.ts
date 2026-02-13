@@ -284,7 +284,7 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
         tracker.emitEvent({ type: 'run_started', runId: run.runId, startedAt: run.startedAt });
         tracker.emitProgressUpdate('Thinking...');
 
-        this.messages.push({ role: "user", content: text });
+        this.messages.push({ role: "user", content: text, timestamp: Date.now() });
         await this.saveHistory();
 
         if (this.abortController) {

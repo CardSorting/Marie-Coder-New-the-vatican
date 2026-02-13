@@ -312,14 +312,20 @@ class MarieWebviewHost {
             return String(message?.content ?? "");
         }
 
-        const textParts: string[] = [];
+        const parts: string[] = [];
         for (const block of message.content) {
-            if (block?.type === "text" && typeof block.text === "string") {
-                textParts.push(block.text);
+            if (block?.type === "text") {
+                parts.push(block.text || "");
+            } else if (block?.type === "tool_use") {
+                parts.push(`[Tool Use: ${block.name}]`);
+            } else if (block?.type === "tool_result") {
+                const content = typeof block.content === 'string' ? block.content : JSON.stringify(block.content);
+                const summary = content.length > 100 ? content.substring(0, 100) + "..." : content;
+                parts.push(`[Tool Result: ${summary}]`);
             }
         }
 
-        return textParts.join("\n").trim() || "(structured response)";
+        return parts.join("\n").trim() || "(empty content)";
     }
 
     private getHtml(webview: vscode.Webview): string {

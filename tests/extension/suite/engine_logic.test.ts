@@ -47,43 +47,35 @@ suite('MarieEngine Logic Tests', () => {
         });
     });
 
-    test('Engine executes simple tool loop', async () => {
-        // 1. AI decides to call a tool (Main Loop)
-        provider.queueToolCall('mock_tool', { value: 'test-input' }, 'call_1');
+    test('Engine executes multi-turn tool loop and accumulates content', async () => {
+        // TURN 1: AI says something and calls a tool
+        provider.queueResponse({
+            content: [
+                { type: 'text', text: 'I am starting the work. ' },
+                { type: 'tool_use', id: 'call_1', name: 'mock_tool', input: { value: 'first' } }
+            ]
+        });
         
-        // 2. Ascension Evaluation (Internal)
-        // The engine asks the Ascendant agent to evaluate the state.
-        // We need to provide a structured response for this.
-        provider.queueText(`
-Strategy: EXECUTE
-Urgency: LOW
-Confidence: 1.0
-Structural Uncertainty: NO
-Continue Directive: YES
-Required Actions: None
-Blocked By: None
-Stop Condition: landed
-Reason: Tool executed successfully, proceeding to completion.
-        `);
+        // Ascension Evaluation for Turn 1
+        provider.queueText('Strategy: EXECUTE\nStop Condition: landed\nReason: First step done.');
 
-        // 3. Final AI response (Main Loop Continuation)
-        provider.queueText('Tool executed successfully.');
+        // TURN 2: AI says more and finishes
+        provider.queueText('All finished now.');
 
-        const messages = [{ role: 'user', content: 'Please run the mock tool.' }];
+        const messages = [{ role: 'user', content: 'Do work.' }];
         
         const result = await engine.chatLoop(
             messages,
             tracker,
-            async () => {} // Mock saveHistory
+            async () => {}
         );
 
-        // Debug: what did we actually get?
-        if (result !== 'Tool executed successfully.') {
-            console.log('Actual result:', result);
-            // console.log('Provider history:', JSON.stringify(provider.getRecordedMessages(), null, 2));
-        }
-
-        // Verify the result
-        assert.strictEqual(result, 'Tool executed successfully.');
+        // Verification: result should ideally contain ALL text generated across turns
+        // if we want full streaming experience. 
+        // Currently MarieEngine returns finalContent of the CURRENT turn.
+        // If we fixed it, it should be accumulated.
+        
+        assert.ok(result.includes('I am starting the work.'), 'Should contain Turn 1 text');
+        assert.ok(result.includes('All finished now.'), 'Should contain Turn 2 text');
     });
 });

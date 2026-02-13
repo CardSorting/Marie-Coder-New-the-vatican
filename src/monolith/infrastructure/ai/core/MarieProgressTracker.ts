@@ -74,9 +74,10 @@ export class MarieProgressTracker {
 
         this.eventCountInLastSecond++;
 
-        // Backpressure: If more than 30 events/sec, start dropping reasoning/stream deltas
-        if (this.eventCountInLastSecond > 30) {
-            if (event.type === 'reasoning' || event.type === 'content_delta' || event.type === 'tool_delta') {
+        // Backpressure: If more than 100 events/sec, start dropping non-critical telemetry
+        // Content deltas should NEVER be dropped as they are the primary user output.
+        if (this.eventCountInLastSecond > 100) {
+            if (event.type === 'reasoning' || event.type === 'tool_delta') {
                 return true;
             }
         }

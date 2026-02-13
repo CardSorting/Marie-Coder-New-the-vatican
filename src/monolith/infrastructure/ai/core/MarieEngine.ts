@@ -80,11 +80,14 @@ export class MarieEngine {
         saveHistory: (telemetry?: any) => Promise<void>,
         signal?: AbortSignal,
         consecutiveErrorCount: number = 0,
-        depth: number = 0
+        depth: number = 0,
+        accumulatedContent: string = ""
     ): Promise<string> {
         if (this.disposed) {
             throw new Error("MarieEngine has been disposed.");
         }
+
+        console.log(`[MarieEngine] chatLoop started at depth ${depth}. Accumulated content length: ${accumulatedContent.length}`);
 
         // TURN COLLISION GUARD: Wait for any existing turn to finish
         if (MarieEngine.activeTurn) {
@@ -113,8 +116,8 @@ export class MarieEngine {
         MarieEngine.activeTurn = new Promise<void>(resolve => { resolveTurn = resolve; });
 
         try {
-            const result = await this._executeChatLoop(messages, tracker, saveHistory, signal, consecutiveErrorCount, depth);
-            // Persistence would go here if needed
+            const result = await this._executeChatLoop(messages, tracker, saveHistory, signal, consecutiveErrorCount, depth, accumulatedContent);
+            console.log(`[MarieEngine] chatLoop finished at depth ${depth}. Final content length: ${result.length}`);
             return result;
         } finally {
             resolveTurn();
@@ -128,7 +131,8 @@ export class MarieEngine {
         saveHistory: (telemetry?: any) => Promise<void>,
         signal?: AbortSignal,
         consecutiveErrorCount: number = 0,
-        depth: number = 0
+        depth: number = 0,
+        accumulatedContent: string = ""
     ): Promise<string> {
         const pulse = this.ensurePulseService(tracker);
 
@@ -200,7 +204,7 @@ export class MarieEngine {
             this.fs
         );
 
-        let finalContent = "";
+        let turnContent = "";
         const toolBuffer: Map<number, any> = new Map();
         const parsedInputCache = new Map<string, any>();
         const toolResultBlocks: any[] = [];
@@ -278,17 +282,10 @@ export class MarieEngine {
                 dispatcher.dispatch(event);
 
                 if (event.type === 'content_delta') {
-                    finalContent += event.text;
+                    turnContent += event.text;
                     this.contentBuffer += event.text;
 
                     if (this.contentBuffer.length >= MarieEngine.CONTENT_BUFFER_MAX_BYTES) break;
-
-                    // Note: dispatcher.dispatch(event) already handles UI streaming.
-                    // We only keep contentBuffer for final content aggregation.
-                    if (now - this.lastContentEmit > 100) {
-                        this.contentBuffer = "";
-                        this.lastContentEmit = now;
-                    }
                 } else if (event.type === 'tool_call_delta') {
                     let tb = toolBuffer.get(event.index);
                     if (!tb) {
@@ -343,6 +340,9 @@ export class MarieEngine {
         }
         toolBuffer.clear();
 
+        const currentAccumulatedContent = accumulatedContent + turnContent;
+        console.log(`[MarieEngine] Depth ${depth}: Turn content length: ${turnContent.length}. New accumulated length: ${currentAccumulatedContent.length}`);
+
         if (this.contentBuffer.length > 0) {
             this.contentBuffer = "";
         }
@@ -381,7 +381,7 @@ export class MarieEngine {
                 });
                 // Temporarily allow deeper recursion for this specific branch
                 saveHistory(tracker.getRun()).catch(e => console.error("History Save Error:", e));
-                return await this._executeChatLoop(messages, tracker, saveHistory, signal, turnFailureCount > 0 ? consecutiveErrorCount + 1 : 0, depth);
+                return await this._executeChatLoop(messages, tracker, saveHistory, signal, turnFailureCount > 0 ? consecutiveErrorCount + 1 : 0, depth, currentAccumulatedContent);
             }
 
             if (decree.heroicVow) {
@@ -406,7 +406,7 @@ export class MarieEngine {
             }
 
             saveHistory(tracker.getRun()).catch(e => console.error("History Save Error:", e));
-            return await this._executeChatLoop(messages, tracker, saveHistory, signal, turnFailureCount > 0 ? consecutiveErrorCount + 1 : 0, depth + 1);
+            return await this._executeChatLoop(messages, tracker, saveHistory, signal, turnFailureCount > 0 ? consecutiveErrorCount + 1 : 0, depth + 1, currentAccumulatedContent);
         }
 
         // End of turn logic
@@ -421,7 +421,7 @@ export class MarieEngine {
         });
 
         dispatcher.clear();
-        return finalContent;
+        return currentAccumulatedContent;
     }
 
     private handleSuccess(tracker: MarieProgressTracker, toolName: string, durationMs: number, filePath?: string) {

@@ -162,7 +162,7 @@ export class MarieSession {
                 return;
             }
 
-            messages.push({ role: "assistant", content: finalContent });
+            messages.push({ role: "assistant", content: finalContent, timestamp: Date.now() });
             await this.saveHistory(this.tracker?.getRun());
         } catch (error) {
             // PHASE 6: Generator Disposal Grace - Restore messages on any error

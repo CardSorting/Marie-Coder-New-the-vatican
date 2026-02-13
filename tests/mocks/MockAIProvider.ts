@@ -38,7 +38,8 @@ export class MockAIProvider implements AIProvider {
         if (!nextResponse) {
             return {
                 content: [{ type: 'text', text: "(Mock) No more responses queued." }],
-                role: 'assistant'
+                role: 'assistant',
+                timestamp: Date.now()
             } as any;
         }
 
@@ -46,6 +47,7 @@ export class MockAIProvider implements AIProvider {
         // but conforms to AIResponse interface
         return {
             role: 'assistant',
+            timestamp: Date.now(),
             ...nextResponse
         } as AIResponse;
     }
