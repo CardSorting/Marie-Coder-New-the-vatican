@@ -1,5 +1,9 @@
-import * as vscode from "vscode";
-import { TerminalService } from "../terminal/TerminalService.js";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+import * as path from "node:path";
+import * as fs from "node:fs/promises";
+
+const execAsync = promisify(exec);
 
 export interface TriageReport {
   success: boolean;
@@ -13,9 +17,10 @@ export class TestService {
   /**
    * Executes a test suite and parses the output into a structured Triage Report.
    */
-  public static async runAndTriage(command: string): Promise<string> {
+  public static async runAndTriage(command: string, cwd: string = process.cwd()): Promise<string> {
     try {
-      const rawOutput = await TerminalService.runCommand(command);
+      const { stdout, stderr } = await execAsync(command, { cwd });
+      const rawOutput = stdout + stderr;
       const report = this.parseOutput(rawOutput);
 
       let result = `# 🏥 Test Triage Report\n\n`;
@@ -34,27 +39,63 @@ export class TestService {
       }
 
       return result;
-    } catch (error) {
-      return `Failed to execute test suite: ${error}`;
+    } catch (error: any) {
+      const rawOutput = (error.stdout || "") + (error.stderr || "");
+      const report = this.parseOutput(rawOutput);
+      if (report.failedTests.length > 0) {
+        // It failed because of test failures, not a crash
+        let result = `# 🏥 Test Triage Report\n\n`;
+        result += `**Status**: Regressions Detected ⚠️\n`;
+        result += `\n## ❌ Failing Tests\n`;
+        report.failedTests.forEach((t) => (result += `- \`${t}\`\n`));
+        return result;
+      }
+      return `Failed to execute test suite: ${error.message}\n${rawOutput}`;
     }
+  }
+
+  /**
+   * Discovers and runs tests related to a specific file.
+   */
+  public static async runTargetedTests(cwd: string, filePath: string): Promise<TriageReport | null> {
+    const fileName = path.basename(filePath, path.extname(filePath));
+    const testPattern = `**/${fileName}*test*`;
+    
+    // Simple heuristic: look for neighboring test files or in a 'tests' folder
+    const possibleTestFiles = [
+      path.join(path.dirname(filePath), `${fileName}.test.ts`),
+      path.join(path.dirname(filePath), `${fileName}.spec.ts`),
+      path.join(path.dirname(filePath), "tests", `${fileName}.test.ts`),
+      path.join(cwd, "tests", `${fileName}.test.ts`),
+    ];
+
+    for (const testFile of possibleTestFiles) {
+      try {
+        await fs.access(testFile);
+        const { stdout, stderr } = await execAsync(`npm test -- "${testFile}"`, { cwd });
+        return this.parseOutput(stdout + stderr);
+      } catch (e: any) {
+        if (e.code === "ENOENT") continue;
+        return this.parseOutput((e.stdout || "") + (e.stderr || ""));
+      }
+    }
+
+    return null; // No targeted tests found
   }
 
   private static parseOutput(output: string): TriageReport {
     const failedTests: string[] = [];
     const errors: string[] = [];
 
-    // Basic heuristic for common test runners (Vitest/Jest)
     const lines = output.split("\n");
     let capturingError = false;
     let currentError = "";
 
     for (const line of lines) {
-      // Detect failing test labels (e.g., " ❌ src/test/foo.test.ts > some function")
-      if (line.includes(" ❌ ") || line.includes(" FAIL ")) {
+      if (line.includes(" ❌ ") || line.includes(" FAIL ") || line.includes("FAILED")) {
         failedTests.push(line.trim());
       }
 
-      // Detect error stack/assertion blocks
       if (line.includes("AssertionError") || line.includes("Error: ")) {
         capturingError = true;
         currentError = line.trim() + "\n";
@@ -69,8 +110,8 @@ export class TestService {
     }
 
     return {
-      success: failedTests.length === 0,
-      totalTests: lines.length, // Rough approximation
+      success: failedTests.length === 0 && output.toLowerCase().includes("pass"),
+      totalTests: lines.length,
       failedTests,
       errors,
       rawOutput: output,

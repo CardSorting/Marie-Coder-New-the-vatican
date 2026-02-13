@@ -675,35 +675,44 @@ export class MarieToolProcessor {
         console.warn("[Singularity] VS Code Build Sentinel failed", e);
       }
     } else {
-      // CLI Environment: Use terminal-based LintService
+      // CLI Environment: Sub-Atomic Integrity Audit
       try {
-        const { LintService } = await import("../../../plumbing/analysis/LintService.js");
+        const { QualityGuardrailService } = await import("../../../plumbing/analysis/QualityGuardrailService.js");
         const workingDir = process.cwd();
-        const errors = await LintService.runLint(workingDir);
         
-        // Filter errors for the current file
-        const fileErrors = errors.filter(e => {
-          const absoluteErrorPath = path.isAbsolute(e.file) ? e.file : path.join(workingDir, e.file);
-          const absoluteTarget = path.isAbsolute(filePath) ? filePath : path.join(workingDir, filePath);
-          return absoluteErrorPath === absoluteTarget;
-        });
+        this.tracker.emitProgressUpdate("Initiating Sub-Atomic Integrity Audit... 🛡️");
+        const result = await QualityGuardrailService.evaluate(workingDir, filePath);
 
-        if (fileErrors.length > 0) {
+        if (result.surgicalMends > 0) {
           this.tracker.emitEvent({
             type: "reasoning",
             runId: this.tracker.getRun().runId,
-            text: `🧱 SINGULARITY: CLI Build Sentinel detected ${fileErrors.length} lint/build error(s).`,
+            text: `✨ SURGICAL MEND: Marie autonomously repaired ${result.surgicalMends} sub-atomic issue(s) in \`${path.basename(filePath)}\`.`,
+            elapsedMs: this.tracker.elapsedMs(),
+          });
+        }
+
+        if (!result.passed) {
+          this.tracker.emitEvent({
+            type: "reasoning",
+            runId: this.tracker.getRun().runId,
+            text: `🧱 SUB-ATOMIC REJECTION: Project integrity at risk (Score: ${result.score}/100).`,
             elapsedMs: this.tracker.elapsedMs(),
           });
 
-          const errorSummary = fileErrors
-            .map(e => `- [Line ${e.line}] ${e.message} (${e.ruleId || "no-rule"})`)
-            .join("\n");
+          let summary = `🚨 **SUB-ATOMIC INTEGRITY REJECTION** 🚨\n\nMarie has audited your change and found it architecturally or stylistically toxic.\n\n`;
+          summary += `**Quality Score**: ${result.score}/100\n`;
+          summary += result.violations.map(v => `- ❌ ${v}`).join("\n");
+          summary += `\n\n**Action Required**: You must resolve these precision regressions. Use 'resolve_lint_errors' for location-specific data. Type sovereignty is absolute. 🚩`;
           
-          return `🚨 **Build/Lint Regressions Detected**: Your recent change introduced errors:\n${errorSummary}\n\n**Action Required**: Use 'resolve_lint_errors' for a full report or 'self_heal' to attempt autonomous recovery.`;
+          return summary;
+        }
+
+        if (result.score < 100) {
+          this.tracker.emitProgressUpdate(`Sub-Atomic Audit Passed (Score: ${result.score}/100) ✨`);
         }
       } catch (e) {
-        console.warn("[Singularity] CLI Build Sentinel failed", e);
+        console.warn("[Singularity] Sub-Atomic Guardrails failed", e);
       }
     }
 

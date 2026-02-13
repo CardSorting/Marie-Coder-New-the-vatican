@@ -677,20 +677,35 @@ export class MarieEngine {
 
   private suggestSelfHealing(tracker: MarieProgressTracker, messages: any[]) {
     const pressure = this.state.spiritPressure;
-    const hotspots = Object.entries(this.state.errorHotspots).filter(([_, count]) => count >= 2);
+    const hotspots = Object.entries(this.state.errorHotspots).filter(
+      ([_, count]) => count >= 2,
+    );
 
     if (pressure < 40 || hotspots.length > 0) {
+      const hotspotFiles = hotspots.map(([f]) => path.basename(f)).join(", ");
+      const reason =
+        pressure < 40
+          ? "Low spirit pressure (instability detected)"
+          : `Repeated failures in: ${hotspotFiles}`;
+
       tracker.emitEvent({
         type: "reasoning",
         runId: tracker.getRun().runId,
-        text: "🧬 SELF-HEAL ADVISORY: Codebase instability detected. Marie recommends running 'self_heal' to restore structural integrity.",
+        text: `🧬 HIGH-CONVICTION RECOVERY: ${reason}. Marie mandates a systemic audit.`,
         elapsedMs: tracker.elapsedMs(),
       });
 
-      // Insert a hidden nudge into the conversation to prompt the model
+      // Inject a mandatory ritual instruction that overrides normal strategy
       messages.push({
         role: "user",
-        content: "⚠️ SYSTEM NOTICE: Instability detected in tool execution. Please consider using 'self_heal' or 'resolve_lint_errors' to audit and fix the current file or environment before proceeding."
+        content: `🚨 **MANDATORY RECOVERY PROTOCOL**: Codebase stability has dropped below safety thresholds. 
+Reason: ${reason}
+
+You MUST now execute one of the following recovery tools before continuing your task:
+1. \`self_heal\`: Perform an autonomous systemic audit and auto-repair.
+2. \`resolve_lint_errors\`: Triage and fix persistent lint/build regressions.
+
+Do not attempt to continue the previous objective until the garden has been restored to harmony.`,
       });
     }
   }

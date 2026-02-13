@@ -1,6 +1,7 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import * as path from "node:path";
+import * as fs from "node:fs/promises";
 
 const execAsync = promisify(exec);
 
@@ -21,12 +22,55 @@ export class LintService {
   public static async runLint(cwd: string, command: string = "npm run lint"): Promise<LintError[]> {
     try {
       const { stdout, stderr } = await execAsync(command, { cwd });
-      // If it exits with 0, everything is fine
       return [];
     } catch (e: any) {
       const output = (e.stdout || "") + (e.stderr || "");
       return this.parseLintOutput(output, cwd);
     }
+  }
+
+  /**
+   * Performs targeted linting on a specific file.
+   * Attempts to detect the best tool (ESLint, TSC) for the job.
+   */
+  public static async runLintOnFile(cwd: string, filePath: string): Promise<LintError[]> {
+    const relativePath = path.isAbsolute(filePath) ? path.relative(cwd, filePath) : filePath;
+    
+    // 1. Try ESLint first if it's a TS/JS file
+    if (/\.(ts|js|tsx|jsx)$/.test(relativePath)) {
+      try {
+        // Try to use the project's own lint script if it supports passing files,
+        // otherwise use npx eslint directly.
+        const { stdout, stderr } = await execAsync(`npx eslint "${relativePath}" --format stylish`, { cwd });
+        return [];
+      } catch (e: any) {
+        const output = (e.stdout || "") + (e.stderr || "");
+        const errors = this.parseLintOutput(output, cwd);
+        if (errors.length > 0) return errors;
+      }
+    }
+
+    // 2. Fallback to full project lint if targeted failed or was unavailable
+    return this.runLint(cwd);
+  }
+
+  /**
+   * Attempts to automatically fix lint errors in a file.
+   */
+  public static async fixFile(cwd: string, filePath: string): Promise<{ success: boolean; output: string }> {
+    const relativePath = path.isAbsolute(filePath) ? path.relative(cwd, filePath) : filePath;
+    
+    if (/\.(ts|js|tsx|jsx)$/.test(relativePath)) {
+      try {
+        // Prefer npm run lint:fix if available, but ESLint --fix is more precise for single files
+        const { stdout } = await execAsync(`npx eslint "${relativePath}" --fix`, { cwd });
+        return { success: true, output: stdout };
+      } catch (e: any) {
+        return { success: false, output: (e.stdout || "") + (e.stderr || "") };
+      }
+    }
+    
+    return { success: false, output: "Auto-fix not supported for this file type." };
   }
 
   /**
@@ -36,17 +80,16 @@ export class LintService {
     const errors: LintError[] = [];
     const lines = output.split("\n");
 
-    // Pattern 1: ESLint stylish format
-    // /path/to/file.ts
-    //   1:1  error  Message  rule-id
     let currentFile = "";
     for (const line of lines) {
+      // ESLint stylish file header
       const fileMatch = line.match(/^(\/[^ ]+|\w:[\/][^ ]+)$/);
       if (fileMatch) {
         currentFile = fileMatch[1];
         continue;
       }
 
+      // ESLint stylish error line
       const errorMatch = line.match(/^\s+(\d+):(\d+)\s+(error|warning)\s+(.+?)\s+([a-z0-9\-/]+|)$/i);
       if (errorMatch && currentFile) {
         errors.push({
@@ -59,8 +102,7 @@ export class LintService {
         });
       }
 
-      // Pattern 2: TSC format
-      // src/file.ts(1,1): error TS1234: Message
+      // TSC format
       const tscMatch = line.match(/^(.+)\((\d+),(\d+)\): (error|warning) (TS\d+): (.+)$/);
       if (tscMatch) {
         errors.push({
@@ -73,8 +115,7 @@ export class LintService {
         });
       }
       
-      // Pattern 3: Generic unix format
-      // src/file.ts:1:1: error: Message
+      // Generic unix format
       const genericMatch = line.match(/^([^:]+):(\d+):(\d+): (error|warning): (.+)$/);
       if (genericMatch) {
         errors.push({
