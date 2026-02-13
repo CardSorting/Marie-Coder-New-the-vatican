@@ -25,6 +25,7 @@ export type UiConfig = {
     model: string
     autonomyMode: string
     hasAnyApiKey: boolean
+    hasProviderApiKey: boolean
 }
 
 export type AgentStage = "plan" | "execute" | "review"

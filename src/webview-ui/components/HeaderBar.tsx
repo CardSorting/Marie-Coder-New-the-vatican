@@ -132,8 +132,8 @@ export function HeaderBar({
                     <div className="config-pill-row">
                         <span className="config-pill">{config.provider}</span>
                         <span className="config-pill model" title={config.model}>{config.model}</span>
-                        <span className={`config-pill ${config.hasAnyApiKey ? "ok" : "warn"}`}>
-                            {config.hasAnyApiKey ? "API key connected" : "API key needed"}
+                        <span className={`config-pill ${config.hasProviderApiKey ? "ok" : "warn"}`}>
+                            {config.hasProviderApiKey ? "API key connected" : "API key needed"}
                         </span>
                     </div>
                     <button
@@ -233,8 +233,12 @@ export function HeaderBar({
                             </label>
 
                             <div className="api-status-row">
-                                <span className={`api-dot ${config.hasAnyApiKey ? "ok" : "warn"}`} />
-                                <span>{config.hasAnyApiKey ? "API key is configured" : "No API key configured"}</span>
+                                <span className={`api-dot ${config.hasProviderApiKey ? "ok" : "warn"}`} />
+                                <span>
+                                    {config.hasProviderApiKey
+                                        ? "API key is configured"
+                                        : `No API key configured for ${config.provider}`}
+                                </span>
                             </div>
 
                             <div className="muted">

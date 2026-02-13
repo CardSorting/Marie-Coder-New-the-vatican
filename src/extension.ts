@@ -229,8 +229,15 @@ class MarieWebviewHost {
     }
 
     private getConfigSnapshot() {
+        const provider = ConfigService.getAiProvider();
+        const providerKey =
+            provider === "openrouter"
+                ? ConfigService.getOpenRouterApiKey()
+                : provider === "cerebras"
+                    ? ConfigService.getCerebrasApiKey()
+                    : ConfigService.getApiKey();
         return {
-            provider: ConfigService.getAiProvider(),
+            provider,
             model: ConfigService.getModel(),
             autonomyMode: ConfigService.getAutonomyMode(),
             hasAnyApiKey: Boolean(
@@ -238,6 +245,7 @@ class MarieWebviewHost {
                 ConfigService.getOpenRouterApiKey() ||
                 ConfigService.getCerebrasApiKey()
             ),
+            hasProviderApiKey: Boolean(providerKey),
         };
     }
 
