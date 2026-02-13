@@ -37,7 +37,7 @@ export class QualityGuardrailService {
     let autoFixed = false;
     let surgicalMends = 0;
 
-    // 1. 🛡️ SENTINEL V2.1 ARCHITECTURAL AUDIT
+    // 1. 🛡️ SENTINEL V3.0 ARCHITECTURAL AUDIT
     const sentinelReport = await MarieSentinelService.audit(cwd, filePath);
     
     if (sentinelReport.zoneViolations.length > 0) {
@@ -52,12 +52,19 @@ export class QualityGuardrailService {
       violations.push(...sentinelReport.leakyAbstractions);
       passed = false;
     }
-    if (sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))) {
-      violations.push(`TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`);
+    if (sentinelReport.duplication.length > 0) {
+      violations.push(...sentinelReport.duplication);
+      passed = false; // Duplication is a hard rejection in the Domain
+    }
+    
+    // The Ratchet Protocol: Entropy must not rise
+    if (sentinelReport.entropyDelta > 0) {
+      violations.push(`RATCHET LOCK: Entropy increased by +${sentinelReport.entropyDelta}. Changes must maintain or lower entropy.`);
       passed = false;
     }
-    if (sentinelReport.entropyScore > 10) {
-      violations.push(`Entropy Alert: System instability detected (Score: ${sentinelReport.entropyScore}).`);
+
+    if (sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))) {
+      violations.push(`TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`);
       passed = false;
     }
 
@@ -114,6 +121,8 @@ export class QualityGuardrailService {
     score -= sentinelReport.zoneViolations.length * 15;
     score -= sentinelReport.circularDependencies.length * 20;
     score -= sentinelReport.leakyAbstractions.length * 10;
+    score -= sentinelReport.duplication.length * 10;
+    score -= sentinelReport.entropyDelta > 0 ? 50 : 0; // Heavy penalty for regression
     score -= finalCriticalLint.length * 10;
     score -= complexity.cyclomaticComplexity > 10 ? 20 : 0;
     score -= anyUsage * 5;

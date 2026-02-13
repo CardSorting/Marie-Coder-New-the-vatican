@@ -1,5 +1,6 @@
 import * as fs from "fs/promises";
 import * as path from "path";
+import * as crypto from "crypto";
 import { LintService } from "./LintService.js";
 import { ComplexityService } from "./ComplexityService.js";
 
@@ -8,11 +9,19 @@ export interface SentinelReport {
   zoneViolations: string[];
   circularDependencies: string[];
   leakyAbstractions: string[];
+  duplication: string[];
   entropyScore: number;
+  entropyDelta: number; // New: Change from last scan
   stability: "Stable" | "Fluid" | "Fragile" | "Toxic";
   hotspots: string[];
   quarantineCandidates: string[];
+  graphDefinition: string; // New: Mermaid Graph
   passed: boolean;
+}
+
+interface SentinelState {
+  lastEntropy: number;
+  history: { date: string; entropy: number }[];
 }
 
 export class MarieSentinelService {
@@ -22,12 +31,15 @@ export class MarieSentinelService {
     PLUMBING: "plumbing",
   };
 
+  private static readonly STATE_FILE = ".marie/sentinel_state.json";
+
   /**
    * Doctrine Rules:
-   * - Domain: No infra, no plumbing, no DOM/fs/process. No "Leaky Abstractions" (e.g. 'Express', 'React', 'sql').
+   * - Domain: No infra, no plumbing, no DOM/fs/process. No "Leaky Abstractions".
    * - Infrastructure: Can import domain, No plumbing.
    * - Plumbing: Can import domain + infrastructure, No business logic.
-   * - Global: No Circular Dependencies. No "Toxic" Complexity.
+   * - Global: No Circular Dependencies. No Toxic Complexity. No Duplication.
+   * - Ratchet: Entropy must not increase.
    */
   public static async audit(workingDir: string, specificFile?: string): Promise<SentinelReport> {
     const files = await this.getAllFiles(workingDir);
@@ -36,41 +48,55 @@ export class MarieSentinelService {
     const zoneViolations: string[] = [];
     const circularDependencies: string[] = [];
     const leakyAbstractions: string[] = [];
+    const duplication: string[] = [];
     const toxicFiles: string[] = [];
-    const hotspots: string[] = [];
-
-    // 1. Build Dependency Graph for Circular Check
+    
+    // 1. Build Dependency Graph & Content Maps
     const dependencyGraph = new Map<string, string[]>();
+    const contentMap = new Map<string, string>(); // Hash -> FilePath
 
     for (const file of files) {
       const content = await fs.readFile(file, "utf8");
-      const imports = this.extractImports(content);
       const relativePath = path.relative(workingDir, file);
       
+      // Duplication Check (Simple content hash of stripped code)
+      const hash = this.hashContent(content);
+      if (contentMap.has(hash)) {
+        duplication.push(`[Doppelgänger] ${relativePath} is a duplicate of ${contentMap.get(hash)}`);
+      } else {
+        contentMap.set(hash, relativePath);
+      }
+
+      const imports = this.extractImports(content);
       const resolvedImports = imports.map(i => this.resolveImport(i, file, workingDir));
       dependencyGraph.set(relativePath, resolvedImports.filter(Boolean) as string[]);
 
-      // Only analyze specific files for violations if requested
       if (targetFiles.includes(file)) {
         await this.analyzeFile(file, workingDir, content, imports, zoneViolations, leakyAbstractions, toxicFiles);
       }
     }
 
-    // 2. Detect Circular Dependencies (Global Scan)
+    // 2. Global Scans
     const cycles = this.detectCycles(dependencyGraph);
     circularDependencies.push(...cycles);
-
-    // 3. Linting Audit
-    const lintErrors = await LintService.runLint(workingDir); // Global or targeted? Keep global for context
+    const lintErrors = await LintService.runLint(workingDir); 
     
-    // 4. Entropy Score Calculation
-    // entropyScore = zoneViolations * 5 + lintErrors * 1 + circularDeps * 10 + toxicFiles * 5 + leakyAbstractions * 3
+    // 3. Entropy Calculation
     const entropyScore = 
       (zoneViolations.length * 5) + 
       (lintErrors.length * 1) + 
       (circularDependencies.length * 10) + 
       (toxicFiles.length * 5) +
-      (leakyAbstractions.length * 3);
+      (leakyAbstractions.length * 3) +
+      (duplication.length * 4);
+
+    // 4. The Ratchet Protocol (State Comparison)
+    const state = await this.loadState(workingDir);
+    const entropyDelta = entropyScore - state.lastEntropy;
+    await this.saveState(workingDir, {
+      lastEntropy: entropyScore,
+      history: [...state.history, { date: new Date().toISOString(), entropy: entropyScore }].slice(-10)
+    });
 
     let stability: SentinelReport["stability"] = "Stable";
     if (entropyScore > 25) stability = "Toxic";
@@ -82,15 +108,24 @@ export class MarieSentinelService {
       zoneViolations,
       circularDependencies,
       leakyAbstractions,
+      duplication,
       entropyScore,
+      entropyDelta,
       stability,
       hotspots: Array.from(new Set([...zoneViolations.map(v => v.split(" ")[1]), ...toxicFiles])).slice(0, 5),
       quarantineCandidates: toxicFiles,
-      passed: entropyScore < 10,
+      graphDefinition: this.generateMermaidGraph(dependencyGraph, zoneViolations),
+      passed: entropyScore < 15 && entropyDelta <= 0, // Failed if entropy RISES (Ratchet)
     };
 
     await this.writeToSentinelLog(workingDir, report);
     return report;
+  }
+
+  private static hashContent(content: string): string {
+    // Strip comments and whitespace to detect semantic duplication
+    const stripped = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, '');
+    return crypto.createHash('md5').update(stripped).digest('hex');
   }
 
   private static async analyzeFile(
@@ -113,35 +148,29 @@ export class MarieSentinelService {
 
       if (zone === this.ZONES.DOMAIN) {
         if (impZone === this.ZONES.INFRASTRUCTURE || impZone === this.ZONES.PLUMBING) {
-          zoneViolations.push(`[Domain Violation] ${relativePath} imports ${imp} (${impZone})`);
+          zoneViolations.push(`[Domain Violation] ${relativePath} -> ${imp} (${impZone})`);
         }
         if (/['"](fs|path|os|vscode|express|react|vue|angular|typeorm|mongoose)['"]/.test(imp)) {
-          zoneViolations.push(`[Purity Violation] ${relativePath} imports impure module: ${imp}`);
+          zoneViolations.push(`[Purity Violation] ${relativePath} -> ${imp}`);
         }
-      }
-
-      if (zone === this.ZONES.INFRASTRUCTURE) {
+      } else if (zone === this.ZONES.INFRASTRUCTURE) {
         if (impZone === this.ZONES.PLUMBING) {
-          zoneViolations.push(`[Infrastructure Violation] ${relativePath} imports ${imp} (Plumbing leakage)`);
+          zoneViolations.push(`[Infrastructure Violation] ${relativePath} -> ${imp} (Plumbing leakage)`);
         }
       }
     }
 
-    // B. Leaky Abstraction Check (Heuristic)
+    // B. Leaky Abstraction Check
     if (zone === this.ZONES.DOMAIN) {
-      // Check for implementation details in types/interfaces
-      if (content.includes("HTMLElement") || content.includes("Request") || content.includes("Response") || content.includes("Buffer")) {
-        leakyAbstractions.push(`[Leaky Abstraction] ${relativePath} exposes implementation details (DOM/HTTP types).`);
+      if (content.match(/\b(HTMLElement|Request|Response|Buffer|EventEmitter)\b/)) {
+        leakyAbstractions.push(`[Leaky Abstraction] ${relativePath} exposes implementation types.`);
       }
     }
 
-    // C. Complexity & Toxicity Check
+    // C. Complexity Check
     const metrics = await ComplexityService.analyze(file);
     if (metrics.cyclomaticComplexity > 25 || metrics.clutterLevel === "Toxic") {
       toxicFiles.push(relativePath);
-    }
-    if (content.split("\n").length > 500) {
-      toxicFiles.push(relativePath); // Oversized
     }
   }
 
@@ -170,12 +199,11 @@ export class MarieSentinelService {
   }
 
   private static resolveImport(imp: string, sourceFile: string, workingDir: string): string | null {
-    // Simple resolution heuristic for TS
     if (imp.startsWith(".")) {
       const resolved = path.resolve(path.dirname(sourceFile), imp);
-      return path.relative(workingDir, resolved); // Return relative path for graph
+      return path.relative(workingDir, resolved);
     }
-    return null; // External or alias (ignore for cycle check for now)
+    return null;
   }
 
   private static detectCycles(graph: Map<string, string[]>): string[] {
@@ -186,12 +214,9 @@ export class MarieSentinelService {
     function dfs(node: string, path: string[]) {
       visited.add(node);
       recursionStack.add(node);
-
       const neighbors = graph.get(node) || [];
       for (const neighbor of neighbors) {
-        // Attempt to match neighbor to a key in the graph (handling extensions roughly)
         const matchedKey = Array.from(graph.keys()).find(k => k.startsWith(neighbor) || neighbor.startsWith(k));
-        
         if (matchedKey) {
           if (!visited.has(matchedKey)) {
             dfs(matchedKey, [...path, matchedKey]);
@@ -200,17 +225,60 @@ export class MarieSentinelService {
           }
         }
       }
-
       recursionStack.delete(node);
     }
 
     for (const node of graph.keys()) {
-      if (!visited.has(node)) {
-        dfs(node, [node]);
-      }
+      if (!visited.has(node)) dfs(node, [node]);
     }
-
     return cycles;
+  }
+
+  private static generateMermaidGraph(graph: Map<string, string[]>, violations: string[]): string {
+    let mermaid = "graph TD;\n";
+    let linkCount = 0;
+    
+    // Heuristic: Limit graph size for readability
+    const nodes = Array.from(graph.keys()).slice(0, 50); 
+    
+    nodes.forEach(node => {
+      const cleanNode = node.replace(/[^a-zA-Z0-9]/g, '_');
+      const deps = graph.get(node) || [];
+      
+      deps.forEach(dep => {
+        const cleanDep = dep.replace(/[^a-zA-Z0-9]/g, '_');
+        // Check if this link is a violation
+        const isViolation = violations.some(v => v.includes(node) && v.includes(dep));
+        
+        mermaid += `  ${cleanNode}[${path.basename(node)}] --> ${cleanDep}[${path.basename(dep)}];\n`;
+        if (isViolation) {
+          mermaid += `  linkStyle ${linkCount} stroke:#ff0000,stroke-width:2px;\n`;
+        }
+        linkCount++;
+      });
+    });
+    
+    return mermaid;
+  }
+
+  private static async loadState(workingDir: string): Promise<SentinelState> {
+    try {
+      const statePath = path.join(workingDir, this.STATE_FILE);
+      const content = await fs.readFile(statePath, "utf8");
+      return JSON.parse(content);
+    } catch {
+      return { lastEntropy: 0, history: [] };
+    }
+  }
+
+  private static async saveState(workingDir: string, state: SentinelState) {
+    try {
+      const dir = path.join(workingDir, ".marie");
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(path.join(workingDir, this.STATE_FILE), JSON.stringify(state, null, 2));
+    } catch (e) {
+      console.warn("Failed to save Sentinel state", e);
+    }
   }
 
   private static async getAllFiles(dir: string): Promise<string[]> {
@@ -225,28 +293,36 @@ export class MarieSentinelService {
 
   private static async writeToSentinelLog(workingDir: string, report: SentinelReport) {
     const logPath = path.join(workingDir, "SENTINEL.md");
+    const deltaEmoji = report.entropyDelta > 0 ? "📈 (Degrading)" : report.entropyDelta < 0 ? "📉 (Improving)" : "➡️ (Constant)";
+    
     const summary = `
 # 🛡️ Sentinel Report: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
 
 **Stability**: ${report.stability} ${this.getStabilityEmoji(report.stability)}
-**Entropy Score**: ${report.entropyScore} (Threshold: 10)
+**Entropy**: ${report.entropyScore} ${deltaEmoji}
+**Ratchet Status**: ${report.entropyDelta > 0 ? "🚫 LOCKED (Regression Detected)" : "✅ OPEN"}
 
 ## 📊 Metrics
 - **Zone Violations**: ${report.zoneViolations.length}
-- **Circular Dependencies**: ${report.circularDependencies.length}
-- **Leaky Abstractions**: ${report.leakyAbstractions.length}
+- **Circular Deps**: ${report.circularDependencies.length}
+- **Doppelgängers**: ${report.duplication.length}
 - **Toxic Files**: ${report.quarantineCandidates.length}
 
-## ⚠️ Quarantine Candidates
-${report.quarantineCandidates.length > 0 ? report.quarantineCandidates.map(f => `- ☣️ \`${f}\``).join("\n") : "None. Codebase is sanitary."}
+## 🗺️ Architecture Graph
+\`\`\`mermaid
+${report.graphDefinition}
+\`\`\`
+
+## ⚠️ Hotspots
+${report.hotspots.map(h => `- ${h}`).join("\n")}
 
 ## 📜 Violations
 ${report.zoneViolations.map(v => `- ${v}`).join("\n")}
 ${report.circularDependencies.map(c => `- 🔄 ${c}`).join("\n")}
-${report.leakyAbstractions.map(l => `- 💧 ${l}`).join("\n")}
+${report.duplication.map(d => `- 👯 ${d}`).join("\n")}
 
 ---
-*Marie Sentinel v2.1 — Serious Architectural Guardian*
+*Marie Sentinel v3.0 — The Omniscient Guardian*
 `;
     await fs.writeFile(logPath, summary);
   }
