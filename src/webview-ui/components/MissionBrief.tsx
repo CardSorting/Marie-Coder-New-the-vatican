@@ -10,13 +10,15 @@ export function MissionBrief({
     const [draft, setDraft] = useState(brief)
     const [isEditing, setIsEditing] = useState(false)
 
+    const summary = brief.trim() || "Set a mission brief to guide the session."
+
     const handleSave = () => {
         onSave(draft)
         setIsEditing(false)
     }
 
     return (
-        <section className="mission-brief" aria-label="Mission brief">
+        <section className={`mission-brief ${isEditing ? "expanded" : "collapsed"}`} aria-label="Mission brief">
             <div className="mission-header">
                 <div>
                     <div className="mission-title">Mission brief</div>
@@ -47,7 +49,7 @@ export function MissionBrief({
                     rows={3}
                 />
             ) : (
-                <div className="mission-text">{brief}</div>
+                <div className="mission-text">{summary}</div>
             )}
         </section>
     )

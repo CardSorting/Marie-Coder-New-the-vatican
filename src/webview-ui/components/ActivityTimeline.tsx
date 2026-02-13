@@ -8,21 +8,26 @@ function summarize(content: string) {
 export function ActivityTimeline({ messages }: { messages: UiMessage[] }) {
     const recent = messages.filter((message) => message.role === "system").slice(-5).reverse()
 
+    if (recent.length === 0) {
+        return (
+            <aside className="activity-timeline empty" aria-label="Recent activity">
+                <div className="timeline-title">Recent activity</div>
+                <div className="timeline-empty compact">No activity yet</div>
+            </aside>
+        )
+    }
+
     return (
         <aside className="activity-timeline" aria-label="Recent activity">
             <div className="timeline-title">Recent activity</div>
-            {recent.length === 0 ? (
-                <div className="timeline-empty">No activity yet</div>
-            ) : (
-                <ul className="timeline-list">
-                    {recent.map((message) => (
-                        <li key={message.id} className="timeline-item">
-                            <span className="timeline-dot" aria-hidden="true" />
-                            <span>{summarize(message.content)}</span>
-                        </li>
-                    ))}
-                </ul>
-            )}
+            <ul className="timeline-list">
+                {recent.map((message) => (
+                    <li key={message.id} className="timeline-item">
+                        <span className="timeline-dot" aria-hidden="true" />
+                        <span>{summarize(message.content)}</span>
+                    </li>
+                ))}
+            </ul>
         </aside>
     )
 }

@@ -112,11 +112,53 @@ body {
 
 .stage-rail {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-4) var(--space-2);
+    padding: var(--space-2) var(--space-4);
     border-bottom: 1px solid var(--glass-border);
     background: color-mix(in srgb, var(--surface-1) 70%, transparent);
+}
+
+.stage-rail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.stage-rail-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+}
+
+.stage-rail-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+}
+
+.stage-rail-toggle {
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+}
+
+.stage-rail.compact .stage-rail-steps {
+    display: none;
+}
+
+.stage-rail-steps {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .stage-pill {
@@ -201,13 +243,25 @@ body {
 
 .mission-brief {
     margin: var(--space-3) var(--space-4) 0;
-    padding: var(--space-3);
+    padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-md);
     border: 1px solid var(--glass-border);
     background: color-mix(in srgb, var(--surface-0) 78%, transparent);
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--space-1);
+}
+
+.mission-brief.collapsed .mission-subtitle {
+    display: none;
+}
+
+.mission-brief.collapsed .mission-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mission-header {
@@ -255,6 +309,11 @@ body {
     gap: var(--space-2);
     color: var(--text-muted);
     font-size: 11px;
+    max-height: 160px;
+}
+
+.activity-timeline.empty {
+    max-height: none;
 }
 
 .timeline-title {
@@ -268,6 +327,11 @@ body {
     border: 1px dashed var(--glass-border);
     border-radius: var(--radius-md);
     padding: var(--space-2);
+}
+
+.timeline-empty.compact {
+    padding: var(--space-1) var(--space-2);
+    background: color-mix(in srgb, var(--surface-0) 70%, transparent);
 }
 
 .timeline-list {
