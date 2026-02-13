@@ -85,3 +85,14 @@ export interface CommandSuggestion {
     description?: string;
     icon?: string;
 }
+
+export interface ApprovalRequest {
+    id: string;
+    toolName: string;
+    toolInput: any;
+    diff?: {
+        old: string;
+        new: string;
+    };
+    resolve: (approved: boolean) => void;
+}

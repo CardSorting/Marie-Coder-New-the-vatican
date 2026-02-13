@@ -29,6 +29,7 @@ export interface MarieConfig {
     ascensionIntensity: number;
     ascensionMaxRequiredActions: number;
     autonomyMode: 'balanced' | 'high' | 'ascension';
+    requireApproval?: boolean;
 }
 
 const defaultConfig: MarieConfig = {

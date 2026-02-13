@@ -108,7 +108,6 @@
   "license": "Apache-2.0",
   "type": "module",
   "dependencies": {
-    "vscode": "file:vscode-shim",
     "@anthropic-ai/sdk": "^0.73.0",
     "@cerebras/cerebras_cloud_sdk": "^1.64.1",
     "chalk": "^5.3.0",
@@ -127,6 +126,7 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "vscode": "file:vscode-shim",
     "esbuild": "^0.25.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",

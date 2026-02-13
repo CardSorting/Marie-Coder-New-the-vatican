@@ -248,6 +248,7 @@ export function useMarie(options: UseMarieOptions) {
         isLoading,
         streamingState,
         currentRun,
+        pendingApproval: null as any, // TODO: Implement approval state if needed
         runElapsedMs,
         sendMessage,
         stopGeneration,
