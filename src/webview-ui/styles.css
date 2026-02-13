@@ -113,8 +113,8 @@ body {
 .header-wrap {
     display: flex;
     align-items: stretch;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--glass-border);
 }
 
@@ -130,13 +130,13 @@ body {
 .title-row {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-3);
 }
 
 .header-controls {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     flex-wrap: wrap;
     justify-content: flex-end;
 }
@@ -155,7 +155,7 @@ body {
 .session-toggle {
     min-width: 112px;
     height: 36px;
-    padding: 0 var(--space-2);
+    padding: 0 var(--space-3);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -163,6 +163,7 @@ body {
     background: color-mix(in srgb, var(--surface-2) 74%, transparent);
     color: var(--text-primary);
     border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
 .session-toggle:hover {
@@ -227,11 +228,11 @@ body {
     display: inline-flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--space-2);
+    gap: var(--space-1);
 }
 
 .config-pill {
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--glass-border);
     background: color-mix(in srgb, var(--surface-0) 80%, transparent);
@@ -324,6 +325,7 @@ body {
     gap: var(--space-2);
     padding-bottom: var(--space-1);
     border-bottom: 1px solid var(--glass-border);
+    padding-top: var(--space-2);
 }
 
 .session-heading-icon {
@@ -334,6 +336,22 @@ body {
     justify-content: center;
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--accent) 20%, var(--surface-2));
+}
+
+.left.stack {
+    gap: var(--space-4);
+}
+
+.left .row {
+    gap: var(--space-1);
+}
+
+.left .row button {
+    flex: 1;
+}
+
+.left .stack {
+    gap: var(--space-2);
 }
 
 .feed {
@@ -594,7 +612,8 @@ button.session {
     background: color-mix(in srgb, var(--surface-0) 82%, transparent);
     border: 1px solid var(--glass-border);
     display: inline-flex;
-    gap: var(--space-2);
+    gap: var(--space-3);
+    padding: 10px 12px;
 }
 
 button.session.active {
@@ -604,6 +623,7 @@ button.session.active {
 
 button.session:hover {
     border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
+    transform: translateY(-1px);
 }
 
 select {
@@ -676,6 +696,11 @@ input {
 }
 
 @media (max-width: 900px) {
+    .header-wrap {
+        padding: var(--space-2) var(--space-3);
+        gap: var(--space-2);
+    }
+
     .header-controls {
         gap: var(--space-2);
     }
@@ -686,5 +711,9 @@ input {
 
     .workspace {
         padding: var(--space-2);
+    }
+
+    .left.stack {
+        gap: var(--space-3);
     }
 }
