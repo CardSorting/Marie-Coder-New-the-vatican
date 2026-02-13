@@ -243,7 +243,8 @@ async function testTriggerGenesis() {
 
     const result = await automationService.triggerGenesis();
 
-    assert.ok(result.includes('not available'), 'Should return unavailable message in CLI mode');
+    assert.ok(result.includes('Genesis Ritual'), 'Should run genesis ritual in CLI mode');
+    assert.ok(result.includes('JOY'), 'Should mention JOY in genesis output');
 
     joyService.dispose();
     console.log('✅ Trigger Genesis Test Passed!');
@@ -257,8 +258,8 @@ async function testSowJoyFeature() {
 
     const result = await automationService.sowJoyFeature('MyFeature', 'Test feature intent');
 
-    assert.ok(result.includes('not available'), 'Should return unavailable message in CLI mode');
     assert.ok(result.includes('MyFeature'), 'Should mention feature name');
+    assert.ok(result.includes('Successfully sowed'), 'Should indicate feature creation');
 
     joyService.dispose();
     console.log('✅ Sow Joy Feature Test Passed!');
@@ -272,7 +273,8 @@ async function testPerformGardenPulse() {
 
     const result = await automationService.performGardenPulse();
 
-    assert.ok(result.includes('not available'), 'Should return unavailable message in CLI mode');
+    assert.ok(result.includes('Garden pulse complete'), 'Should report garden pulse completion');
+    assert.ok(result.includes('Synthesized') || result.includes('manuals'), 'Should synthesize manuals');
 
     joyService.dispose();
     console.log('✅ Perform Garden Pulse Test Passed!');
