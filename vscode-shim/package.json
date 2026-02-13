@@ -6,5 +6,6 @@
     "type": "module",
     "exports": {
         ".": "./index.js"
-    }
+    },
+    "marieShim": true
 }

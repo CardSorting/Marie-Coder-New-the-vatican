@@ -89,6 +89,9 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
     const handleProviderSelect = useCallback((item: typeof providers[0]) => {
         setProvider(item.value);
+        setModel('');
+        setCustomModelInput('');
+        setValidationError('');
         setStep('apikey');
         setCurrentStepNum(2);
     }, []);

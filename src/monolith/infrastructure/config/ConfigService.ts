@@ -33,7 +33,8 @@ function getVscode(): typeof vscodeTypes | null {
             const loaded = nodeRequire('vscode') as typeof vscodeTypes;
             // Guard against the CLI vscode shim which doesn't include the full VS Code API.
             const version = (loaded as any).version as string | undefined;
-            if (!version || typeof version !== 'string' || !version.startsWith('1.')) {
+            const isShim = Boolean((loaded as any).marieShim);
+            if (isShim || !version || typeof version !== 'string' || !version.startsWith('1.')) {
                 vscodeModule = null;
             } else {
                 vscodeModule = loaded;

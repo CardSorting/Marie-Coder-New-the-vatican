@@ -33,8 +33,8 @@ export interface MarieConfig {
 }
 
 const defaultConfig: MarieConfig = {
-    aiProvider: 'anthropic',
-    model: 'claude-3-5-sonnet-20241022',
+    aiProvider: 'openrouter',
+    model: 'anthropic/claude-3.5-sonnet',
     requireApproval: true,
     maxContextTokens: 100000,
     ascensionEnabled: true,
