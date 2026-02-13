@@ -321,6 +321,23 @@ export class MarieEngine {
             pulse.cleanup();
         }
 
+        // POST-LOOP FLUSH: Handle any tools that arrived at the very end but missed the stream evaluation
+        for (const [index, tb] of toolBuffer.entries()) {
+            if (tb.name) {
+                const input = this.tryParseToolInput(tb.inputString, tb.name, parsedInputCache);
+                if (input) {
+                    totalToolCount++;
+                    const target = input.path || input.targetFile || input.file || 'GLOBAL';
+                    const isWrite = ['write_to_file', 'replace_file_content', 'multi_replace_file_content', 'run_command', 'delete_file'].includes(tb.name);
+
+                    await this.lockManager.acquireLock(target, isWrite, signal, tracker.getRun().runId);
+                    const result = await executeTool({ id: tb.id, name: tb.name, input });
+                    toolResultBlocks.push(result);
+                }
+            }
+        }
+        toolBuffer.clear();
+
         if (this.contentBuffer.length > 0) {
             this.contentBuffer = "";
         }
@@ -497,7 +514,7 @@ export class MarieEngine {
                 if (text[i] === '}' || text[i] === ']') stack--;
             }
         }
-        return stack === 0 && text.length > 2;
+        return stack === 0 && text.length >= 2;
     }
 
     public dispose(): void {
