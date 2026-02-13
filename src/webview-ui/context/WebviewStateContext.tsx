@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
-import type { ApprovalRequest, UiConfig, UiMessage, WebviewState } from "../types.js"
+import type { AgentStage, ApprovalRequest, UiConfig, UiMessage, WebviewState } from "../types.js"
 import { vscode } from "../vscode.js"
 
 const defaultConfig: UiConfig = {
@@ -18,6 +18,50 @@ const initialState: WebviewState = {
     pendingApproval: null,
     config: defaultConfig,
     availableModels: [],
+    stage: "plan",
+    stageSummary: "Ready to plan",
+    stageHint: "Describe the goal, constraints, or desired outcome to begin.",
+    stageActions: ["Define scope", "List constraints", "Confirm success criteria"],
+    missionBrief: "Set a mission brief to guide the session.",
+}
+
+const stageMeta: Record<AgentStage, { label: string; hint: string; actions: string[] }> = {
+    plan: {
+        label: "Planning",
+        hint: "Describe the goal, constraints, or desired outcome to begin.",
+        actions: ["Define scope", "List constraints", "Confirm success criteria"],
+    },
+    execute: {
+        label: "Executing",
+        hint: "I’m running tasks. You can add clarifications or stop if needed.",
+        actions: ["Approve tools", "Provide clarifications", "Pause/stop run"],
+    },
+    review: {
+        label: "Reviewing",
+        hint: "Check results, ask for tweaks, or request a summary.",
+        actions: ["Request summary", "Ask for refinements", "Validate outputs"],
+    },
+}
+
+function deriveStageFromMessage(content: string, current: AgentStage): AgentStage {
+    const lower = content.toLowerCase()
+    if (lower.includes("plan") || lower.includes("approach") || lower.includes("strategy")) return "plan"
+    if (lower.includes("implement") || lower.includes("execute") || lower.includes("running") || lower.includes("tool")) {
+        return "execute"
+    }
+    if (lower.includes("review") || lower.includes("verify") || lower.includes("final")) return "review"
+    return current
+}
+
+function applyStage(state: WebviewState, stage: AgentStage, summary?: string) {
+    const meta = stageMeta[stage]
+    return {
+        ...state,
+        stage,
+        stageSummary: summary || meta.label,
+        stageHint: meta.hint,
+        stageActions: meta.actions,
+    }
 }
 
 type WebviewActions = {
@@ -33,6 +77,8 @@ type WebviewActions = {
     setModel: (model: string) => void
     approveTool: (approved: boolean) => void
     setAutonomyMode: (mode: string) => void
+    setStage: (stage: AgentStage) => void
+    setMissionBrief: (brief: string) => void
 }
 
 type WebviewStateContextValue = {
@@ -92,12 +138,15 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                                 messages: [...prev.messages, newMessage("assistant", prev.streamingBuffer)],
                             }
                         }
-                        return { ...prev, isLoading: nextLoading }
+                        const nextStage: AgentStage = nextLoading ? "execute" : prev.stage
+                        const summary = nextLoading ? "Executing tasks" : prev.stageSummary
+                        return applyStage({ ...prev, isLoading: nextLoading }, nextStage, summary)
                     })
                     return
 
                 case "user_echo":
                     addMessage("user", String(message.text || ""))
+                    setState((prev) => applyStage(prev, "plan", "Refining the plan"))
                     return
 
                 case "message_stream":
@@ -107,7 +156,13 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                 case "assistant_response":
                     setState((prev) => {
                         if (prev.streamingBuffer) return prev
-                        return { ...prev, messages: [...prev.messages, newMessage("assistant", String(message.text || ""))] }
+                        const content = String(message.text || "")
+                        const nextStage = deriveStageFromMessage(content, prev.stage)
+                        return applyStage(
+                            { ...prev, messages: [...prev.messages, newMessage("assistant", content)] },
+                            nextStage,
+                            stageMeta[nextStage].label,
+                        )
                     })
                     return
 
@@ -119,7 +174,13 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                             toolName: runtimeEvent.toolName,
                             toolInput: runtimeEvent.toolInput,
                         }
-                        setState((prev) => ({ ...prev, pendingApproval }))
+                        setState((prev) =>
+                            applyStage(
+                                { ...prev, pendingApproval },
+                                "execute",
+                                `Approval needed: ${runtimeEvent.toolName}`,
+                            ),
+                        )
                         return
                     }
 
@@ -133,6 +194,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
                 case "tool_event":
                     addMessage("system", `Tool: ${message.tool?.name || "unknown"}`)
+                    setState((prev) => applyStage(prev, "execute", `Running ${message.tool?.name || "tool"}`))
                     return
 
                 case "models":
@@ -150,6 +212,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
                 case "error":
                     addMessage("system", String(message.message || "Unknown error"))
+                    setState((prev) => applyStage(prev, "review", "Review needed"))
                     return
 
                 default:
@@ -182,9 +245,19 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             approveTool: (approved: boolean) => {
                 if (!state.pendingApproval) return
                 vscode.postMessage({ type: "approve_tool", requestId: state.pendingApproval.requestId, approved })
-                setState((prev) => ({ ...prev, pendingApproval: null }))
+                setState((prev) =>
+                    applyStage(
+                        { ...prev, pendingApproval: null },
+                        "execute",
+                        approved ? "Approval granted" : "Approval denied",
+                    ),
+                )
             },
             setAutonomyMode: (mode: string) => vscode.postMessage({ type: "set_autonomy_mode", mode }),
+            setStage: (stage: AgentStage) =>
+                setState((prev) => applyStage(prev, stage, stageMeta[stage].label)),
+            setMissionBrief: (brief: string) =>
+                setState((prev) => ({ ...prev, missionBrief: brief.trim() || prev.missionBrief })),
         }),
         [state.pendingApproval],
     )

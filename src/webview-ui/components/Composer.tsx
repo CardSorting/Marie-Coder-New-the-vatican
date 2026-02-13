@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from "react"
 
+import type { AgentStage, ApprovalRequest } from "../types.js"
+
 export function Composer({
     isLoading,
+    stage,
+    stageHint,
+    pendingApproval,
     onSend,
 }: {
     isLoading: boolean
+    stage: AgentStage
+    stageHint: string
+    pendingApproval: ApprovalRequest | null
     onSend: (text: string) => void
 }) {
     const [input, setInput] = useState("")
@@ -37,6 +45,22 @@ export function Composer({
         onSend(text)
     }
 
+    const guidance = pendingApproval
+        ? "Approval required before I can proceed."
+        : stage === "plan"
+            ? "Share goals, constraints, or desired outcomes to shape the plan."
+            : stage === "execute"
+                ? "You can add clarifications while I work."
+                : "Review the result and ask for tweaks if needed."
+
+    const quickActions = pendingApproval
+        ? ["Approve tool", "Deny tool"]
+        : stage === "plan"
+            ? ["Summarize goal", "List constraints", "Define success criteria"]
+            : stage === "execute"
+                ? ["Pause run", "Add clarification", "Request status update"]
+                : ["Summarize outcome", "Suggest refinements", "Validate results"]
+
     return (
         <footer className="composer-container">
             <div className="composer-box">
@@ -61,17 +85,46 @@ export function Composer({
                             submit()
                         }
                     }}
-                    placeholder="Ask Marie…"
+                    placeholder={`Ask Marie… (${stage} stage)`}
                 />
 
                 <div className="composer-actions">
                     <div className="composer-status">
-                        {showThinking ? <span className="thinking">Thinking…</span> : <span className="muted">Enter to send</span>}
+                        {showThinking ? (
+                            <span className="thinking">Thinking…</span>
+                        ) : (
+                            <span className="muted">{guidance}</span>
+                        )}
                     </div>
                     <button onClick={submit} disabled={isLoading}>
                         Send
                     </button>
                 </div>
+            </div>
+            <div className="composer-hint">
+                <span className="stage-badge">{stage.toUpperCase()}</span>
+                <span>{stageHint}</span>
+            </div>
+            <div className="composer-quick-actions">
+                {quickActions.map((action) => (
+                    <button
+                        key={action}
+                        type="button"
+                        className="composer-chip"
+                        onClick={() => {
+                            if (pendingApproval && action.startsWith("Approve")) {
+                                onSend("Approve the pending tool.")
+                                return
+                            }
+                            if (pendingApproval && action.startsWith("Deny")) {
+                                onSend("Deny the pending tool.")
+                                return
+                            }
+                            onSend(action)
+                        }}>
+                        {action}
+                    </button>
+                ))}
             </div>
         </footer>
     )

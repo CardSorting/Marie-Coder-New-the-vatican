@@ -12,6 +12,22 @@ function summarizeActivity(content: string): string {
     return firstLine.length > 72 ? `${firstLine.slice(0, 72)}…` : firstLine
 }
 
+function stageSeparatorLabel(content: string) {
+    const lower = content.toLowerCase()
+    if (lower.includes("plan") || lower.includes("strategy") || lower.includes("approach")) return "Plan"
+    if (lower.includes("execute") || lower.includes("implement") || lower.includes("running")) return "Execute"
+    if (lower.includes("review") || lower.includes("verify") || lower.includes("final")) return "Review"
+    return null
+}
+
+function formatTime(timestamp: number) {
+    try {
+        return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    } catch {
+        return ""
+    }
+}
+
 export function ChatPanel({
     messages,
     streamingBuffer,
@@ -37,22 +53,40 @@ export function ChatPanel({
         <section className="feed" ref={chatRef}>
             {messages.map((message) => {
                 if (message.role === "system") {
+                    const stageLabel = stageSeparatorLabel(message.content)
                     return (
-                        <details className="activity-log" key={message.id}>
-                            <summary>
-                                <span className="activity-tag">Activity</span>
-                                <span>{summarizeActivity(message.content)}</span>
-                            </summary>
-                            <div
-                                className="activity-body markdown"
-                                dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
-                            />
-                        </details>
+                        <div key={message.id} className="activity-group">
+                            {stageLabel && (
+                                <div className="stage-separator">
+                                    <span className="stage-line" aria-hidden="true" />
+                                    <span className="stage-chip">{stageLabel} Stage</span>
+                                    <span className="stage-line" aria-hidden="true" />
+                                </div>
+                            )}
+                            <details className="activity-log">
+                                <summary>
+                                    <span className="activity-tag">Activity</span>
+                                    <span>{summarizeActivity(message.content)}</span>
+                                </summary>
+                                <div
+                                    className="activity-body markdown"
+                                    dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                                />
+                            </details>
+                        </div>
                     )
                 }
 
+                const roleLabel = message.role === "user" ? "You" : "Marie"
                 return (
                     <div className={`msg ${message.role}`} key={message.id}>
+                        <div className="msg-meta">
+                            <span className={`msg-avatar ${message.role}`} aria-hidden="true">
+                                {message.role === "user" ? "🧑" : "✨"}
+                            </span>
+                            <span className="msg-role">{roleLabel}</span>
+                            <span className="msg-time">{formatTime(message.timestamp)}</span>
+                        </div>
                         <div className="markdown" dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
                     </div>
                 )
@@ -60,6 +94,13 @@ export function ChatPanel({
 
             {streamingBuffer && (
                 <div className="msg assistant">
+                    <div className="msg-meta">
+                        <span className="msg-avatar assistant" aria-hidden="true">
+                            ✨
+                        </span>
+                        <span className="msg-role">Marie</span>
+                        <span className="msg-time">Typing…</span>
+                    </div>
                     <div className="markdown" dangerouslySetInnerHTML={{ __html: renderMarkdown(streamingBuffer) }} />
                 </div>
             )}

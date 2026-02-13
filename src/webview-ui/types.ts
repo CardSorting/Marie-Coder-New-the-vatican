@@ -27,6 +27,8 @@ export type UiConfig = {
     hasAnyApiKey: boolean
 }
 
+export type AgentStage = "plan" | "execute" | "review"
+
 export type WebviewState = {
     messages: UiMessage[]
     sessions: Session[]
@@ -36,4 +38,9 @@ export type WebviewState = {
     pendingApproval: ApprovalRequest | null
     config: UiConfig
     availableModels: string[]
+    stage: AgentStage
+    stageSummary: string
+    stageHint: string
+    stageActions: string[]
+    missionBrief: string
 }
