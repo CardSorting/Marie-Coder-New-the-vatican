@@ -33,7 +33,6 @@ export class MarieEngine {
   private pulseService: MariePulseService | undefined;
   private reasoningBudget: ReasoningBudget;
   private toolCallCounter: number = 0;
-  private lastFailedFile: string | undefined;
   private contentBuffer: string = "";
   private lastContentEmit: number = 0;
   private static activeTurn: Promise<void> | null = null;
@@ -73,6 +72,7 @@ export class MarieEngine {
       karmaBond: undefined,
       panicCoolDown: 0,
       environment: this.fs?.type === "vscode" ? "vscode" : "cli",
+      lastFailedFile: undefined,
     };
   }
 
@@ -507,6 +507,9 @@ export class MarieEngine {
         decree.confidence = 3.0;
       }
 
+      // Check if we should suggest self-healing
+      this.suggestSelfHealing(tracker, messages);
+
       saveHistory(tracker.getRun()).catch((e) =>
         console.error("History Save Error:", e),
       );
@@ -593,6 +596,7 @@ export class MarieEngine {
     if (filePath) {
       this.state.errorHotspots[filePath] = hotspotCount;
       this.state.totalErrorCount++;
+      this.state.lastFailedFile = filePath;
     }
 
     tracker.emitEvent({
@@ -669,6 +673,26 @@ export class MarieEngine {
       }
     }
     return stack === 0 && text.length >= 2;
+  }
+
+  private suggestSelfHealing(tracker: MarieProgressTracker, messages: any[]) {
+    const pressure = this.state.spiritPressure;
+    const hotspots = Object.entries(this.state.errorHotspots).filter(([_, count]) => count >= 2);
+
+    if (pressure < 40 || hotspots.length > 0) {
+      tracker.emitEvent({
+        type: "reasoning",
+        runId: tracker.getRun().runId,
+        text: "🧬 SELF-HEAL ADVISORY: Codebase instability detected. Marie recommends running 'self_heal' to restore structural integrity.",
+        elapsedMs: tracker.elapsedMs(),
+      });
+
+      // Insert a hidden nudge into the conversation to prompt the model
+      messages.push({
+        role: "user",
+        content: "⚠️ SYSTEM NOTICE: Instability detected in tool execution. Please consider using 'self_heal' or 'resolve_lint_errors' to audit and fix the current file or environment before proceeding."
+      });
+    }
   }
 
   public dispose(): void {

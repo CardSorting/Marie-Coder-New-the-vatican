@@ -64,4 +64,5 @@ export interface AscensionState {
   karmaBond?: string;
   panicCoolDown: number;
   environment: "cli" | "vscode" | "unknown";
+  lastFailedFile?: string;
 }

@@ -12,6 +12,7 @@ import { registerSharedToolDefinitions } from "../infrastructure/tools/SharedToo
 import { cherishFile, generateJoyDashboard } from "../domain/joy/JoyTools.js";
 import { checkCodeHealth } from "../plumbing/analysis/CodeHealthService.js";
 import { JoyAutomationServiceCLI } from "../cli/services/JoyAutomationServiceCLI.js";
+import { LintService } from "../plumbing/analysis/LintService.js";
 
 const execAsync = promisify(exec);
 
@@ -451,6 +452,69 @@ export function registerMarieToolsCLI(
       const p = getStringArg(args, "rootPath");
       const fullPath = path.isAbsolute(p) ? p : path.join(workingDir, p);
       return await generateJoyDashboard(fullPath);
+    },
+  });
+
+  registry.register({
+    name: "resolve_lint_errors",
+    description:
+      "Run linting and receive structured errors with suggested fixes for the entire project or specific files.",
+    input_schema: {
+      type: "object",
+      properties: {
+        command: {
+          type: "string",
+          description: "Optional custom lint command (defaults to npm run lint)",
+        },
+      },
+    },
+    execute: async (args) => {
+      const cmd = (args.command as string) || "npm run lint";
+      const errors = await LintService.runLint(workingDir, cmd);
+
+      if (errors.length === 0) {
+        return "No lint errors found. The codebase is healthy. ✨";
+      }
+
+      let result = `# Linting Report (${errors.length} errors found)
+\n`;
+      errors.forEach((err, i) => {
+        const fix = LintService.suggestFix(err);
+        result += `### Error ${i + 1}: ${err.file}:${err.line}:${err.column}
+- **Rule**: ${err.ruleId || "unknown"}
+- **Message**: ${err.message}
+- **Suggested Fix**: ${fix || "No automatic suggestion. Please investigate manually."}
+\n`;
+      });
+
+      result += `\n**Instructions**: Use 'read_file' to examine the code around these locations and 'replace_file_content' to apply fixes surgically.`;
+      return result;
+    },
+  });
+
+  registry.register({
+    name: "self_heal",
+    description:
+      "Autonomous systemic recovery. Marie will audit the project for errors and attempt to suggest or apply fixes.",
+    isDestructive: true,
+    input_schema: { type: "object", properties: {} },
+    execute: async () => {
+      const errors = await LintService.runLint(workingDir);
+      if (errors.length === 0) {
+        return "Marie's audit found no systemic issues. Structural harmony is maintained. ✨";
+      }
+
+      let result = `# 🧬 Autonomous Recovery Protocol Initiated
+\nFound ${errors.length} stability alerts in the codebase.
+\n`;
+
+      const files = Array.from(new Set(errors.map((e) => e.file)));
+      result += `**Impacted Files**:
+${files.map((f) => `- ${f}`).join("\n")}
+\n`;
+
+      result += `Please use 'resolve_lint_errors' to see the full triage report and begin surgical remediation.`;
+      return result;
     },
   });
 }

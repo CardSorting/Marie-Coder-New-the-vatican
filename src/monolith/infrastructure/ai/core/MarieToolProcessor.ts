@@ -644,37 +644,69 @@ export class MarieToolProcessor {
 
   private async runBuildSentinel(filePath: string): Promise<string | null> {
     const vscode = getVscode();
-    if (!vscode) return null;
+    
+    // VS Code Environment: Use LSP diagnostics
+    if (vscode) {
+      try {
+        // Wait a bit for LSP to catch up
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    try {
-      // Wait a bit for LSP to catch up
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        const diagnostics = vscode.languages.getDiagnostics(
+          vscode.Uri.file(filePath),
+        );
+        const errors = diagnostics.filter(
+          (d) => d.severity === vscode.DiagnosticSeverity.Error,
+        );
 
-      const diagnostics = vscode.languages.getDiagnostics(
-        vscode.Uri.file(filePath),
-      );
-      const errors = diagnostics.filter(
-        (d) => d.severity === vscode.DiagnosticSeverity.Error,
-      );
+        if (errors.length > 0) {
+          this.tracker.emitEvent({
+            type: "reasoning",
+            runId: this.tracker.getRun().runId,
+            text: `🧱 SINGULARITY: Build Sentinel detected ${errors.length} error(s) in \`${filePath.split("/").pop()}\`.`,
+            elapsedMs: this.tracker.elapsedMs(),
+          });
 
-      if (errors.length > 0) {
-        this.tracker.emitEvent({
-          type: "reasoning",
-          runId: this.tracker.getRun().runId,
-          text: `🧱 SINGULARITY: Build Sentinel detected ${errors.length} error(s) in \`${filePath.split("/").pop()}\`.`,
-          elapsedMs: this.tracker.elapsedMs(),
+          const errorSummary = errors
+            .map((e) => `- [Line ${e.range.start.line + 1}] ${e.message}`)
+            .join("\n");
+          return `🚨 **Build Regressions Detected**: Your recent change introduced compilation errors:\n${errorSummary}\n\n**Action Required**: Fix these errors immediately before proceeding.`;
+        }
+      } catch (e) {
+        console.warn("[Singularity] VS Code Build Sentinel failed", e);
+      }
+    } else {
+      // CLI Environment: Use terminal-based LintService
+      try {
+        const { LintService } = await import("../../../plumbing/analysis/LintService.js");
+        const workingDir = process.cwd();
+        const errors = await LintService.runLint(workingDir);
+        
+        // Filter errors for the current file
+        const fileErrors = errors.filter(e => {
+          const absoluteErrorPath = path.isAbsolute(e.file) ? e.file : path.join(workingDir, e.file);
+          const absoluteTarget = path.isAbsolute(filePath) ? filePath : path.join(workingDir, filePath);
+          return absoluteErrorPath === absoluteTarget;
         });
 
-        const errorSummary = errors
-          .map((e) => `- [Line ${e.range.start.line + 1}] ${e.message}`)
-          .join("\n");
-        return `🚨 **Build Regressions Detected**: Your recent change introduced compilation errors:\n${errorSummary}\n\n**Action Required**: Fix these errors immediately before proceeding.`;
-      }
+        if (fileErrors.length > 0) {
+          this.tracker.emitEvent({
+            type: "reasoning",
+            runId: this.tracker.getRun().runId,
+            text: `🧱 SINGULARITY: CLI Build Sentinel detected ${fileErrors.length} lint/build error(s).`,
+            elapsedMs: this.tracker.elapsedMs(),
+          });
 
-      return null;
-    } catch (e) {
-      console.warn("[Singularity] Build Sentinel failed", e);
-      return null;
+          const errorSummary = fileErrors
+            .map(e => `- [Line ${e.line}] ${e.message} (${e.ruleId || "no-rule"})`)
+            .join("\n");
+          
+          return `🚨 **Build/Lint Regressions Detected**: Your recent change introduced errors:\n${errorSummary}\n\n**Action Required**: Use 'resolve_lint_errors' for a full report or 'self_heal' to attempt autonomous recovery.`;
+        }
+      } catch (e) {
+        console.warn("[Singularity] CLI Build Sentinel failed", e);
+      }
     }
+
+    return null;
   }
 }
