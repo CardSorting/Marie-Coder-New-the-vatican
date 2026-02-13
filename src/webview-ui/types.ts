@@ -29,12 +29,22 @@ export type UiConfig = {
     hasProviderApiKey: boolean
 }
 
+export type ApprovalRequest = {
+    id: string
+    toolName: string
+    toolInput: Record<string, unknown> | string
+    diff?: { old: string; new: string }
+}
+
 export type WebviewState = {
     messages: UiMessage[]
     sessions: Session[]
     currentSessionId: string
     isLoading: boolean
     streamingBuffer: string
+    toolStreamingBuffer: string
+    activeToolName: string
+    pendingApproval: ApprovalRequest | null
     config: UiConfig
     availableModels: string[]
     stage: AgentStage

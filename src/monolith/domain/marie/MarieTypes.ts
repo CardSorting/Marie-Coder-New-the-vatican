@@ -178,11 +178,19 @@ export interface RunTelemetry {
     ascensionState?: any; // Simplified for broad compatibility
 }
 
+export interface ApprovalRequest {
+    id: string;
+    toolName: string;
+    toolInput: any;
+    diff?: { old: string, new: string };
+}
+
 export interface MarieCallbacks {
     // PHASE 6: Added originatingSessionId for deep session fencing
     onStream?: (chunk: string, runId?: string, originatingSessionId?: string) => void;
     onTool?: (tool: { name: string, input: any, diff?: { old: string, new: string } }, runId?: string, originatingSessionId?: string) => void;
     onToolDelta?: (delta: { name: string, inputDelta: string }, runId?: string, originatingSessionId?: string) => void;
+    onApprovalRequest?: (request: ApprovalRequest, runId?: string, originatingSessionId?: string) => void;
     onEvent?: (event: MarieStreamEvent) => void;
 }
 

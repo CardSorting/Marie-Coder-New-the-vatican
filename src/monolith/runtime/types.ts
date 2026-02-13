@@ -40,6 +40,7 @@ export interface RuntimeOptions<TAutomation extends RuntimeAutomationPort> {
     providerFactory: (providerType: MarieProviderType, apiKey: string) => AIProvider;
     automationService: TAutomation;
     onProgressEvent?: (event: any) => void;
+    onApprovalRequest?: (request: { id: string; toolName: string; toolInput: any; diff?: { old: string, new: string } }) => Promise<boolean>;
     shouldBypassApprovals?: () => boolean;
     fs?: FileSystemPort;
     ghostPort?: GhostPort;

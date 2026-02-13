@@ -68,6 +68,11 @@ class MarieWebviewHost {
                 this.marieInstance.stopGeneration();
                 this.post({ type: "status", isLoading: false });
                 return;
+            case "approval_response":
+                if (message.id && typeof message.approved === "boolean") {
+                    this.marieInstance.resolveApproval(String(message.id), Boolean(message.approved));
+                }
+                return;
             case "create_session":
                 await this.marieInstance.createSession();
                 await this.pushInitState();
@@ -140,6 +145,12 @@ class MarieWebviewHost {
                 },
                 onTool: (tool) => {
                     this.post({ type: "tool_event", tool });
+                },
+                onToolDelta: (delta) => {
+                    this.post({ type: "tool_delta", delta });
+                },
+                onApprovalRequest: (request) => {
+                    this.post({ type: "approval_request", request });
                 },
                 onEvent: (event) => {
                     this.post({ type: "runtime_event", event });

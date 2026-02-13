@@ -120,13 +120,14 @@ export class MarieEventDispatcher {
     private handleToolDelta(event: any, run: any) {
         if (!event.argumentsDelta) return;
 
-        const id = event.id || 'default';
-        if (event.name && !this.toolNames.has(id)) {
-            this.toolNames.set(id, event.name);
+        const idx = event.index !== undefined ? String(event.index) : 'default';
+
+        if (event.name && !this.toolNames.has(idx)) {
+            this.toolNames.set(idx, event.name);
         }
 
-        const current = this.pendingToolDeltas.get(id) || '';
-        this.pendingToolDeltas.set(id, current + event.argumentsDelta);
+        const current = this.pendingToolDeltas.get(idx) || '';
+        this.pendingToolDeltas.set(idx, current + event.argumentsDelta);
 
         if (!this.toolThrottleTimer) {
             this.toolThrottleTimer = setTimeout(() => {
@@ -137,8 +138,8 @@ export class MarieEventDispatcher {
 
     private flushToolDeltas() {
         const run = this.tracker.getRun();
-        for (const [id, delta] of this.pendingToolDeltas.entries()) {
-            const name = this.toolNames.get(id) || '';
+        for (const [idx, delta] of this.pendingToolDeltas.entries()) {
+            const name = this.toolNames.get(idx) || '';
 
             this.tracker.emitEvent({
                 type: 'tool_delta',
@@ -149,7 +150,7 @@ export class MarieEventDispatcher {
             });
 
             if (this.ghostPort) {
-                this.ghostPort.handleDelta(id, name, delta);
+                this.ghostPort.handleDelta(idx, name, delta);
             }
 
             if (delta.includes('path') || delta.includes('file')) {

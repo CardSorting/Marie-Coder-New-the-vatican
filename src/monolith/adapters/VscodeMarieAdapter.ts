@@ -72,7 +72,7 @@ export class Marie extends RuntimeAdapterBase<JoyAutomationService> implements v
             providerFactory: createDefaultProvider,
             automationService,
             onProgressEvent: (event) => this.joyService.onRunProgress(event as any),
-            shouldBypassApprovals: () => true,
+            shouldBypassApprovals: () => ConfigService.getAutonomyMode() !== 'balanced',
             fs: new VscodeFileSystemPort(),
             ghostPort: {
                 handleDelta: (id, name, delta) => MarieGhostService.handleDelta(id, name, delta)

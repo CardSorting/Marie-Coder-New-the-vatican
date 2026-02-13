@@ -23,6 +23,9 @@ export abstract class RuntimeAdapterBase<TAutomation extends RuntimeAutomationPo
     public getMessages() { return this.runtime.getMessages(); }
     public getCurrentSessionId(): string { return this.runtime.getCurrentSessionId(); }
     public getCurrentRun(): RunTelemetry | undefined { return this.runtime.getCurrentRun(); }
+    public resolveApproval(requestId: string, approved: boolean) {
+        return this.runtime.resolveApproval(requestId, approved);
+    }
 
     public dispose() { this.runtime.dispose(); }
 }

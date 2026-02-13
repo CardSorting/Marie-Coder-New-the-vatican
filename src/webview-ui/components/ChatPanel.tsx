@@ -7,6 +7,24 @@ function renderMarkdown(content: string): string {
     return marked.parse(escaped) as string
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+}
+
+function highlightToolInput(input: string): string {
+    const escaped = escapeHtml(input)
+    return escaped
+        .replace(/("[^"]*")\s*:/g, '<span class="tool-key">$1</span>:')
+        .replace(/:\s*("[^"]*")/g, ': <span class="tool-string">$1</span>')
+        .replace(/\b(true|false|null)\b/g, '<span class="tool-literal">$1</span>')
+        .replace(/\b(-?\d+(?:\.\d+)?)\b/g, '<span class="tool-number">$1</span>')
+}
+
 function summarizeActivity(content: string): string {
     const firstLine = content.split("\n").find((line) => line.trim()) || "Activity"
     return firstLine.length > 72 ? `${firstLine.slice(0, 72)}…` : firstLine
@@ -31,12 +49,16 @@ function formatTime(timestamp: number) {
 export function ChatPanel({
     messages,
     streamingBuffer,
+    toolStreamingBuffer,
+    activeToolName,
     pendingApproval,
     onApprove,
     isLoading,
 }: {
     messages: UiMessage[]
     streamingBuffer: string
+    toolStreamingBuffer: string
+    activeToolName: string
     pendingApproval: ApprovalRequest | null
     onApprove: (approved: boolean) => void
     isLoading: boolean
@@ -105,6 +127,26 @@ export function ChatPanel({
                 </div>
             )}
 
+            {toolStreamingBuffer && (
+                <div className="msg assistant tool-input">
+                    <div className="msg-meta">
+                        <span className="msg-avatar assistant" aria-hidden="true">
+                            🛠️
+                        </span>
+                        <span className="msg-role">{activeToolName || "Tool"}</span>
+                        <span className="msg-time">Receiving input…</span>
+                    </div>
+                    <details className="tool-stream-panel" open>
+                        <summary>Tool input stream</summary>
+                        <pre
+                            className="tool-stream"
+                            aria-live="polite"
+                            dangerouslySetInnerHTML={{ __html: highlightToolInput(toolStreamingBuffer) }}
+                        />
+                    </details>
+                </div>
+            )}
+
             {pendingApproval && (
                 <div className="msg assistant tool-request">
                     <div className="tool-card">
@@ -123,7 +165,7 @@ export function ChatPanel({
                 </div>
             )}
 
-            {isLoading && !streamingBuffer && (
+            {isLoading && !streamingBuffer && !toolStreamingBuffer && (
                 <div className="activity-inline">
                     <span className="dot" />
                     <span className="dot" />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Providers } from "./Providers.js"
+import { ApprovalPanel } from "./components/ApprovalPanel.js"
 import { ChatPanel } from "./components/ChatPanel.js"
 import { Composer } from "./components/Composer.js"
 import { HeaderBar } from "./components/HeaderBar.js"
@@ -55,6 +56,7 @@ function AppContent() {
 
             <main className="workspace">
                 <div className="workspace-glass">
+                    <ApprovalPanel pendingApproval={state.pendingApproval} onApprove={actions.approveTool} />
                     <div className="header-wrap minimal">
                         <button
                             className={`session-toggle ${isSidebarOpen ? "is-open" : ""}`}
@@ -85,6 +87,8 @@ function AppContent() {
                     <ChatPanel
                         messages={state.messages}
                         streamingBuffer={state.streamingBuffer}
+                        toolStreamingBuffer={state.toolStreamingBuffer}
+                        activeToolName={state.activeToolName}
                         pendingApproval={state.pendingApproval}
                         onApprove={actions.approveTool}
                         isLoading={state.isLoading}

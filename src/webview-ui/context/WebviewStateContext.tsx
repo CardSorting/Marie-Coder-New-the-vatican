@@ -16,6 +16,9 @@ const initialState: WebviewState = {
     currentSessionId: "default",
     isLoading: false,
     streamingBuffer: "",
+    toolStreamingBuffer: "",
+    activeToolName: "",
+    pendingApproval: null,
     config: defaultConfig,
     availableModels: [],
     stage: "plan",
@@ -71,6 +74,7 @@ type WebviewActions = {
     loadSession: (id: string) => void
     clearSession: () => void
     stopGeneration: () => void
+    approveTool: (approved: boolean) => void
     getModels: () => void
     setProvider: (provider: string) => void
     setModel: (model: string) => void
@@ -115,6 +119,9 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                         config: message.state?.config || prev.config,
                         currentSessionId: message.state?.currentSessionId || prev.currentSessionId,
                         streamingBuffer: "",
+                        toolStreamingBuffer: "",
+                        activeToolName: "",
+                        pendingApproval: null,
                     }))
                     return
 
@@ -129,11 +136,13 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                 case "status":
                     setState((prev) => {
                         const nextLoading = Boolean(message.isLoading)
-                        if (!nextLoading && prev.streamingBuffer) {
+                        if (!nextLoading && (prev.streamingBuffer || prev.toolStreamingBuffer)) {
                             return {
                                 ...prev,
                                 isLoading: false,
                                 streamingBuffer: "",
+                                toolStreamingBuffer: "",
+                                activeToolName: "",
                                 messages: [...prev.messages, newMessage("assistant", prev.streamingBuffer)],
                             }
                         }
@@ -180,6 +189,21 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                     setState((prev) => applyStage(prev, "execute", `Running ${message.tool?.name || "tool"}`))
                     return
 
+                case "approval_request":
+                    setState((prev) => ({
+                        ...prev,
+                        pendingApproval: message.request || null,
+                    }))
+                    return
+
+                case "tool_delta":
+                    setState((prev) => ({
+                        ...prev,
+                        toolStreamingBuffer: prev.toolStreamingBuffer + String(message.delta?.inputDelta || ""),
+                        activeToolName: String(message.delta?.name || prev.activeToolName || "tool"),
+                    }))
+                    return
+
                 case "models":
                     setState((prev) => ({
                         ...prev,
@@ -221,6 +245,16 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             loadSession: (id: string) => vscode.postMessage({ type: "load_session", id }),
             clearSession: () => vscode.postMessage({ type: "clear_session" }),
             stopGeneration: () => vscode.postMessage({ type: "stop_generation" }),
+            approveTool: (approved: boolean) =>
+                setState((prev) => {
+                    if (!prev.pendingApproval) return prev
+                    vscode.postMessage({
+                        type: "approval_response",
+                        id: prev.pendingApproval.id,
+                        approved,
+                    })
+                    return { ...prev, pendingApproval: null }
+                }),
             getModels: () => vscode.postMessage({ type: "get_models" }),
             setProvider: (provider: string) => vscode.postMessage({ type: "set_provider", provider }),
             setModel: (model: string) => vscode.postMessage({ type: "set_model", model }),

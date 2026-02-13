@@ -3,7 +3,7 @@ import { MarieEngine } from "../infrastructure/ai/core/MarieEngine.js";
 import { MarieProgressTracker } from "../infrastructure/ai/core/MarieProgressTracker.js";
 import { MarieResponse } from "../infrastructure/ai/core/MarieResponse.js";
 import { StringUtils } from "../plumbing/utils/StringUtils.js";
-import { MarieCallbacks, RunTelemetry } from "../domain/marie/MarieTypes.js";
+import { ApprovalRequest, MarieCallbacks, RunTelemetry } from "../domain/marie/MarieTypes.js";
 import { AIProvider } from "../infrastructure/ai/providers/AIProvider.js";
 import {
     MarieProviderType,
@@ -22,6 +22,7 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
     private abortController: AbortController | null = null;
     private currentRun: RunTelemetry | undefined;
     private readonly initPromise: Promise<void>;
+    private pendingApprovals = new Map<string, (approved: boolean) => void>();
 
     constructor(private readonly options: RuntimeOptions<TAutomation>) {
         this.toolRegistry = new ToolRegistry();
@@ -247,7 +248,36 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
         this.currentRun = run;
         this.options.automationService.setCurrentRun(run);
 
-        const approvalRequester = async (): Promise<boolean> => true;
+        const approvalRequester = async (name: string, input: any, diff?: { old: string, new: string }): Promise<boolean> => {
+            if (this.options.shouldBypassApprovals?.()) {
+                return true;
+            }
+
+            const request: ApprovalRequest = {
+                id: `approval_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                toolName: name,
+                toolInput: input,
+                diff,
+            };
+
+            const hasHandlers = Boolean(callbacks?.onApprovalRequest || this.options.onApprovalRequest);
+            if (!hasHandlers) {
+                return true;
+            }
+
+            const approvalPromise = new Promise<boolean>((resolve) => {
+                this.pendingApprovals.set(request.id, resolve);
+            });
+
+            callbacks?.onApprovalRequest?.(request, run.runId, originatingSessionId);
+            if (this.options.onApprovalRequest) {
+                void this.options.onApprovalRequest(request).then((approved) => {
+                    this.resolveApproval(request.id, approved);
+                });
+            }
+
+            return approvalPromise;
+        };
 
         const engine = new MarieEngine(this.provider, this.toolRegistry, approvalRequester, this.createProvider.bind(this), this.options.fs, this.options.ghostPort);
 
@@ -352,6 +382,14 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
 
     public getCurrentRun(): RunTelemetry | undefined {
         return this.currentRun;
+    }
+
+    public resolveApproval(requestId: string, approved: boolean): boolean {
+        const resolver = this.pendingApprovals.get(requestId);
+        if (!resolver) return false;
+        this.pendingApprovals.delete(requestId);
+        resolver(approved);
+        return true;
     }
 
     public dispose(): void {

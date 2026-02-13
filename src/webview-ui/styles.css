@@ -110,6 +110,82 @@ body {
     overflow: hidden;
 }
 
+.approval-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.45);
+    display: grid;
+    place-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.approval-card {
+    width: min(720px, calc(100vw - 48px));
+    max-height: calc(100vh - 96px);
+    overflow: auto;
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-soft);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.approval-header {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.approval-tool-name {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.approval-input,
+.approval-diff pre {
+    margin: 0;
+    white-space: pre-wrap;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    padding: var(--space-2);
+    background: color-mix(in srgb, var(--surface-0) 78%, transparent);
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 11px;
+    max-height: 240px;
+    overflow: auto;
+}
+
+.approval-diff-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+}
+
+.approval-diff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-3);
+}
+
+.approval-diff-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: var(--space-1);
+}
+
+.approval-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+}
+
 .stage-rail {
     display: flex;
     flex-direction: column;
@@ -901,6 +977,64 @@ body {
     background: color-mix(in srgb, var(--surface-2) 78%, transparent);
     border-color: var(--glass-border);
     border-bottom-left-radius: var(--radius-sm);
+}
+
+.msg.assistant.tool-input {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--glass-border));
+    background: color-mix(in srgb, var(--surface-1) 80%, transparent);
+}
+
+.tool-stream {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+    background: color-mix(in srgb, var(--surface-0) 78%, transparent);
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 11px;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow: auto;
+}
+
+.tool-stream-panel {
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--glass-border) 75%, transparent);
+    background: color-mix(in srgb, var(--surface-0) 72%, transparent);
+    padding: var(--space-2) var(--space-2);
+}
+
+.tool-stream-panel summary {
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-2);
+}
+
+.tool-stream-panel[open] summary {
+    color: var(--text-primary);
+}
+
+.tool-key {
+    color: color-mix(in srgb, var(--accent) 70%, var(--text-primary));
+    font-weight: 600;
+}
+
+.tool-string {
+    color: color-mix(in srgb, #38b66b 70%, var(--text-primary));
+}
+
+.tool-number {
+    color: color-mix(in srgb, #4aa3ff 70%, var(--text-primary));
+}
+
+.tool-literal {
+    color: color-mix(in srgb, #d28d23 75%, var(--text-primary));
+    font-weight: 600;
 }
 
 .tool-request {
