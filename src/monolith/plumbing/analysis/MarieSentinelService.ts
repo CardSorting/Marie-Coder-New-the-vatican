@@ -11,11 +11,11 @@ export interface SentinelReport {
   leakyAbstractions: string[];
   duplication: string[];
   entropyScore: number;
-  entropyDelta: number; // New: Change from last scan
+  entropyDelta: number;
   stability: "Stable" | "Fluid" | "Fragile" | "Toxic";
   hotspots: string[];
   quarantineCandidates: string[];
-  graphDefinition: string; // New: Mermaid Graph
+  graphDefinition: string;
   passed: boolean;
 }
 
@@ -24,6 +24,10 @@ interface SentinelState {
   history: { date: string; entropy: number }[];
 }
 
+/**
+ * MARIE SENTINEL v3.1: THE GROUNDED GUARDIAN
+ * Improved accuracy in resolution, duplication, and graph fidelity.
+ */
 export class MarieSentinelService {
   private static readonly ZONES = {
     DOMAIN: "domain",
@@ -33,17 +37,9 @@ export class MarieSentinelService {
 
   private static readonly STATE_FILE = ".marie/sentinel_state.json";
 
-  /**
-   * Doctrine Rules:
-   * - Domain: No infra, no plumbing, no DOM/fs/process. No "Leaky Abstractions".
-   * - Infrastructure: Can import domain, No plumbing.
-   * - Plumbing: Can import domain + infrastructure, No business logic.
-   * - Global: No Circular Dependencies. No Toxic Complexity. No Duplication.
-   * - Ratchet: Entropy must not increase.
-   */
   public static async audit(workingDir: string, specificFile?: string): Promise<SentinelReport> {
-    const files = await this.getAllFiles(workingDir);
-    const targetFiles = specificFile ? [specificFile] : files;
+    const allFiles = await this.getAllFiles(workingDir);
+    const targetFiles = specificFile ? [specificFile] : allFiles;
     
     const zoneViolations: string[] = [];
     const circularDependencies: string[] = [];
@@ -51,57 +47,67 @@ export class MarieSentinelService {
     const duplication: string[] = [];
     const toxicFiles: string[] = [];
     
-    // 1. Build Dependency Graph & Content Maps
+    // 1. Precise Dependency Graph & Semantic Content Maps
     const dependencyGraph = new Map<string, string[]>();
-    const contentMap = new Map<string, string>(); // Hash -> FilePath
+    const semanticHashMap = new Map<string, string>(); // Hash -> FilePath
 
-    for (const file of files) {
+    for (const file of allFiles) {
       const content = await fs.readFile(file, "utf8");
       const relativePath = path.relative(workingDir, file);
       
-      // Duplication Check (Simple content hash of stripped code)
-      const hash = this.hashContent(content);
-      if (contentMap.has(hash)) {
-        duplication.push(`[Doppelgänger] ${relativePath} is a duplicate of ${contentMap.get(hash)}`);
+      // A. Semantic Duplication (Token-based hash to ignore naming/formatting)
+      const semanticHash = this.computeSemanticHash(content);
+      if (semanticHashMap.has(semanticHash)) {
+        const original = semanticHashMap.get(semanticHash)!;
+        if (original !== relativePath) {
+          duplication.push(`[Semantic Duplicate] ${relativePath} matches ${original}`);
+        }
       } else {
-        contentMap.set(hash, relativePath);
+        semanticHashMap.set(semanticHash, relativePath);
       }
 
-      const imports = this.extractImports(content);
-      const resolvedImports = imports.map(i => this.resolveImport(i, file, workingDir));
-      dependencyGraph.set(relativePath, resolvedImports.filter(Boolean) as string[]);
+      // B. Robust Import Extraction & Resolution
+      const rawImports = this.extractImports(content);
+      const resolvedImports = await Promise.all(
+        rawImports.map(i => this.resolveImportDeep(i, file, workingDir))
+      );
+      
+      const validImports = resolvedImports.filter(Boolean) as string[];
+      dependencyGraph.set(relativePath, validImports);
 
+      // C. Target Analysis
       if (targetFiles.includes(file)) {
-        await this.analyzeFile(file, workingDir, content, imports, zoneViolations, leakyAbstractions, toxicFiles);
+        await this.analyzeFile(file, workingDir, content, validImports, zoneViolations, leakyAbstractions, toxicFiles);
       }
     }
 
-    // 2. Global Scans
+    // 2. Cycle Detection (Global)
     const cycles = this.detectCycles(dependencyGraph);
     circularDependencies.push(...cycles);
-    const lintErrors = await LintService.runLint(workingDir); 
-    
-    // 3. Entropy Calculation
-    const entropyScore = 
-      (zoneViolations.length * 5) + 
-      (lintErrors.length * 1) + 
-      (circularDependencies.length * 10) + 
-      (toxicFiles.length * 5) +
-      (leakyAbstractions.length * 3) +
-      (duplication.length * 4);
 
-    // 4. The Ratchet Protocol (State Comparison)
+    // 3. Score Normalization & Ratchet
+    const lintErrors = await LintService.runLint(workingDir);
+    
+    const entropyScore = 
+      (zoneViolations.length * 8) + // Weighted higher
+      (lintErrors.length * 1) + 
+      (circularDependencies.length * 15) + // Structural rot is expensive
+      (toxicFiles.length * 6) +
+      (leakyAbstractions.length * 5) +
+      (duplication.length * 10); // DRY is law
+
     const state = await this.loadState(workingDir);
     const entropyDelta = entropyScore - state.lastEntropy;
+    
     await this.saveState(workingDir, {
       lastEntropy: entropyScore,
-      history: [...state.history, { date: new Date().toISOString(), entropy: entropyScore }].slice(-10)
+      history: [...state.history, { date: new Date().toISOString(), entropy: entropyScore }].slice(-20)
     });
 
     let stability: SentinelReport["stability"] = "Stable";
-    if (entropyScore > 25) stability = "Toxic";
+    if (entropyScore > 30) stability = "Toxic";
     else if (entropyScore > 15) stability = "Fragile";
-    else if (entropyScore > 5) stability = "Fluid";
+    else if (entropyScore > 7) stability = "Fluid";
 
     const report: SentinelReport = {
       timestamp: new Date().toISOString(),
@@ -115,24 +121,57 @@ export class MarieSentinelService {
       hotspots: Array.from(new Set([...zoneViolations.map(v => v.split(" ")[1]), ...toxicFiles])).slice(0, 5),
       quarantineCandidates: toxicFiles,
       graphDefinition: this.generateMermaidGraph(dependencyGraph, zoneViolations),
-      passed: entropyScore < 15 && entropyDelta <= 0, // Failed if entropy RISES (Ratchet)
+      passed: entropyScore < 20 && entropyDelta <= 0,
     };
 
     await this.writeToSentinelLog(workingDir, report);
     return report;
   }
 
-  private static hashContent(content: string): string {
-    // Strip comments and whitespace to detect semantic duplication
-    const stripped = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, '');
-    return crypto.createHash('md5').update(stripped).digest('hex');
+  /**
+   * Computes a "Semantic Hash" by tokenizing the code and stripping noise.
+   * This catches duplication even if variables are renamed (shallowly).
+   */
+  private static computeSemanticHash(content: string): string {
+    const tokens = content
+      .replace(/\/\/.*$/gm, '') // Strip line comments
+      .replace(/\/\*[\s\S]*?\*\//g, '') // Strip block comments
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/\b(const|let|var)\s+\w+\b/g, 'VAR') // Normalize variable declarations
+      .replace(/\bfunction\s+\w+\b/g, 'FUNC') // Normalize function names
+      .trim();
+    return crypto.createHash('sha256').update(tokens).digest('hex');
+  }
+
+  private static async resolveImportDeep(imp: string, sourceFile: string, workingDir: string): Promise<string | null> {
+    if (!imp.startsWith(".")) return null; // Ignore external for now
+
+    const baseDir = path.dirname(sourceFile);
+    const candidatePaths = [
+      path.resolve(baseDir, imp),
+      path.resolve(baseDir, `${imp}.ts`),
+      path.resolve(baseDir, `${imp}.tsx`),
+      path.resolve(baseDir, `${imp}.js`),
+      path.resolve(baseDir, imp, "index.ts"),
+      path.resolve(baseDir, imp, "index.js"),
+    ];
+
+    for (const p of candidatePaths) {
+      try {
+        const stats = await fs.stat(p);
+        if (stats.isFile()) {
+          return path.relative(workingDir, p);
+        }
+      } catch { continue; }
+    }
+    return null;
   }
 
   private static async analyzeFile(
     file: string, 
     workingDir: string, 
     content: string, 
-    imports: string[], 
+    resolvedImports: string[], 
     zoneViolations: string[], 
     leakyAbstractions: string[],
     toxicFiles: string[]
@@ -141,35 +180,30 @@ export class MarieSentinelService {
     const zone = this.getZone(relativePath);
     if (!zone) return;
 
-    // A. Zone Enforcement
-    for (const imp of imports) {
-      const impZone = this.getImportZone(imp, relativePath);
+    // A. Real Zone Verification (based on RESOLVED paths)
+    for (const impPath of resolvedImports) {
+      const impZone = this.getZone(impPath);
       if (!impZone) continue;
 
-      if (zone === this.ZONES.DOMAIN) {
-        if (impZone === this.ZONES.INFRASTRUCTURE || impZone === this.ZONES.PLUMBING) {
-          zoneViolations.push(`[Domain Violation] ${relativePath} -> ${imp} (${impZone})`);
-        }
-        if (/['"](fs|path|os|vscode|express|react|vue|angular|typeorm|mongoose)['"]/.test(imp)) {
-          zoneViolations.push(`[Purity Violation] ${relativePath} -> ${imp}`);
-        }
-      } else if (zone === this.ZONES.INFRASTRUCTURE) {
-        if (impZone === this.ZONES.PLUMBING) {
-          zoneViolations.push(`[Infrastructure Violation] ${relativePath} -> ${imp} (Plumbing leakage)`);
-        }
+      if (zone === this.ZONES.DOMAIN && impZone !== this.ZONES.DOMAIN) {
+        zoneViolations.push(`[Purity Breach] ${relativePath} -> ${impPath} (${impZone})`);
+      }
+      if (zone === this.ZONES.INFRASTRUCTURE && impZone === this.ZONES.PLUMBING) {
+        zoneViolations.push(`[Architecture Leak] ${relativePath} -> ${impPath} (Infrastructure cannot use Plumbing)`);
       }
     }
 
-    // B. Leaky Abstraction Check
+    // B. Purity Scan (System Types in Domain)
     if (zone === this.ZONES.DOMAIN) {
-      if (content.match(/\b(HTMLElement|Request|Response|Buffer|EventEmitter)\b/)) {
-        leakyAbstractions.push(`[Leaky Abstraction] ${relativePath} exposes implementation types.`);
+      const systemKeywords = /\b(fs|path|os|vscode|express|React|HTMLElement|Buffer|process|window|document)\b/;
+      if (systemKeywords.test(content)) {
+        leakyAbstractions.push(`[System Leak] ${relativePath} references non-domain types.`);
       }
     }
 
-    // C. Complexity Check
+    // C. Complexity Guard
     const metrics = await ComplexityService.analyze(file);
-    if (metrics.cyclomaticComplexity > 25 || metrics.clutterLevel === "Toxic") {
+    if (metrics.cyclomaticComplexity > 20 || metrics.clutterLevel === "Toxic") {
       toxicFiles.push(relativePath);
     }
   }
@@ -181,52 +215,36 @@ export class MarieSentinelService {
     return null;
   }
 
-  private static getImportZone(impPath: string, sourceFile: string): string | null {
-    if (impPath.includes("/domain") || impPath.includes("../domain")) return this.ZONES.DOMAIN;
-    if (impPath.includes("/infrastructure") || impPath.includes("../infrastructure")) return this.ZONES.INFRASTRUCTURE;
-    if (impPath.includes("/plumbing") || impPath.includes("../plumbing")) return this.ZONES.PLUMBING;
-    return null;
-  }
-
   private static extractImports(content: string): string[] {
-    const importRegex = /import\s+.*?\s+from\s+['"](.*?)['"]/g;
     const imports: string[] = [];
+    const importRegex = /from\s+['"](.*?)['"]/g;
+    const requireRegex = /require\(['"](.*?)['"]\)/g;
+    
     let match;
-    while ((match = importRegex.exec(content)) !== null) {
-      imports.push(match[1]);
-    }
-    return imports;
-  }
-
-  private static resolveImport(imp: string, sourceFile: string, workingDir: string): string | null {
-    if (imp.startsWith(".")) {
-      const resolved = path.resolve(path.dirname(sourceFile), imp);
-      return path.relative(workingDir, resolved);
-    }
-    return null;
+    while ((match = importRegex.exec(content)) !== null) imports.push(match[1]);
+    while ((match = requireRegex.exec(content)) !== null) imports.push(match[1]);
+    
+    return Array.from(new Set(imports));
   }
 
   private static detectCycles(graph: Map<string, string[]>): string[] {
     const cycles: string[] = [];
     const visited = new Set<string>();
-    const recursionStack = new Set<string>();
+    const stack = new Set<string>();
 
-    function dfs(node: string, path: string[]) {
+    const dfs = (node: string, path: string[]) => {
       visited.add(node);
-      recursionStack.add(node);
-      const neighbors = graph.get(node) || [];
-      for (const neighbor of neighbors) {
-        const matchedKey = Array.from(graph.keys()).find(k => k.startsWith(neighbor) || neighbor.startsWith(k));
-        if (matchedKey) {
-          if (!visited.has(matchedKey)) {
-            dfs(matchedKey, [...path, matchedKey]);
-          } else if (recursionStack.has(matchedKey)) {
-            cycles.push(`Cycle: ${path.join(" -> ")} -> ${matchedKey}`);
-          }
+      stack.add(node);
+
+      for (const neighbor of graph.get(node) || []) {
+        if (stack.has(neighbor)) {
+          cycles.push(`🔄 ${path.join(" -> ")} -> ${neighbor}`);
+        } else if (!visited.has(neighbor)) {
+          dfs(neighbor, [...path, neighbor]);
         }
       }
-      recursionStack.delete(node);
-    }
+      stack.delete(node);
+    };
 
     for (const node of graph.keys()) {
       if (!visited.has(node)) dfs(node, [node]);
@@ -236,49 +254,31 @@ export class MarieSentinelService {
 
   private static generateMermaidGraph(graph: Map<string, string[]>, violations: string[]): string {
     let mermaid = "graph TD;\n";
-    let linkCount = 0;
-    
-    // Heuristic: Limit graph size for readability
-    const nodes = Array.from(graph.keys()).slice(0, 50); 
-    
+    const nodes = Array.from(graph.keys()).slice(0, 40); 
     nodes.forEach(node => {
-      const cleanNode = node.replace(/[^a-zA-Z0-9]/g, '_');
-      const deps = graph.get(node) || [];
-      
-      deps.forEach(dep => {
-        const cleanDep = dep.replace(/[^a-zA-Z0-9]/g, '_');
-        // Check if this link is a violation
-        const isViolation = violations.some(v => v.includes(node) && v.includes(dep));
-        
-        mermaid += `  ${cleanNode}[${path.basename(node)}] --> ${cleanDep}[${path.basename(dep)}];\n`;
-        if (isViolation) {
-          mermaid += `  linkStyle ${linkCount} stroke:#ff0000,stroke-width:2px;\n`;
-        }
-        linkCount++;
+      const id = node.replace(/[^a-zA-Z0-9]/g, '_');
+      const name = path.basename(node);
+      graph.get(node)?.forEach(dep => {
+        const depId = dep.replace(/[^a-zA-Z0-9]/g, '_');
+        const isViolated = violations.some(v => v.includes(node) && v.includes(dep));
+        mermaid += `  ${id}[${name}] --> ${depId}[${path.basename(dep)}];\n`;
+        if (isViolated) mermaid += `  style ${id} fill:#f96,stroke:#333,stroke-width:2px\n`;
       });
     });
-    
     return mermaid;
   }
 
   private static async loadState(workingDir: string): Promise<SentinelState> {
     try {
-      const statePath = path.join(workingDir, this.STATE_FILE);
-      const content = await fs.readFile(statePath, "utf8");
+      const content = await fs.readFile(path.join(workingDir, this.STATE_FILE), "utf8");
       return JSON.parse(content);
-    } catch {
-      return { lastEntropy: 0, history: [] };
-    }
+    } catch { return { lastEntropy: 0, history: [] }; }
   }
 
   private static async saveState(workingDir: string, state: SentinelState) {
-    try {
-      const dir = path.join(workingDir, ".marie");
-      await fs.mkdir(dir, { recursive: true });
-      await fs.writeFile(path.join(workingDir, this.STATE_FILE), JSON.stringify(state, null, 2));
-    } catch (e) {
-      console.warn("Failed to save Sentinel state", e);
-    }
+    const dir = path.join(workingDir, ".marie");
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(workingDir, this.STATE_FILE), JSON.stringify(state, null, 2));
   }
 
   private static async getAllFiles(dir: string): Promise<string[]> {
@@ -293,47 +293,32 @@ export class MarieSentinelService {
 
   private static async writeToSentinelLog(workingDir: string, report: SentinelReport) {
     const logPath = path.join(workingDir, "SENTINEL.md");
-    const deltaEmoji = report.entropyDelta > 0 ? "📈 (Degrading)" : report.entropyDelta < 0 ? "📉 (Improving)" : "➡️ (Constant)";
-    
     const summary = `
 # 🛡️ Sentinel Report: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
 
-**Stability**: ${report.stability} ${this.getStabilityEmoji(report.stability)}
-**Entropy**: ${report.entropyScore} ${deltaEmoji}
-**Ratchet Status**: ${report.entropyDelta > 0 ? "🚫 LOCKED (Regression Detected)" : "✅ OPEN"}
+**Stability**: ${report.stability}
+**Entropy**: ${report.entropyScore} (${report.entropyDelta > 0 ? "⚠️ Regression" : "✅ Monotonic"})
+**Ratchet**: ${report.entropyDelta > 0 ? "🚫 LOCKED" : "🔓 OPEN"}
 
 ## 📊 Metrics
-- **Zone Violations**: ${report.zoneViolations.length}
-- **Circular Deps**: ${report.circularDependencies.length}
-- **Doppelgängers**: ${report.duplication.length}
-- **Toxic Files**: ${report.quarantineCandidates.length}
+- **Zoning Law**: ${report.zoneViolations.length} violations
+- **Cyclic Rot**: ${report.circularDependencies.length} cycles
+- **Duplication**: ${report.duplication.length} instances
+- **Toxicity**: ${report.quarantineCandidates.length} hotspots
 
-## 🗺️ Architecture Graph
+## 🗺️ Visual Architecture
 \`\`\`mermaid
 ${report.graphDefinition}
 \`\`\`
 
-## ⚠️ Hotspots
-${report.hotspots.map(h => `- ${h}`).join("\n")}
-
-## 📜 Violations
-${report.zoneViolations.map(v => `- ${v}`).join("\n")}
-${report.circularDependencies.map(c => `- 🔄 ${c}`).join("\n")}
-${report.duplication.map(d => `- 👯 ${d}`).join("\n")}
+## 📜 High-Priority Alerts
+${report.zoneViolations.slice(0, 5).map(v => `- ❌ ${v}`).join("\n")}
+${report.circularDependencies.slice(0, 3).map(c => `- 🔄 ${c}`).join("\n")}
+${report.duplication.slice(0, 3).map(d => `- 👯 ${d}`).join("\n")}
 
 ---
-*Marie Sentinel v3.0 — The Omniscient Guardian*
+*Marie Sentinel v3.1 — Grounded Architectural Guardian*
 `;
     await fs.writeFile(logPath, summary);
-  }
-
-  private static getStabilityEmoji(s: string): string {
-    switch (s) {
-      case "Stable": return "🛡️";
-      case "Fluid": return "🌊";
-      case "Fragile": return "⚠️";
-      case "Toxic": return "☢️";
-      default: return "❓";
-    }
   }
 }
