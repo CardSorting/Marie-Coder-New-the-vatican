@@ -49,7 +49,7 @@ export class MarieSession {
 
             const params = {
                 model: ConfigService.getModel(),
-                max_tokens: 2048,
+                max_tokens: 8192,
                 messages: managedMessages,
                 system: this.resolveSystemPrompt(),
                 tools: this.toolRegistry.getTools(),
@@ -184,7 +184,7 @@ export class MarieSession {
         const state = this.tracker?.getRun().ascensionState;
         const params = {
             model: ConfigService.getModel(),
-            max_tokens: 2048,
+            max_tokens: 8192,
             messages: await ContextManager.manage(this.messages, this.provider, state),
             system: this.resolveSystemPrompt(),
             tools: this.toolRegistry.getTools(),

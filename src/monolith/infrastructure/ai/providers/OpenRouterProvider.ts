@@ -232,7 +232,13 @@ export class OpenRouterProvider implements AIProvider {
                                         }
                                         if (tc.function?.arguments) {
                                             toolCalls[idx].argumentsParts.push(tc.function.arguments);
-                                            onUpdate({ type: "tool_call_delta", index: idx, id: tc.id, name: tc.function?.name, argumentsDelta: tc.function.arguments });
+                                            onUpdate({
+                                                type: "tool_call_delta",
+                                                index: idx,
+                                                id: toolCalls[idx].id,
+                                                name: toolCalls[idx].name,
+                                                argumentsDelta: tc.function.arguments
+                                            });
                                         }
                                     }
                                 }

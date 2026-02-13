@@ -294,7 +294,12 @@ export class MarieEngine {
                     if (!tb) {
                         tb = { id: event.id, name: event.name, inputString: "" };
                         toolBuffer.set(event.index, tb);
+                    } else {
+                        // UPDATE: Ensure name and id are captured even if they arrive in later deltas
+                        if (event.id && !tb.id) tb.id = event.id;
+                        if (event.name && !tb.name) tb.name = event.name;
                     }
+
                     if (event.argumentsDelta) tb.inputString += event.argumentsDelta;
 
                     if (tb.name && this.isLikelyCompleteJson(tb.inputString)) {
