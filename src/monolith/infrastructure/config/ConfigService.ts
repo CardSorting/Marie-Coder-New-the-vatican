@@ -14,7 +14,8 @@ function isLikelyVscodeExtensionHost(): boolean {
     return Boolean(
         process.env.VSCODE_IPC_HOOK ||
         process.env.VSCODE_PID ||
-        process.env.VSCODE_CWD
+        process.env.VSCODE_CWD ||
+        process.env.VSCODE_NLS_CONFIG
     );
 }
 
@@ -29,7 +30,14 @@ function getVscode(): typeof vscodeTypes | null {
         hasAttemptedVscodeLoad = true;
         try {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            vscodeModule = nodeRequire('vscode') as typeof vscodeTypes;
+            const loaded = nodeRequire('vscode') as typeof vscodeTypes;
+            // Guard against the CLI vscode shim which doesn't include the full VS Code API.
+            const version = (loaded as any).version as string | undefined;
+            if (!version || typeof version !== 'string' || !version.startsWith('1.')) {
+                vscodeModule = null;
+            } else {
+                vscodeModule = loaded;
+            }
         } catch {
             // VSCode not available - we're in CLI mode
             vscodeModule = null;
