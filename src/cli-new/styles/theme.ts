@@ -27,7 +27,6 @@ export const marieTheme: Theme = {
         error: '✗',
         info: 'ℹ',
         checkpoint: '◈',
-        council: '🏛️',
     },
 };
 

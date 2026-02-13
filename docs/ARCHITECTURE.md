@@ -101,7 +101,7 @@ MarieCoder now includes a founder-policy agent in the swarm: **MarieYOLO**.
 ### Purpose
 - Preserve execution momentum when context is healthy.
 - Detect structural uncertainty and dampen risky acceleration.
-- Emit deterministic strategy signals for Council voting.
+- Emit deterministic strategy signals for agent alignment.
 
 ### Runtime Profiles
 - `demo_day`: High momentum bias, stronger execution pressure.
@@ -125,10 +125,10 @@ MarieYOLO emits a normalized decision payload including:
 - stop condition (`landed | structural_uncertainty`)
 
 ### Governance Interplay
-- YOLO votes are weighted in Council consensus.
+- YOLO votes are weighted in coordination consensus.
 - Weight is boosted in healthy conditions and dampened in risk states.
 - Panic cooldown and structural-uncertainty paths cap YOLO influence.
-- YOLO telemetry is included in council snapshots for observability.
+- YOLO telemetry is included in runtime snapshots for observability.
 
 ---
 *Verified and Documented with Love. ✨*

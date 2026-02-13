@@ -74,7 +74,6 @@ export interface Theme {
         error: string;
         info: string;
         checkpoint: string;
-        council: string;
     };
 }
 
