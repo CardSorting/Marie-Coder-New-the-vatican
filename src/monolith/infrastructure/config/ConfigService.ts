@@ -5,19 +5,20 @@ import type * as vscodeTypes from 'vscode';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const requireBase = (import.meta as any).url
-    ? fileURLToPath((import.meta as any).url)
-    : (typeof __filename === 'string' ? __filename : (process.argv[1] || process.cwd()));
-
-let nodeRequire: any;
-try {
-    nodeRequire = createRequire(requireBase);
-} catch {
-    // Fallback if createRequire fails
-    nodeRequire = (id: string) => {
-        throw new Error(`Cannot require ${id} in this environment`);
-    };
-}
+// ISOMORPHIC REQUIRE: Resolves the correct require function for both ESM and CJS
+const nodeRequire = (() => {
+    if (typeof require !== 'undefined') {
+        return require;
+    }
+    // In ESM environments (CLI), we must create a require function
+    // We use an indirect eval to prevent esbuild from complaining during bundling
+    try {
+        const metaUrl = (0, eval)('import.meta.url');
+        return createRequire(metaUrl);
+    } catch {
+        return (id: string) => { throw new Error(`Cannot require ${id} in this environment`); };
+    }
+})();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let vscodeModule: typeof vscodeTypes | null = null;
@@ -42,7 +43,6 @@ function getVscode(): typeof vscodeTypes | null {
     if (!hasAttemptedVscodeLoad) {
         hasAttemptedVscodeLoad = true;
         try {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const loaded = nodeRequire('vscode') as typeof vscodeTypes;
             // Guard against the CLI vscode shim which doesn't include the full VS Code API.
             const version = (loaded as any).version as string | undefined;
@@ -64,11 +64,8 @@ function getCliConfig(): Record<string, unknown> {
     try {
         // Prefer loading the CLI config directly from ~/.marie to avoid module resolution issues
         // when running the globally installed CLI.
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const fs = nodeRequire('fs') as typeof import('fs');
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const path = nodeRequire('path') as typeof import('path');
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const os = nodeRequire('os') as typeof import('os');
 
         const configPath = path.join(os.homedir(), '.marie', 'config.json');
@@ -81,7 +78,6 @@ function getCliConfig(): Record<string, unknown> {
     } catch {
         try {
             // Fallback when ConfigService is loaded from the CLI entrypoint path.
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { Storage } = nodeRequire('../monolith/cli/storage.js');
             return Storage.getConfig() || {};
         } catch {
