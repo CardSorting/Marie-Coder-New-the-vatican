@@ -60,7 +60,7 @@ function AppContent() {
 
             <main className="workspace">
                 <div className="workspace-glass">
-                    <div className="header-wrap">
+                    <div className="header-wrap minimal">
                         <button
                             className={`session-toggle ${isSidebarOpen ? "is-open" : ""}`}
                             onClick={() => setIsSidebarOpen((prev) => !prev)}

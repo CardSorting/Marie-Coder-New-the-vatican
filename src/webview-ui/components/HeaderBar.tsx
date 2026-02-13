@@ -64,7 +64,7 @@ export function HeaderBar({
                     </div>
                 </div>
 
-                <div className="header-controls">
+                <div className="header-controls minimal">
                     <div className="config-pill-row">
                         <span className="config-pill">{config.provider}</span>
                         <span className="config-pill model" title={config.model}>{config.model}</span>

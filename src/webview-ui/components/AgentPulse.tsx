@@ -24,12 +24,11 @@ export function AgentPulse({
     const tone = pendingApproval ? "warn" : isLoading ? "active" : "idle"
 
     return (
-        <div className={`agent-pulse ${tone}`} aria-live="polite">
+        <div
+            className={`agent-pulse compact ${tone}`}
+            aria-live="polite"
+            title={`${stageLabels[stage]} • ${statusLabel}`}>
             <span className="pulse-dot" aria-hidden="true" />
-            <div className="pulse-text">
-                <span className="pulse-stage">{stageLabels[stage]}</span>
-                <span className="pulse-status">{statusLabel}</span>
-            </div>
         </div>
     )
 }

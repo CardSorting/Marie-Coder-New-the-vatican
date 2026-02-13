@@ -228,6 +228,27 @@ body {
     background: color-mix(in srgb, var(--surface-0) 76%, transparent);
 }
 
+.status-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+
+.status-toggle {
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-muted);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+}
+
+.status-panel.collapsed .status-actions,
+.status-panel.collapsed .status-hint {
+    display: none;
+}
+
 .status-grid {
     display: grid;
     grid-template-columns: 1fr 240px;
@@ -447,6 +468,13 @@ body {
     font-size: 11px;
 }
 
+.agent-pulse.compact {
+    padding: 4px;
+    width: 20px;
+    height: 20px;
+    justify-content: center;
+}
+
 .pulse-dot {
     width: 8px;
     height: 8px;
@@ -503,6 +531,10 @@ body {
     gap: var(--space-2);
     flex-wrap: wrap;
     justify-content: flex-end;
+}
+
+.header-controls.minimal {
+    gap: var(--space-1);
 }
 
 .control-field {
