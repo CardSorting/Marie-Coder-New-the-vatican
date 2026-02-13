@@ -38,17 +38,23 @@ export function SessionList({
                 </button>
             </div>
             <div className="stack">
-                {sorted.length === 0 && <div className="muted">No sessions</div>}
+                {sorted.length === 0 && (
+                    <div className="session-empty">
+                        <div className="session-empty-icon">✨</div>
+                        <div className="session-empty-title">No sessions yet</div>
+                        <div className="muted">Start a new chat to create your first session.</div>
+                    </div>
+                )}
                 {sorted.map((session) => (
                     <button
                         key={session.id}
                         onClick={() => onLoad(session.id)}
                         className={`session ${session.id === currentSessionId ? "active" : ""}`}>
-                        <span>
+                        <span className="session-title">
                             {session.isPinned ? "📌 " : "💬 "}
                             {session.title || "New Session"}
                         </span>
-                        <span className="muted">{formatSessionDate(session.lastModified)}</span>
+                        <span className="session-date muted">{formatSessionDate(session.lastModified)}</span>
                     </button>
                 ))}
             </div>

@@ -116,6 +116,7 @@ body {
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--glass-border);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--surface-1) 85%, transparent), transparent);
 }
 
 .top {
@@ -131,6 +132,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: var(--space-3);
+    font-size: 14px;
 }
 
 .header-controls {
@@ -163,7 +165,7 @@ body {
     background: color-mix(in srgb, var(--surface-2) 74%, transparent);
     color: var(--text-primary);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .session-toggle:hover {
@@ -326,6 +328,9 @@ body {
     padding-bottom: var(--space-1);
     border-bottom: 1px solid var(--glass-border);
     padding-top: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 11px;
 }
 
 .session-heading-icon {
@@ -336,6 +341,27 @@ body {
     justify-content: center;
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--accent) 20%, var(--surface-2));
+    font-size: 13px;
+}
+
+.session-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px dashed color-mix(in srgb, var(--glass-border) 75%, transparent);
+    background: color-mix(in srgb, var(--surface-0) 70%, transparent);
+}
+
+.session-empty-icon {
+    font-size: 18px;
+}
+
+.session-empty-title {
+    font-weight: 600;
+    font-size: 13px;
 }
 
 .left.stack {
@@ -348,6 +374,7 @@ body {
 
 .left .row button {
     flex: 1;
+    font-weight: 600;
 }
 
 .left .stack {
@@ -614,16 +641,30 @@ button.session {
     display: inline-flex;
     gap: var(--space-3);
     padding: 10px 12px;
+    align-items: center;
+}
+
+.session-title {
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.session-date {
+    font-size: 11px;
 }
 
 button.session.active {
     border-color: var(--accent);
     background: color-mix(in srgb, var(--accent) 16%, var(--surface-0));
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 button.session:hover {
     border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
     transform: translateY(-1px);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.08);
 }
 
 select {
