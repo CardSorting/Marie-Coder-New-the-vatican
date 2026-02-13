@@ -104,7 +104,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
 
   if (isLoading) {
     return (
-      <Box marginY={1}>
+      <Box marginY={0}>
         <Text color={marieTheme.colors.muted}>
           {marieTheme.icons.spinner} Marie is thinking... Press Ctrl+C to cancel
         </Text>
@@ -113,7 +113,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
   }
 
   return (
-    <Box flexDirection="column" marginY={1}>
+    <Box flexDirection="column" marginY={0}>
       <Box>
         <Text color={marieTheme.colors.primary} bold>
           {marieTheme.icons.user}{" "}
@@ -127,7 +127,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
       </Box>
 
       {showCommands && filteredCommands.length > 0 && (
-        <Box flexDirection="column" marginTop={1} marginLeft={2}>
+        <Box flexDirection="column" marginTop={0} marginLeft={2}>
           {filteredCommands.map((cmd, index) => (
             <Box key={cmd.value}>
               <Text

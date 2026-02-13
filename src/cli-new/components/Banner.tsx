@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text } from "ink";
+import { Box, Text, useStdout } from "ink";
 import { marieTheme } from "../styles/theme.js";
 
 interface BannerProps {
@@ -7,14 +7,22 @@ interface BannerProps {
 }
 
 export const Banner: React.FC<BannerProps> = ({ show = true }) => {
+  const { stdout } = useStdout();
+  const width = stdout?.columns || 80;
+
   if (!show) return null;
+
+  // If screen is too small, use compact banner
+  if (width < 65) {
+    return <CompactBanner />;
+  }
 
   return (
     <Box
       flexDirection="column"
       alignItems="center"
       marginTop={0}
-      marginBottom={1}
+      marginBottom={0}
     >
       {/* Claude Code inspired artistic banner */}
       <Box flexDirection="column" alignItems="center">
@@ -65,14 +73,14 @@ export const Banner: React.FC<BannerProps> = ({ show = true }) => {
 // Alternative compact banner for smaller screens
 export const CompactBanner: React.FC = () => {
   return (
-    <Box flexDirection="column" alignItems="center" marginY={1}>
+    <Box flexDirection="column" alignItems="center" marginY={0}>
       <Text color={marieTheme.colors.primary} bold>
         {"╔══════════════════════════════════════════╗"}
       </Text>
       <Text color={marieTheme.colors.primary} bold>
         {"║  🌸  Marie  ·  AI Coding Assistant  🌸  ║"}
       </Text>
-      <Text color={marieTheme.colors.muted}>
+      <Text color={marieTheme.colors.primary} bold>
         {"╚══════════════════════════════════════════╝"}
       </Text>
     </Box>
@@ -82,9 +90,9 @@ export const CompactBanner: React.FC = () => {
 // Welcome banner with tips
 export const WelcomeBanner: React.FC = () => {
   return (
-    <Box flexDirection="column" alignItems="center" marginY={1}>
+    <Box flexDirection="column" alignItems="center" marginTop={0} marginBottom={1}>
       <Banner />
-      <Box flexDirection="column" alignItems="center" marginTop={1}>
+      <Box flexDirection="column" alignItems="center" marginTop={0}>
         <Text color={marieTheme.colors.secondary}>
           {"  Welcome! Type your message to start coding with AI."}
         </Text>

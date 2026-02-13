@@ -128,7 +128,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (isSystem) {
     const wrappedLines = wrapText(message.content, maxWidth);
     return (
-      <Box marginY={0} paddingY={1} justifyContent="center">
+      <Box marginY={0} paddingY={0} justifyContent="center">
         <Box flexDirection="column">
           {wrappedLines.map((line, i) => (
             <Text key={i} color={marieTheme.colors.error} italic dimColor>
@@ -148,7 +148,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (isUser) {
     const wrappedLines = wrapText(message.content, maxWidth - 2);
     return (
-      <Box flexDirection="column" marginTop={0} marginBottom={1} paddingX={1}>
+      <Box flexDirection="column" marginTop={0} marginBottom={0} paddingX={1}>
         <Box>
           <Text bold color={marieTheme.colors.primary}>
             {marieTheme.icons.user} You
@@ -177,7 +177,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <Box
       flexDirection="column"
       marginTop={0}
-      marginBottom={1}
+      marginBottom={0}
       paddingX={1}
       borderStyle="round"
       borderColor={marieTheme.colors.secondary}

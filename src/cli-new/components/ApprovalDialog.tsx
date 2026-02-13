@@ -29,9 +29,9 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({ request }) => {
       return `Path: ${input.path || input.file}`;
     }
     if (input.command) {
-      return `Command: ${input.command}`;
+      return `Cmd: ${input.command}`;
     }
-    return JSON.stringify(input, null, 2).slice(0, 200);
+    return JSON.stringify(input, null, 2).slice(0, 150);
   };
 
   return (
@@ -41,11 +41,11 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({ request }) => {
       borderColor={
         isDestructive ? marieTheme.colors.warning : marieTheme.colors.info
       }
-      paddingX={2}
-      paddingY={1}
-      marginY={1}
+      paddingX={1}
+      paddingY={0}
+      marginY={0}
     >
-      <Box marginBottom={1}>
+      <Box marginBottom={0}>
         <Text
           bold
           color={
@@ -53,13 +53,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({ request }) => {
           }
         >
           {isDestructive ? marieTheme.icons.warning : marieTheme.icons.info}{" "}
-          Approval Required
-        </Text>
-      </Box>
-
-      <Box marginBottom={1}>
-        <Text color={marieTheme.colors.foreground}>
-          Tool: <Text bold>{request.toolName}</Text>
+          Approval Required: <Text color={marieTheme.colors.foreground}>{request.toolName}</Text>
         </Text>
       </Box>
 
@@ -67,7 +61,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({ request }) => {
         borderStyle="single"
         borderColor={marieTheme.colors.border}
         paddingX={1}
-        marginBottom={1}
+        marginBottom={0}
       >
         <Text color={marieTheme.colors.muted}>{formatToolInput()}</Text>
       </Box>
@@ -78,21 +72,18 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({ request }) => {
           borderStyle="single"
           borderColor={marieTheme.colors.secondary}
           paddingX={1}
-          marginBottom={1}
+          marginBottom={0}
         >
-          <Text color={marieTheme.colors.secondary} bold>
-            Preview:
-          </Text>
           <Text color={marieTheme.colors.muted}>
-            {request.diff.old.slice(0, 100)}...
+            {request.diff.old.slice(0, 80)}...
           </Text>
           <Text color={marieTheme.colors.success}>
-            → {request.diff.new.slice(0, 100)}...
+            → {request.diff.new.slice(0, 80)}...
           </Text>
         </Box>
       )}
 
-      <Box marginTop={1} gap={3}>
+      <Box marginTop={0} gap={3}>
         <Text color={marieTheme.colors.success}>Y - Approve</Text>
         <Text color={marieTheme.colors.error}>N - Reject</Text>
       </Box>

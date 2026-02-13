@@ -41,7 +41,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       : messages;
 
   // Calculate available height (reserve space for header, input, status)
-  const reservedHeight = 8;
+  const reservedHeight = 6;
   const availableHeight = Math.max(5, dimensions.rows - reservedHeight);
 
   return (

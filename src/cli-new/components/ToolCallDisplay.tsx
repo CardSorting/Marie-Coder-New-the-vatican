@@ -54,8 +54,8 @@ export const ToolCallDisplay: React.FC<ToolCallDisplayProps> = ({ tool }) => {
   return (
     <Box
       flexDirection="column"
-      marginY={1}
-      marginLeft={2}
+      marginY={0}
+      marginLeft={1}
       borderStyle="single"
       borderColor={statusColor}
       paddingX={1}
@@ -75,7 +75,7 @@ export const ToolCallDisplay: React.FC<ToolCallDisplayProps> = ({ tool }) => {
       </Box>
 
       {expanded && (
-        <Box flexDirection="column" marginTop={1}>
+        <Box flexDirection="column" marginTop={0}>
           <Text color={marieTheme.colors.secondary} bold>
             Input:
           </Text>
@@ -84,7 +84,7 @@ export const ToolCallDisplay: React.FC<ToolCallDisplayProps> = ({ tool }) => {
           </Text>
           {tool.output && (
             <>
-              <Box marginTop={1}>
+              <Box marginTop={0}>
                 <Text color={marieTheme.colors.secondary} bold>
                   Output:
                 </Text>

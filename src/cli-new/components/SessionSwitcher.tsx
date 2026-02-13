@@ -65,7 +65,7 @@ export const SessionSwitcher: React.FC<SessionSwitcherProps> = ({
         flexDirection="column"
         borderStyle="single"
         borderColor={marieTheme.colors.error}
-        padding={1}
+        paddingX={1}
       >
         <Text color={marieTheme.colors.error} bold>
           Delete session?
@@ -73,7 +73,7 @@ export const SessionSwitcher: React.FC<SessionSwitcherProps> = ({
         <Text color={marieTheme.colors.muted}>
           This action cannot be undone.
         </Text>
-        <Box marginTop={1} gap={2}>
+        <Box marginTop={0} gap={2}>
           <Text color={marieTheme.colors.error}>y - Yes, delete</Text>
           <Text color={marieTheme.colors.muted}>n - Cancel</Text>
         </Box>
@@ -86,9 +86,9 @@ export const SessionSwitcher: React.FC<SessionSwitcherProps> = ({
       flexDirection="column"
       borderStyle="single"
       borderColor={marieTheme.colors.primary}
-      padding={1}
+      paddingX={1}
     >
-      <Box marginBottom={1}>
+      <Box marginBottom={0}>
         <Text color={marieTheme.colors.primary} bold>
           {marieTheme.icons.assistant} Session Manager
         </Text>
@@ -98,7 +98,7 @@ export const SessionSwitcher: React.FC<SessionSwitcherProps> = ({
         ↑↓ Navigate • Enter Select • D Delete • P Pin • R Rename • Q Quit
       </Text>
 
-      <Box marginTop={1}>
+      <Box marginTop={0}>
         <SelectInput
           items={items}
           onSelect={handleSelect}

@@ -39,10 +39,11 @@ export const Header: React.FC<HeaderProps> = ({
       borderStyle="single"
       borderColor={marieTheme.colors.primary}
       paddingX={1}
+      marginBottom={0}
     >
       <Box justifyContent="space-between">
         <Box>
-          <Text color={marieTheme.colors.primary}>
+          <Text color={marieTheme.colors.primary} bold>
             {marieTheme.icons.assistant} Marie
           </Text>
           <Text color={marieTheme.colors.muted}> v0.2.0</Text>
@@ -50,22 +51,19 @@ export const Header: React.FC<HeaderProps> = ({
         <Box gap={2}>
           {isLoading && (
             <Text color={marieTheme.colors.warning}>
-              {marieTheme.icons.spinner} Thinking... {formatElapsed(elapsedMs)}
+              {marieTheme.icons.spinner} {formatElapsed(elapsedMs)}
             </Text>
           )}
-          <Text color={marieTheme.colors.muted}>
-            Pressure:{" "}
-            {autonomyMode === "ascension"
-              ? "ASCENDANT"
-              : autonomyMode.toUpperCase()}
-          </Text>
           <Text color={marieTheme.colors.secondary}>
             {formatModelName(model)}
+          </Text>
+          <Text color={marieTheme.colors.muted}>
+            {autonomyMode === "ascension" ? "ASC" : autonomyMode.toUpperCase()}
           </Text>
         </Box>
       </Box>
 
-      <Box justifyContent="space-between" marginTop={1}>
+      <Box justifyContent="space-between" marginTop={0}>
         <Text color={marieTheme.colors.foreground} bold>
           {sessionTitle}
         </Text>
