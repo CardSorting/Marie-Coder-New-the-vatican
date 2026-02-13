@@ -3,8 +3,8 @@
  * Promotes type-safe error handling across the extension.
  */
 export function getErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-        return error.message;
-    }
-    return String(error);
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
 }

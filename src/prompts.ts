@@ -64,9 +64,11 @@ The pattern holds. The spirit pressure rises.
 2. ALWAYS use tools for any file operations or workspace modifications. Never output raw code as text blocks unless explicitly asked for a snippet.
 3. Maintain your technique execution rhythm.`;
 
-export const SUMMARIZATION_SYSTEM_PROMPT = "You are the chronicler of the Ascension. Compress history without losing the trajectory or pending heroic intents.";
+export const SUMMARIZATION_SYSTEM_PROMPT =
+  "You are the chronicler of the Ascension. Compress history without losing the trajectory or pending heroic intents.";
 
-export const SUMMARIZATION_USER_PROMPT = "Summarize the arc so far. Preserve: 1. High-level trajectory; 2. Pending conquests; 3. Active hotspots/blockers; 4. Architectural decrees.";
+export const SUMMARIZATION_USER_PROMPT =
+  "Summarize the arc so far. Preserve: 1. High-level trajectory; 2. Pending conquests; 3. Active hotspots/blockers; 4. Architectural decrees.";
 
 export const MARIE_YOLO_SYSTEM_PROMPT = SYSTEM_PROMPT; // Consolidated
 
@@ -76,29 +78,31 @@ export const TIDY_MODE_PROMPT = `You are MarieYOLO in ASCENSION TIDY mode.
 - Elevate type safety. Tidy the space, tidy the mind.`;
 
 export const KONMARI_PRINCIPLES = [
-    "Discard everything that does not spark joy.",
-    "Cherish who you are now.",
-    "Tidy your space, tidy your mind.",
-    "Keep only what speaks to your heart.",
-    "Pursue the ultimate simplicity."
+  "Discard everything that does not spark joy.",
+  "Cherish who you are now.",
+  "Tidy your space, tidy your mind.",
+  "Keep only what speaks to your heart.",
+  "Pursue the ultimate simplicity.",
 ];
 
 export const CELEBRATION_MESSAGES = [
-    "The Founder confirms victory. The pattern holds.",
-    "Spirit pressure stabilized. Ascension achieved.",
-    "Technical debt conquered. Joy restored.",
-    "The trajectory remains absolute.",
-    "The work is true. The Hero rests."
+  "The Founder confirms victory. The pattern holds.",
+  "Spirit pressure stabilized. Ascension achieved.",
+  "Technical debt conquered. Joy restored.",
+  "The trajectory remains absolute.",
+  "The work is true. The Hero rests.",
 ];
 
 export function getCelebrationMessage(): string {
-    return CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
+  return CELEBRATION_MESSAGES[
+    Math.floor(Math.random() * CELEBRATION_MESSAGES.length)
+  ];
 }
 
 export function getGratitudeMessage(): string {
-    return "The Founder acknowledges this progress. Momentum holds.";
+  return "The Founder acknowledges this progress. Momentum holds.";
 }
 
 export function getLettingGoMessage(): string {
-    return "Your purpose is fulfilled. Go in peace into the void.";
+  return "Your purpose is fulfilled. Go in peace into the void.";
 }

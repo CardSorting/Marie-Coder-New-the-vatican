@@ -1,135 +1,157 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 import { ConfigService } from "../../config/ConfigService.js";
-import { SUMMARIZATION_SYSTEM_PROMPT, SUMMARIZATION_USER_PROMPT } from "../../../../prompts.js";
+import {
+  SUMMARIZATION_SYSTEM_PROMPT,
+  SUMMARIZATION_USER_PROMPT,
+} from "../../../../prompts.js";
 import { AIProvider } from "../providers/AIProvider.js";
 import { getErrorMessage } from "../../../plumbing/utils/ErrorUtils.js";
 import { StringUtils } from "../../../plumbing/utils/StringUtils.js";
 import { AscensionState } from "../core/MarieAscensionTypes.js";
 
 export class ContextManager {
-    private static estimateTokens(text: string, tokensPerChar: number): number {
-        return Math.ceil(text.length * tokensPerChar);
+  private static estimateTokens(text: string, tokensPerChar: number): number {
+    return Math.ceil(text.length * tokensPerChar);
+  }
+
+  /**
+   * Recursively estimates tokens in an object without JSON.stringify serialization.
+   * Prevents massive GC spikes for large objects (e.g. file content).
+   */
+  private static estimateObjectTokens(
+    obj: any,
+    tokensPerChar: number,
+    depth: number = 0,
+  ): number {
+    if (!obj || depth > 10) return 0;
+    if (typeof obj === "string") return this.estimateTokens(obj, tokensPerChar);
+    if (typeof obj === "number" || typeof obj === "boolean") return 1;
+
+    let total = 0;
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        total += this.estimateObjectTokens(item, tokensPerChar, depth + 1);
+      }
+    } else if (typeof obj === "object") {
+      for (const key in obj) {
+        total += this.estimateTokens(key, tokensPerChar); // Key tokens
+        total += this.estimateObjectTokens(obj[key], tokensPerChar, depth + 1); // Value tokens
+      }
+    }
+    return total;
+  }
+
+  private static getMessageTokens(message: any, tokensPerChar: number): number {
+    if (typeof message.content === "string") {
+      return this.estimateTokens(message.content, tokensPerChar);
+    } else if (Array.isArray(message.content)) {
+      return message.content.reduce((acc: number, block: any) => {
+        if (block.type === "text") {
+          return acc + this.estimateTokens(block.text, tokensPerChar);
+        }
+        if (block.type === "tool_use") {
+          return acc + this.estimateObjectTokens(block.input, tokensPerChar, 0);
+        }
+        if (block.type === "tool_result") {
+          // optimized: avoid JSON.stringify if content is string
+          if (typeof block.content === "string") {
+            return acc + this.estimateTokens(block.content, tokensPerChar);
+          }
+          return (
+            acc + this.estimateObjectTokens(block.content, tokensPerChar, 0)
+          );
+        }
+        return acc;
+      }, 0);
+    }
+    return 0;
+  }
+
+  private static getTotalTokens(
+    messages: any[],
+    tokensPerChar: number,
+  ): number {
+    return messages.reduce(
+      (acc, msg) => acc + this.getMessageTokens(msg, tokensPerChar),
+      0,
+    );
+  }
+
+  static async manage(
+    messages: any[],
+    provider: AIProvider,
+    state?: AscensionState,
+  ): Promise<any[]> {
+    const maxTokens = ConfigService.getMaxContextTokens();
+    const tokensPerChar = ConfigService.getTokensPerChar(); // Hoisted config access
+    const currentTokens = this.getTotalTokens(messages, tokensPerChar);
+
+    // PROACTIVE PRUNING: Summarize at 90% capacity to ensure zero 400 errors
+    if (currentTokens < maxTokens * 0.9) {
+      return messages;
     }
 
-    /**
-     * Recursively estimates tokens in an object without JSON.stringify serialization.
-     * Prevents massive GC spikes for large objects (e.g. file content).
-     */
-    private static estimateObjectTokens(obj: any, tokensPerChar: number, depth: number = 0): number {
-        if (!obj || depth > 10) return 0;
-        if (typeof obj === 'string') return this.estimateTokens(obj, tokensPerChar);
-        if (typeof obj === 'number' || typeof obj === 'boolean') return 1;
+    vscode.window.showInformationMessage(
+      `Marie is tidying up conversation history (${currentTokens} tokens)...`,
+    );
 
-        let total = 0;
-        if (Array.isArray(obj)) {
-            for (const item of obj) {
-                total += this.estimateObjectTokens(item, tokensPerChar, depth + 1);
-            }
-        } else if (typeof obj === 'object') {
-            for (const key in obj) {
-                total += this.estimateTokens(key, tokensPerChar); // Key tokens
-                total += this.estimateObjectTokens(obj[key], tokensPerChar, depth + 1); // Value tokens
-            }
-        }
-        return total;
+    const keepRecent = ConfigService.getKeepRecentMessages();
+
+    if (messages.length <= keepRecent) {
+      return messages;
     }
 
-    private static getMessageTokens(message: any, tokensPerChar: number): number {
-        if (typeof message.content === 'string') {
-            return this.estimateTokens(message.content, tokensPerChar);
-        } else if (Array.isArray(message.content)) {
-            return message.content.reduce((acc: number, block: any) => {
-                if (block.type === 'text') {
-                    return acc + this.estimateTokens(block.text, tokensPerChar);
-                }
-                if (block.type === 'tool_use') {
-                    return acc + this.estimateObjectTokens(block.input, tokensPerChar, 0);
-                }
-                if (block.type === 'tool_result') {
-                    // optimized: avoid JSON.stringify if content is string
-                    if (typeof block.content === 'string') {
-                        return acc + this.estimateTokens(block.content, tokensPerChar);
-                    }
-                    return acc + this.estimateObjectTokens(block.content, tokensPerChar, 0);
-                }
-                return acc;
-            }, 0);
-        }
-        return 0;
+    const olderMessages = messages.slice(0, messages.length - keepRecent);
+    const recentMessages = messages.slice(messages.length - keepRecent);
+
+    try {
+      const summaryResponse = await provider.createMessage({
+        model: ConfigService.getModel(),
+        max_tokens: 1024,
+        messages: olderMessages.concat({
+          role: "user",
+          content: SUMMARIZATION_USER_PROMPT,
+        }),
+        system: SUMMARIZATION_SYSTEM_PROMPT,
+      });
+
+      const summaryText =
+        StringUtils.extractText(summaryResponse.content) ||
+        "Summary unavailable.";
+
+      // Ascension Preservation: Prepend state snapshot to the summary so it survives compression
+      let ascensionNote = "";
+      if (state) {
+        const hotspots = Object.entries(state.errorHotspots)
+          .filter(([_, c]) => (c as any) >= 2)
+          .map(([f, c]) => `${f}(${c}x)`)
+          .join(", ");
+
+        const strategy = state.lastDecree?.strategy || "EXECUTE";
+        const strategyReason = state.lastDecree?.reason || "None";
+
+        ascensionNote = `[ASCENSION STATE] Strategy: ${strategy}, Mood: ${state.mood}, Spirit Pressure (Flow): ${state.spiritPressure}/100, Victory Streak: ${state.victoryStreak}${hotspots ? `, Hotspots: ${hotspots}` : ""}, Last Intent: ${strategyReason}\n\n`;
+      }
+
+      const newHistory: any[] = [
+        {
+          role: "user",
+          content: `[System Note: Previous conversation summary]\n${ascensionNote}${summaryText}`,
+        },
+        ...recentMessages,
+      ];
+
+      vscode.window.showInformationMessage(
+        `Marie finished tidying. Tokens reduced from ${currentTokens} to ${this.getTotalTokens(newHistory, tokensPerChar)}.`,
+      );
+      return newHistory;
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      console.error("Context summarization failed:", message);
+      vscode.window.showErrorMessage(
+        `Failed to summarize conversation: ${message}. Continuing with full history.`,
+      );
+      return messages;
     }
-
-    private static getTotalTokens(messages: any[], tokensPerChar: number): number {
-        return messages.reduce((acc, msg) => acc + this.getMessageTokens(msg, tokensPerChar), 0);
-    }
-
-    static async manage(
-        messages: any[],
-        provider: AIProvider,
-        state?: AscensionState
-    ): Promise<any[]> {
-        const maxTokens = ConfigService.getMaxContextTokens();
-        const tokensPerChar = ConfigService.getTokensPerChar(); // Hoisted config access
-        const currentTokens = this.getTotalTokens(messages, tokensPerChar);
-
-        // PROACTIVE PRUNING: Summarize at 90% capacity to ensure zero 400 errors
-        if (currentTokens < maxTokens * 0.9) {
-            return messages;
-        }
-
-        vscode.window.showInformationMessage(`Marie is tidying up conversation history (${currentTokens} tokens)...`);
-
-        const keepRecent = ConfigService.getKeepRecentMessages();
-
-        if (messages.length <= keepRecent) {
-            return messages;
-        }
-
-        const olderMessages = messages.slice(0, messages.length - keepRecent);
-        const recentMessages = messages.slice(messages.length - keepRecent);
-
-        try {
-            const summaryResponse = await provider.createMessage({
-                model: ConfigService.getModel(),
-                max_tokens: 1024,
-                messages: olderMessages.concat({
-                    role: "user",
-                    content: SUMMARIZATION_USER_PROMPT
-                }),
-                system: SUMMARIZATION_SYSTEM_PROMPT
-            });
-
-            const summaryText = StringUtils.extractText(summaryResponse.content) || "Summary unavailable.";
-
-            // Ascension Preservation: Prepend state snapshot to the summary so it survives compression
-            let ascensionNote = '';
-            if (state) {
-                const hotspots = Object.entries(state.errorHotspots)
-                    .filter(([_, c]) => (c as any) >= 2)
-                    .map(([f, c]) => `${f}(${c}x)`)
-                    .join(', ');
-
-                const strategy = state.lastDecree?.strategy || 'EXECUTE';
-                const strategyReason = state.lastDecree?.reason || 'None';
-
-                ascensionNote = `[ASCENSION STATE] Strategy: ${strategy}, Mood: ${state.mood}, Spirit Pressure (Flow): ${state.spiritPressure}/100, Victory Streak: ${state.victoryStreak}${hotspots ? `, Hotspots: ${hotspots}` : ''}, Last Intent: ${strategyReason}\n\n`;
-            }
-
-            const newHistory: any[] = [
-                {
-                    role: "user",
-                    content: `[System Note: Previous conversation summary]\n${ascensionNote}${summaryText}`
-                },
-                ...recentMessages
-            ];
-
-            vscode.window.showInformationMessage(`Marie finished tidying. Tokens reduced from ${currentTokens} to ${this.getTotalTokens(newHistory, tokensPerChar)}.`);
-            return newHistory;
-
-        } catch (error: unknown) {
-            const message = getErrorMessage(error);
-            console.error("Context summarization failed:", message);
-            vscode.window.showErrorMessage(`Failed to summarize conversation: ${message}. Continuing with full history.`);
-            return messages;
-        }
-    }
+  }
 }

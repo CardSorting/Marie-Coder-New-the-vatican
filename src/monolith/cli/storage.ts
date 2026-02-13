@@ -1,150 +1,153 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 
 export { fs, path };
 
-const MARIE_DIR = path.join(os.homedir(), '.marie');
-const SESSIONS_FILE = path.join(MARIE_DIR, 'sessions.json');
-const METADATA_FILE = path.join(MARIE_DIR, 'sessionMetadata.json');
-const CONFIG_FILE = path.join(MARIE_DIR, 'config.json');
-const CURRENT_SESSION_FILE = path.join(MARIE_DIR, 'currentSession.json');
+const MARIE_DIR = path.join(os.homedir(), ".marie");
+const SESSIONS_FILE = path.join(MARIE_DIR, "sessions.json");
+const METADATA_FILE = path.join(MARIE_DIR, "sessionMetadata.json");
+const CONFIG_FILE = path.join(MARIE_DIR, "config.json");
+const CURRENT_SESSION_FILE = path.join(MARIE_DIR, "currentSession.json");
 
 export interface SessionMetadata {
-    id: string;
-    title: string;
-    lastModified: number;
-    isPinned: boolean;
+  id: string;
+  title: string;
+  lastModified: number;
+  isPinned: boolean;
 }
 
 export interface MarieConfig {
-    apiKey?: string;
-    openrouterApiKey?: string;
-    cerebrasApiKey?: string;
-    aiProvider: 'anthropic' | 'openrouter' | 'cerebras';
-    model: string;
-    maxContextTokens: number;
-    ascensionEnabled: boolean;
-    ascensionProfile: 'demo_day' | 'balanced' | 'recovery';
-    ascensionIntensity: number;
-    ascensionMaxRequiredActions: number;
-    autonomyMode: 'balanced' | 'high' | 'ascension';
-    requireApproval?: boolean;
+  apiKey?: string;
+  openrouterApiKey?: string;
+  cerebrasApiKey?: string;
+  aiProvider: "anthropic" | "openrouter" | "cerebras";
+  model: string;
+  maxContextTokens: number;
+  ascensionEnabled: boolean;
+  ascensionProfile: "demo_day" | "balanced" | "recovery";
+  ascensionIntensity: number;
+  ascensionMaxRequiredActions: number;
+  autonomyMode: "balanced" | "high" | "ascension";
+  requireApproval?: boolean;
 }
 
 const defaultConfig: MarieConfig = {
-    aiProvider: 'openrouter',
-    model: 'anthropic/claude-3.5-sonnet',
-    maxContextTokens: 100000,
-    ascensionEnabled: true,
-    ascensionProfile: 'balanced',
-    ascensionIntensity: 1,
-    ascensionMaxRequiredActions: 2,
-    autonomyMode: 'high'
+  aiProvider: "openrouter",
+  model: "anthropic/claude-3.5-sonnet",
+  maxContextTokens: 100000,
+  ascensionEnabled: true,
+  ascensionProfile: "balanced",
+  ascensionIntensity: 1,
+  ascensionMaxRequiredActions: 2,
+  autonomyMode: "high",
 };
 
 export class Storage {
-    static ensureDir(): void {
-        if (!fs.existsSync(MARIE_DIR)) {
-            fs.mkdirSync(MARIE_DIR, { recursive: true });
-        }
+  static ensureDir(): void {
+    if (!fs.existsSync(MARIE_DIR)) {
+      fs.mkdirSync(MARIE_DIR, { recursive: true });
     }
+  }
 
-    static getConfig(): MarieConfig {
-        this.ensureDir();
-        if (!fs.existsSync(CONFIG_FILE)) {
-            return { ...defaultConfig };
-        }
-        try {
-            const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-            const parsed = JSON.parse(data);
-            const merged = { ...defaultConfig, ...parsed } as MarieConfig;
-
-            // Backward compatibility for older configs that predate autonomyMode.
-            if (!parsed.autonomyMode) {
-                merged.autonomyMode = 'high';
-            }
-
-            return merged;
-        } catch {
-            return { ...defaultConfig };
-        }
+  static getConfig(): MarieConfig {
+    this.ensureDir();
+    if (!fs.existsSync(CONFIG_FILE)) {
+      return { ...defaultConfig };
     }
+    try {
+      const data = fs.readFileSync(CONFIG_FILE, "utf-8");
+      const parsed = JSON.parse(data);
+      const merged = { ...defaultConfig, ...parsed } as MarieConfig;
 
-    static saveConfig(config: Partial<MarieConfig>): void {
-        this.ensureDir();
-        const current = this.getConfig();
-        fs.writeFileSync(CONFIG_FILE, JSON.stringify({ ...current, ...config }, null, 2));
-    }
+      // Backward compatibility for older configs that predate autonomyMode.
+      if (!parsed.autonomyMode) {
+        merged.autonomyMode = "high";
+      }
 
-    static getSessions(): Record<string, any[]> {
-        this.ensureDir();
-        if (!fs.existsSync(SESSIONS_FILE)) {
-            return {};
-        }
-        try {
-            const data = fs.readFileSync(SESSIONS_FILE, 'utf-8');
-            return JSON.parse(data);
-        } catch {
-            return {};
-        }
+      return merged;
+    } catch {
+      return { ...defaultConfig };
     }
+  }
 
-    static saveSessions(sessions: Record<string, any[]>): void {
-        this.ensureDir();
-        fs.writeFileSync(SESSIONS_FILE, JSON.stringify(sessions, null, 2));
-    }
+  static saveConfig(config: Partial<MarieConfig>): void {
+    this.ensureDir();
+    const current = this.getConfig();
+    fs.writeFileSync(
+      CONFIG_FILE,
+      JSON.stringify({ ...current, ...config }, null, 2),
+    );
+  }
 
-    static getSessionMetadata(): SessionMetadata[] {
-        this.ensureDir();
-        if (!fs.existsSync(METADATA_FILE)) {
-            return [];
-        }
-        try {
-            const data = fs.readFileSync(METADATA_FILE, 'utf-8');
-            return JSON.parse(data);
-        } catch {
-            return [];
-        }
+  static getSessions(): Record<string, any[]> {
+    this.ensureDir();
+    if (!fs.existsSync(SESSIONS_FILE)) {
+      return {};
     }
+    try {
+      const data = fs.readFileSync(SESSIONS_FILE, "utf-8");
+      return JSON.parse(data);
+    } catch {
+      return {};
+    }
+  }
 
-    static saveSessionMetadata(metadata: SessionMetadata[]): void {
-        this.ensureDir();
-        fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata, null, 2));
-    }
+  static saveSessions(sessions: Record<string, any[]>): void {
+    this.ensureDir();
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(sessions, null, 2));
+  }
 
-    static getCurrentSessionId(): string {
-        this.ensureDir();
-        if (!fs.existsSync(CURRENT_SESSION_FILE)) {
-            return 'default';
-        }
-        try {
-            const data = fs.readFileSync(CURRENT_SESSION_FILE, 'utf-8');
-            return JSON.parse(data).id || 'default';
-        } catch {
-            return 'default';
-        }
+  static getSessionMetadata(): SessionMetadata[] {
+    this.ensureDir();
+    if (!fs.existsSync(METADATA_FILE)) {
+      return [];
     }
+    try {
+      const data = fs.readFileSync(METADATA_FILE, "utf-8");
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
 
-    static setCurrentSessionId(id: string): void {
-        this.ensureDir();
-        fs.writeFileSync(CURRENT_SESSION_FILE, JSON.stringify({ id }));
-    }
+  static saveSessionMetadata(metadata: SessionMetadata[]): void {
+    this.ensureDir();
+    fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata, null, 2));
+  }
 
-    static getLastTelemetry(): any {
-        this.ensureDir();
-        const file = path.join(MARIE_DIR, 'lastTelemetry.json');
-        if (!fs.existsSync(file)) return undefined;
-        try {
-            return JSON.parse(fs.readFileSync(file, 'utf-8'));
-        } catch {
-            return undefined;
-        }
+  static getCurrentSessionId(): string {
+    this.ensureDir();
+    if (!fs.existsSync(CURRENT_SESSION_FILE)) {
+      return "default";
     }
+    try {
+      const data = fs.readFileSync(CURRENT_SESSION_FILE, "utf-8");
+      return JSON.parse(data).id || "default";
+    } catch {
+      return "default";
+    }
+  }
 
-    static setLastTelemetry(telemetry: any): void {
-        this.ensureDir();
-        const file = path.join(MARIE_DIR, 'lastTelemetry.json');
-        fs.writeFileSync(file, JSON.stringify(telemetry, null, 2));
+  static setCurrentSessionId(id: string): void {
+    this.ensureDir();
+    fs.writeFileSync(CURRENT_SESSION_FILE, JSON.stringify({ id }));
+  }
+
+  static getLastTelemetry(): any {
+    this.ensureDir();
+    const file = path.join(MARIE_DIR, "lastTelemetry.json");
+    if (!fs.existsSync(file)) return undefined;
+    try {
+      return JSON.parse(fs.readFileSync(file, "utf-8"));
+    } catch {
+      return undefined;
     }
+  }
+
+  static setLastTelemetry(telemetry: any): void {
+    this.ensureDir();
+    const file = path.join(MARIE_DIR, "lastTelemetry.json");
+    fs.writeFileSync(file, JSON.stringify(telemetry, null, 2));
+  }
 }

@@ -1,212 +1,290 @@
-export type MarieRunStage = 'thinking' | 'planning' | 'responding' | 'calling_tool' | 'editing' | 'finalizing' | 'done' | 'error';
+export type MarieRunStage =
+  | "thinking"
+  | "planning"
+  | "responding"
+  | "calling_tool"
+  | "editing"
+  | "finalizing"
+  | "done"
+  | "error";
 
-export type ObjectiveStatus = 'pending' | 'in_progress' | 'completed' | 'verified' | 'blocked' | 'skipped' | 'cancelled';
+export type ObjectiveStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "verified"
+  | "blocked"
+  | "skipped"
+  | "cancelled";
 
 export interface AscensionDecreeSnapshot {
-    profile: 'demo_day' | 'balanced' | 'recovery';
-    strategy: string;
-    confidence: number;
-    urgency: 'LOW' | 'MEDIUM' | 'HIGH';
-    dampened: boolean;
-    dampenReason?: string;
-    structuralUncertainty: boolean;
-    requiredActions: string[];
-    blockedBy: string[];
-    stopCondition: 'landed' | 'structural_uncertainty';
+  profile: "demo_day" | "balanced" | "recovery";
+  strategy: string;
+  confidence: number;
+  urgency: "LOW" | "MEDIUM" | "HIGH";
+  dampened: boolean;
+  dampenReason?: string;
+  structuralUncertainty: boolean;
+  requiredActions: string[];
+  blockedBy: string[];
+  stopCondition: "landed" | "structural_uncertainty";
 }
 
 export interface ProgressObjective {
-    id: string;
-    label: string;
-    status: ObjectiveStatus;
-    verificationEvidence?: string;
-    context?: string;
+  id: string;
+  label: string;
+  status: ObjectiveStatus;
+  verificationEvidence?: string;
+  context?: string;
 }
 
-export type StreamOrigin = 'engine' | 'agent';
+export type StreamOrigin = "engine" | "agent";
 
 export interface StreamIdentity {
-    streamId: string;
-    origin: StreamOrigin;
-    agentId?: string;
-    parentRunId?: string;
-    intent?: string;
+  streamId: string;
+  origin: StreamOrigin;
+  agentId?: string;
+  parentRunId?: string;
+  intent?: string;
 }
 
 export type MarieStreamEvent =
-    | { type: 'run_started'; runId: string; startedAt: number }
-    | { type: 'stage'; runId: string; stage: MarieRunStage; label: string; elapsedMs: number }
-    | { type: 'step'; runId: string; step: number; label: string; elapsedMs: number }
-    | { type: 'reasoning'; runId: string; text: string; raw?: boolean; elapsedMs: number }
-    | {
-        type: 'usage';
-        runId: string;
-        usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number; reasoningTokens?: number };
-        elapsedMs: number;
+  | { type: "run_started"; runId: string; startedAt: number }
+  | {
+      type: "stage";
+      runId: string;
+      stage: MarieRunStage;
+      label: string;
+      elapsedMs: number;
     }
-    | { type: 'content_delta'; runId: string; text: string; elapsedMs: number }
-    | {
-        type: 'tool';
-        runId: string;
-        id?: string;
-        phase: 'start' | 'complete' | 'denied' | 'error';
-        name: string;
-        input?: any;
-        diff?: { old: string, new: string };
-        message?: string;
-        heuristicFix?: string;
-        elapsedMs: number;
+  | {
+      type: "step";
+      runId: string;
+      step: number;
+      label: string;
+      elapsedMs: number;
     }
-    | {
-        type: 'run_completed';
-        runId: string;
-        elapsedMs: number;
-        steps: number;
-        tools: number;
-        usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number; reasoningTokens?: number };
+  | {
+      type: "reasoning";
+      runId: string;
+      text: string;
+      raw?: boolean;
+      elapsedMs: number;
     }
-    | {
-        type: 'progress_update';
-        runId: string;
-        completionPercent: number;
-        activeObjectiveId?: string;
-        activeToolName?: string;
-        lastToolName?: string;
-        objectives?: ProgressObjective[];
-        achieved?: string[];
-        context?: string;
-        lifecycleStage?: 'sprout' | 'bloom' | 'compost';
-        ritualComplete?: boolean;
-        activeFilePath?: string;
-        currentPass?: number;
-        totalPasses?: number;
-        passFocus?: string;
-        elapsedMs: number;
-        isResuming?: boolean;
-        passHistory?: Array<{ pass: number, summary: string, reflection: string }>;
-        metrics?: { cherishedFiles: string[], releasedDebtCount: number };
-        heuristicFixes?: string[];
-        ascensionState?: any; // Simplified for broad compatibility
+  | {
+      type: "usage";
+      runId: string;
+      usage: {
+        inputTokens?: number;
+        outputTokens?: number;
+        totalTokens?: number;
+        reasoningTokens?: number;
+      };
+      elapsedMs: number;
     }
-    | {
-        type: 'ascension_heartbeat';
-        runId: string;
-        strategy: string;
-        mood: string;
-        spiritPressure: number;
-        streak: number;
-        errors: number;
-        toolCount: number;
-        elapsedMs: number;
+  | { type: "content_delta"; runId: string; text: string; elapsedMs: number }
+  | {
+      type: "tool";
+      runId: string;
+      id?: string;
+      phase: "start" | "complete" | "denied" | "error";
+      name: string;
+      input?: any;
+      diff?: { old: string; new: string };
+      message?: string;
+      heuristicFix?: string;
+      elapsedMs: number;
     }
-    | {
-        type: 'checkpoint';
-        runId: string;
-        status: 'awaiting_approval' | 'approved' | 'denied';
-        toolName: string;
-        summary: { what: string; why: string; impact: string };
-        elapsedMs: number;
+  | {
+      type: "run_completed";
+      runId: string;
+      elapsedMs: number;
+      steps: number;
+      tools: number;
+      usage?: {
+        inputTokens?: number;
+        outputTokens?: number;
+        totalTokens?: number;
+        reasoningTokens?: number;
+      };
     }
-    | {
-        type: 'tool_delta';
-        runId: string;
-        name: string;
-        inputDelta: string;
-        elapsedMs: number;
+  | {
+      type: "progress_update";
+      runId: string;
+      completionPercent: number;
+      activeObjectiveId?: string;
+      activeToolName?: string;
+      lastToolName?: string;
+      objectives?: ProgressObjective[];
+      achieved?: string[];
+      context?: string;
+      lifecycleStage?: "sprout" | "bloom" | "compost";
+      ritualComplete?: boolean;
+      activeFilePath?: string;
+      currentPass?: number;
+      totalPasses?: number;
+      passFocus?: string;
+      elapsedMs: number;
+      isResuming?: boolean;
+      passHistory?: Array<{
+        pass: number;
+        summary: string;
+        reflection: string;
+      }>;
+      metrics?: { cherishedFiles: string[]; releasedDebtCount: number };
+      heuristicFixes?: string[];
+      ascensionState?: any; // Simplified for broad compatibility
     }
-    | {
-        type: 'pass_transition';
-        runId: string;
-        currentPass: number;
-        totalPasses: number;
-        passFocus: string;
-        passHistory?: Array<{ pass: number, summary: string, reflection: string }>;
-        elapsedMs: number;
+  | {
+      type: "ascension_heartbeat";
+      runId: string;
+      strategy: string;
+      mood: string;
+      spiritPressure: number;
+      streak: number;
+      errors: number;
+      toolCount: number;
+      elapsedMs: number;
     }
-    | {
-        type: 'agent_stream_lifecycle';
-        runId: string;
-        streamIdentity: StreamIdentity;
-        status: 'spawned' | 'running' | 'completed' | 'cancelled' | 'failed' | 'timed_out';
-        reason?: string;
-        elapsedMs: number;
+  | {
+      type: "checkpoint";
+      runId: string;
+      status: "awaiting_approval" | "approved" | "denied";
+      toolName: string;
+      summary: { what: string; why: string; impact: string };
+      elapsedMs: number;
     }
-    | {
-        type: 'agent_envelope';
-        runId: string;
-        streamIdentity: StreamIdentity;
-        envelope: {
-            decision: string;
-            confidence: number;
-            evidenceRefs?: string[];
-            recommendedActions?: string[];
-            blockingConditions?: string[];
-            summary?: string;
-        };
-        elapsedMs: number;
+  | {
+      type: "tool_delta";
+      runId: string;
+      name: string;
+      inputDelta: string;
+      elapsedMs: number;
     }
-    | { type: 'run_error'; runId: string; elapsedMs: number; message: string };
+  | {
+      type: "pass_transition";
+      runId: string;
+      currentPass: number;
+      totalPasses: number;
+      passFocus: string;
+      passHistory?: Array<{
+        pass: number;
+        summary: string;
+        reflection: string;
+      }>;
+      elapsedMs: number;
+    }
+  | {
+      type: "agent_stream_lifecycle";
+      runId: string;
+      streamIdentity: StreamIdentity;
+      status:
+        | "spawned"
+        | "running"
+        | "completed"
+        | "cancelled"
+        | "failed"
+        | "timed_out";
+      reason?: string;
+      elapsedMs: number;
+    }
+  | {
+      type: "agent_envelope";
+      runId: string;
+      streamIdentity: StreamIdentity;
+      envelope: {
+        decision: string;
+        confidence: number;
+        evidenceRefs?: string[];
+        recommendedActions?: string[];
+        blockingConditions?: string[];
+        summary?: string;
+      };
+      elapsedMs: number;
+    }
+  | { type: "run_error"; runId: string; elapsedMs: number; message: string };
 
 export interface RunTelemetry {
-    runId: string;
-    startedAt: number;
-    steps: number;
-    tools: number;
-    activeToolName?: string;
-    lastToolName?: string;
-    toolUsage?: Record<string, number>;
-    codeStats?: {
-        modifiedFiles: Record<string, { added: number, removed: number }>;
-    };
-    objectives: ProgressObjective[];
-    activeObjectiveId?: string;
-    achieved: string[];
-    currentContext?: string;
-    lifecycleStage?: 'sprout' | 'bloom' | 'compost';
-    ritualComplete?: boolean;
-    activeFilePath?: string;
-    usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number; reasoningTokens?: number };
-    currentPass?: number;
-    totalPasses?: number;
-    passFocus?: string;
-    isResuming?: boolean;
-    passHistory?: Array<{ pass: number, summary: string, reflection: string }>;
-    metrics?: { cherishedFiles: string[], releasedDebtCount: number };
-    heuristicFixes?: string[];
-    // PHASE 6: Store originating session ID for deep session fencing
-    originatingSessionId?: string;
-    ascensionState?: any; // Simplified for broad compatibility
+  runId: string;
+  startedAt: number;
+  steps: number;
+  tools: number;
+  activeToolName?: string;
+  lastToolName?: string;
+  toolUsage?: Record<string, number>;
+  codeStats?: {
+    modifiedFiles: Record<string, { added: number; removed: number }>;
+  };
+  objectives: ProgressObjective[];
+  activeObjectiveId?: string;
+  achieved: string[];
+  currentContext?: string;
+  lifecycleStage?: "sprout" | "bloom" | "compost";
+  ritualComplete?: boolean;
+  activeFilePath?: string;
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+    reasoningTokens?: number;
+  };
+  currentPass?: number;
+  totalPasses?: number;
+  passFocus?: string;
+  isResuming?: boolean;
+  passHistory?: Array<{ pass: number; summary: string; reflection: string }>;
+  metrics?: { cherishedFiles: string[]; releasedDebtCount: number };
+  heuristicFixes?: string[];
+  // PHASE 6: Store originating session ID for deep session fencing
+  originatingSessionId?: string;
+  ascensionState?: any; // Simplified for broad compatibility
 }
 
 export interface ApprovalRequest {
-    id: string;
-    toolName: string;
-    toolInput: any;
-    diff?: { old: string, new: string };
+  id: string;
+  toolName: string;
+  toolInput: any;
+  diff?: { old: string; new: string };
 }
 
 export interface MarieCallbacks {
-    // PHASE 6: Added originatingSessionId for deep session fencing
-    onStream?: (chunk: string, runId?: string, originatingSessionId?: string) => void;
-    onTool?: (tool: { name: string, input: any, diff?: { old: string, new: string } }, runId?: string, originatingSessionId?: string) => void;
-    onToolDelta?: (delta: { name: string, inputDelta: string }, runId?: string, originatingSessionId?: string) => void;
-    onApprovalRequest?: (request: ApprovalRequest, runId?: string, originatingSessionId?: string) => void;
-    onEvent?: (event: MarieStreamEvent) => void;
+  // PHASE 6: Added originatingSessionId for deep session fencing
+  onStream?: (
+    chunk: string,
+    runId?: string,
+    originatingSessionId?: string,
+  ) => void;
+  onTool?: (
+    tool: { name: string; input: any; diff?: { old: string; new: string } },
+    runId?: string,
+    originatingSessionId?: string,
+  ) => void;
+  onToolDelta?: (
+    delta: { name: string; inputDelta: string },
+    runId?: string,
+    originatingSessionId?: string,
+  ) => void;
+  onApprovalRequest?: (
+    request: ApprovalRequest,
+    runId?: string,
+    originatingSessionId?: string,
+  ) => void;
+  onEvent?: (event: MarieStreamEvent) => void;
 }
 
 export interface ProgressUpdate {
-    context?: string;
-    completedObjectiveIds?: string[];
-    activeObjectiveId?: string;
-    achieved?: string[];
-    lifecycleStage?: 'sprout' | 'bloom' | 'compost';
-    ritualComplete?: boolean;
-    activeFilePath?: string;
-    currentPass?: number;
-    totalPasses?: number;
-    passFocus?: string;
-    isResuming?: boolean;
-    passHistory?: Array<{ pass: number, summary: string, reflection: string }>;
-    metrics?: { cherishedFiles: string[], releasedDebtCount: number };
-    heuristicFixes?: string[];
+  context?: string;
+  completedObjectiveIds?: string[];
+  activeObjectiveId?: string;
+  achieved?: string[];
+  lifecycleStage?: "sprout" | "bloom" | "compost";
+  ritualComplete?: boolean;
+  activeFilePath?: string;
+  currentPass?: number;
+  totalPasses?: number;
+  passFocus?: string;
+  isResuming?: boolean;
+  passHistory?: Array<{ pass: number; summary: string; reflection: string }>;
+  metrics?: { cherishedFiles: string[]; releasedDebtCount: number };
+  heuristicFixes?: string[];
 }

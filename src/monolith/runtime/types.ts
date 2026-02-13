@@ -3,49 +3,57 @@ import { AIProvider } from "../infrastructure/ai/providers/AIProvider.js";
 import { FileSystemPort } from "../infrastructure/ai/core/FileSystemPort.js";
 import { GhostPort } from "../infrastructure/ai/core/GhostPort.js";
 
-export type MarieProviderType = 'anthropic' | 'openrouter' | 'cerebras';
+export type MarieProviderType = "anthropic" | "openrouter" | "cerebras";
 
 export interface SessionMetadata {
-    id: string;
-    title: string;
-    lastModified: number;
-    isPinned: boolean;
+  id: string;
+  title: string;
+  lastModified: number;
+  isPinned: boolean;
 }
 
 export interface RuntimeConfigPort {
-    getAiProvider(): MarieProviderType;
-    getApiKey(provider: MarieProviderType): string;
+  getAiProvider(): MarieProviderType;
+  getApiKey(provider: MarieProviderType): string;
 }
 
 export interface RuntimeSessionStorePort {
-    getSessions(): Promise<Record<string, any[]>>;
-    saveSessions(sessions: Record<string, any[]>): Promise<void>;
-    getSessionMetadata(): Promise<SessionMetadata[]>;
-    saveSessionMetadata(metadata: SessionMetadata[]): Promise<void>;
-    getCurrentSessionId(): Promise<string>;
-    setCurrentSessionId(id: string): Promise<void>;
-    getLastTelemetry(): Promise<RunTelemetry | undefined>;
-    setLastTelemetry(telemetry: RunTelemetry | undefined): Promise<void>;
+  getSessions(): Promise<Record<string, any[]>>;
+  saveSessions(sessions: Record<string, any[]>): Promise<void>;
+  getSessionMetadata(): Promise<SessionMetadata[]>;
+  saveSessionMetadata(metadata: SessionMetadata[]): Promise<void>;
+  getCurrentSessionId(): Promise<string>;
+  setCurrentSessionId(id: string): Promise<void>;
+  getLastTelemetry(): Promise<RunTelemetry | undefined>;
+  setLastTelemetry(telemetry: RunTelemetry | undefined): Promise<void>;
 }
 
 export interface RuntimeAutomationPort {
-    setCurrentRun(run: RunTelemetry | undefined): void;
-    dispose?(): void;
+  setCurrentRun(run: RunTelemetry | undefined): void;
+  dispose?(): void;
 }
 
 export interface RuntimeOptions<TAutomation extends RuntimeAutomationPort> {
-    config: RuntimeConfigPort;
-    sessionStore: RuntimeSessionStorePort;
-    toolRegistrar: (registry: any, automation: TAutomation) => void;
-    providerFactory: (providerType: MarieProviderType, apiKey: string) => AIProvider;
-    automationService: TAutomation;
-    onProgressEvent?: (event: any) => void;
-    onApprovalRequest?: (request: { id: string; toolName: string; toolInput: any; diff?: { old: string, new: string } }) => Promise<boolean>;
-    shouldBypassApprovals?: () => boolean;
-    fs?: FileSystemPort;
-    ghostPort?: GhostPort;
+  config: RuntimeConfigPort;
+  sessionStore: RuntimeSessionStorePort;
+  toolRegistrar: (registry: any, automation: TAutomation) => void;
+  providerFactory: (
+    providerType: MarieProviderType,
+    apiKey: string,
+  ) => AIProvider;
+  automationService: TAutomation;
+  onProgressEvent?: (event: any) => void;
+  onApprovalRequest?: (request: {
+    id: string;
+    toolName: string;
+    toolInput: any;
+    diff?: { old: string; new: string };
+  }) => Promise<boolean>;
+  shouldBypassApprovals?: () => boolean;
+  fs?: FileSystemPort;
+  ghostPort?: GhostPort;
 }
 
 export interface RuntimeMessageHandler {
-    handleMessage(text: string, callbacks?: MarieCallbacks): Promise<string>;
+  handleMessage(text: string, callbacks?: MarieCallbacks): Promise<string>;
 }
