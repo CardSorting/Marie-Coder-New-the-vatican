@@ -37,13 +37,26 @@ export class QualityGuardrailService {
     let autoFixed = false;
     let surgicalMends = 0;
 
-    // 1. 🛡️ SENTINEL V2 ARCHITECTURAL AUDIT
+    // 1. 🛡️ SENTINEL V2.1 ARCHITECTURAL AUDIT
     const sentinelReport = await MarieSentinelService.audit(cwd, filePath);
+    
     if (sentinelReport.zoneViolations.length > 0) {
       violations.push(...sentinelReport.zoneViolations);
       passed = false;
     }
-    if (sentinelReport.entropyScore > 8) {
+    if (sentinelReport.circularDependencies.length > 0) {
+      violations.push(...sentinelReport.circularDependencies);
+      passed = false;
+    }
+    if (sentinelReport.leakyAbstractions.length > 0) {
+      violations.push(...sentinelReport.leakyAbstractions);
+      passed = false;
+    }
+    if (sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))) {
+      violations.push(`TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`);
+      passed = false;
+    }
+    if (sentinelReport.entropyScore > 10) {
       violations.push(`Entropy Alert: System instability detected (Score: ${sentinelReport.entropyScore}).`);
       passed = false;
     }
@@ -99,6 +112,8 @@ export class QualityGuardrailService {
     // Scoring (0-100)
     let score = 100;
     score -= sentinelReport.zoneViolations.length * 15;
+    score -= sentinelReport.circularDependencies.length * 20;
+    score -= sentinelReport.leakyAbstractions.length * 10;
     score -= finalCriticalLint.length * 10;
     score -= complexity.cyclomaticComplexity > 10 ? 20 : 0;
     score -= anyUsage * 5;
