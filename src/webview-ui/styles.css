@@ -355,6 +355,24 @@ body {
     background: color-mix(in srgb, var(--surface-0) 70%, transparent);
 }
 
+.session-search {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.session-search input[type="search"] {
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    border: 1px solid var(--glass-border);
+    background: color-mix(in srgb, var(--vscode-input-background) 88%, transparent);
+}
+
+.session-search input[type="search"]:focus {
+    outline: 2px solid color-mix(in srgb, var(--vscode-focusBorder) 65%, transparent);
+    border-color: transparent;
+}
+
 .session-empty-icon {
     font-size: 18px;
 }
