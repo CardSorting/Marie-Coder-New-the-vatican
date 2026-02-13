@@ -38,6 +38,7 @@ import {
 import { JoyAutomationService } from "../../services/JoyAutomationService.js";
 import { RitualService, JoyZone } from "../../domain/joy/RitualService.js";
 import { ContextArchiveService } from "../ai/context/ContextArchiveService.js";
+import { LintService } from "../../plumbing/analysis/LintService.js";
 
 export function registerMarieTools(
   registry: ToolRegistry,
@@ -72,6 +73,67 @@ export function registerMarieTools(
         getUnstagedDiff(root),
       ]);
       return `# Git Context\n\n## Status\n\`\`\`\n${status}\n\`\`\`\n\n## Staged Changes\n\`\`\`\n${staged}\n\`\`\`\n\n## Unstaged Changes\n\`\`\`\n${unstaged}\n\`\`\``;
+    },
+  });
+
+  registry.register({
+    name: "resolve_lint_errors",
+    description:
+      "Run targeted linting and receive structured errors with surgical fix suggestions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "Optional path to a specific file to lint" },
+        command: { type: "string", description: "Optional custom lint command" },
+      },
+    },
+    execute: async (args) => {
+      const workingDir = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+      const p = args.path as string | undefined;
+      const cmd = (args.command as string) || "npm run lint";
+      
+      const errors = p 
+        ? await LintService.runLintOnFile(workingDir, p)
+        : await LintService.runLint(workingDir, cmd);
+
+      if (errors.length === 0) {
+        return "No lint errors found. The garden is pure. ✨";
+      }
+
+      let result = `# 🏥 Linting Triage Report (${errors.length} issues found)\n\n`;
+      errors.forEach((err, i) => {
+        const fix = LintService.suggestFix(err);
+        result += `### Issue ${i + 1}: ${err.file}:${err.line}\n`;
+        result += `- **Rule**: ${err.ruleId || "unknown"}\n`;
+        result += `- **Message**: ${err.message}\n`;
+        if (fix) result += `- **Suggested Fix**: ${fix}\n`;
+        result += "\n";
+      });
+
+      result += `**Precision Strike**: Use 'read_file' to audit the specific lines and 'replace_file_content' to apply surgical mends.`;
+      return result;
+    },
+  });
+
+  registry.register({
+    name: "self_heal",
+    description:
+      "Autonomous systemic recovery. Marie will audit the project for stability alerts and attempt autonomous fixes.",
+    isDestructive: true,
+    input_schema: { type: "object", properties: {} },
+    execute: async () => {
+      const workingDir = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+      const errors = await LintService.runLint(workingDir);
+      
+      if (errors.length === 0) {
+        return "Marie's systemic audit found no regressions. Stability is absolute. ✨";
+      }
+
+      let result = `# 🧬 Autonomous Recovery Protocol\n\nDetected **${errors.length}** stability alerts in the codebase.\n\n`;
+      const files = Array.from(new Set(errors.map(e => e.file)));
+      result += `**Impacted Files**:\n${files.map(f => `- ${f}`).join("\n")}\n\n`;
+      result += `**Trajectory**: Use 'resolve_lint_errors' to view the full triage report and begin surgical remediation.`;
+      return result;
     },
   });
 

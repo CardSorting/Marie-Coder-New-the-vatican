@@ -644,75 +644,52 @@ export class MarieToolProcessor {
 
   private async runBuildSentinel(filePath: string): Promise<string | null> {
     const vscode = getVscode();
-    
-    // VS Code Environment: Use LSP diagnostics
-    if (vscode) {
-      try {
-        // Wait a bit for LSP to catch up
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+    const workingDir = vscode?.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
 
-        const diagnostics = vscode.languages.getDiagnostics(
-          vscode.Uri.file(filePath),
-        );
-        const errors = diagnostics.filter(
-          (d) => d.severity === vscode.DiagnosticSeverity.Error,
-        );
+    try {
+      const { QualityGuardrailService } = await import("../../../plumbing/analysis/QualityGuardrailService.js");
+      
+      this.tracker.emitProgressUpdate("Initiating Sub-Atomic Integrity Audit... 🛡️");
+      const result = await QualityGuardrailService.evaluate(workingDir, filePath);
 
-        if (errors.length > 0) {
-          this.tracker.emitEvent({
-            type: "reasoning",
-            runId: this.tracker.getRun().runId,
-            text: `🧱 SINGULARITY: Build Sentinel detected ${errors.length} error(s) in \`${filePath.split("/").pop()}\`.`,
-            elapsedMs: this.tracker.elapsedMs(),
-          });
-
-          const errorSummary = errors
-            .map((e) => `- [Line ${e.range.start.line + 1}] ${e.message}`)
-            .join("\n");
-          return `🚨 **Build Regressions Detected**: Your recent change introduced compilation errors:\n${errorSummary}\n\n**Action Required**: Fix these errors immediately before proceeding.`;
-        }
-      } catch (e) {
-        console.warn("[Singularity] VS Code Build Sentinel failed", e);
+      if (result.surgicalMends > 0) {
+        this.tracker.emitEvent({
+          type: "reasoning",
+          runId: this.tracker.getRun().runId,
+          text: `✨ SURGICAL MEND: Marie autonomously repaired ${result.surgicalMends} sub-atomic issue(s) in \`${path.basename(filePath)}\`.`,
+          elapsedMs: this.tracker.elapsedMs(),
+        });
       }
-    } else {
-      // CLI Environment: Sub-Atomic Integrity Audit
-      try {
-        const { QualityGuardrailService } = await import("../../../plumbing/analysis/QualityGuardrailService.js");
-        const workingDir = process.cwd();
+
+      if (!result.passed) {
+        this.tracker.emitEvent({
+          type: "reasoning",
+          runId: this.tracker.getRun().runId,
+          text: `🧱 SUB-ATOMIC REJECTION: Project integrity at risk (Score: ${result.score}/100).`,
+          elapsedMs: this.tracker.elapsedMs(),
+        });
+
+        let summary = `🚨 **SUB-ATOMIC INTEGRITY REJECTION** 🚨\n\nMarie has audited your change and found it architecturally or stylistically toxic.\n\n`;
+        summary += `**Quality Score**: ${result.score}/100\n`;
+        summary += result.violations.map(v => `- ❌ ${v}`).join("\n");
+        summary += `\n\n**Action Required**: You must resolve these precision regressions. Use 'resolve_lint_errors' for location-specific data. Type sovereignty is absolute. 🚩`;
         
-        this.tracker.emitProgressUpdate("Initiating Sub-Atomic Integrity Audit... 🛡️");
-        const result = await QualityGuardrailService.evaluate(workingDir, filePath);
+        return summary;
+      }
 
-        if (result.surgicalMends > 0) {
-          this.tracker.emitEvent({
-            type: "reasoning",
-            runId: this.tracker.getRun().runId,
-            text: `✨ SURGICAL MEND: Marie autonomously repaired ${result.surgicalMends} sub-atomic issue(s) in \`${path.basename(filePath)}\`.`,
-            elapsedMs: this.tracker.elapsedMs(),
-          });
+      if (result.score < 100) {
+        this.tracker.emitProgressUpdate(`Sub-Atomic Audit Passed (Score: ${result.score}/100) ✨`);
+      }
+    } catch (e) {
+      console.warn("[Singularity] Sub-Atomic Guardrails failed", e);
+      
+      // Fallback to basic VS Code diagnostics if service fails
+      if (vscode) {
+        const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(filePath));
+        const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+        if (errors.length > 0) {
+          return `🚨 **Build Regressions Detected**: ${errors.length} error(s) found. Fix these immediately.`;
         }
-
-        if (!result.passed) {
-          this.tracker.emitEvent({
-            type: "reasoning",
-            runId: this.tracker.getRun().runId,
-            text: `🧱 SUB-ATOMIC REJECTION: Project integrity at risk (Score: ${result.score}/100).`,
-            elapsedMs: this.tracker.elapsedMs(),
-          });
-
-          let summary = `🚨 **SUB-ATOMIC INTEGRITY REJECTION** 🚨\n\nMarie has audited your change and found it architecturally or stylistically toxic.\n\n`;
-          summary += `**Quality Score**: ${result.score}/100\n`;
-          summary += result.violations.map(v => `- ❌ ${v}`).join("\n");
-          summary += `\n\n**Action Required**: You must resolve these precision regressions. Use 'resolve_lint_errors' for location-specific data. Type sovereignty is absolute. 🚩`;
-          
-          return summary;
-        }
-
-        if (result.score < 100) {
-          this.tracker.emitProgressUpdate(`Sub-Atomic Audit Passed (Score: ${result.score}/100) ✨`);
-        }
-      } catch (e) {
-        console.warn("[Singularity] Sub-Atomic Guardrails failed", e);
       }
     }
 
