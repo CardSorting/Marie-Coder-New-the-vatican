@@ -119,9 +119,10 @@ body {
 
 .header-controls {
     display: flex;
-    align-items: end;
+    align-items: center;
     gap: var(--space-3);
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .control-field {
@@ -133,6 +134,167 @@ body {
 
 .model-field {
     min-width: 300px;
+}
+
+.session-toggle {
+    min-width: 112px;
+    height: 36px;
+    padding: 0 var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    background: color-mix(in srgb, var(--surface-2) 74%, transparent);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+}
+
+.session-toggle:hover {
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--glass-border));
+}
+
+.session-toggle.is-open {
+    background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+    border-color: color-mix(in srgb, var(--accent) 65%, var(--glass-border));
+}
+
+.session-toggle-label {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.hamburger {
+    width: 14px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.hamburger .bar {
+    height: 2px;
+    width: 100%;
+    border-radius: var(--radius-pill);
+    background: currentColor;
+    transition: transform var(--motion-fast) ease, opacity var(--motion-fast) ease;
+}
+
+.session-toggle.is-open .hamburger .bar:nth-child(1) {
+    transform: translateY(5px) rotate(45deg);
+}
+
+.session-toggle.is-open .hamburger .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.session-toggle.is-open .hamburger .bar:nth-child(3) {
+    transform: translateY(-5px) rotate(-45deg);
+}
+
+.config-pill-row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+}
+
+.config-pill {
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border);
+    background: color-mix(in srgb, var(--surface-0) 80%, transparent);
+    font-size: 11px;
+    line-height: 1;
+}
+
+.config-pill.model {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.config-pill.ok {
+    border-color: color-mix(in srgb, #38b66b 45%, var(--glass-border));
+}
+
+.config-pill.warn {
+    border-color: color-mix(in srgb, #d28d23 55%, var(--glass-border));
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+}
+
+.config-modal {
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+    box-shadow: var(--shadow-soft);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.modal-body {
+    padding: var(--space-4);
+}
+
+.api-status-row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 8px 10px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--surface-0) 72%, transparent);
+}
+
+.api-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: var(--radius-pill);
+    background: var(--text-muted);
+}
+
+.api-dot.ok {
+    background: #38b66b;
+    box-shadow: 0 0 0 4px color-mix(in srgb, #38b66b 24%, transparent);
+}
+
+.api-dot.warn {
+    background: #d28d23;
+    box-shadow: 0 0 0 4px color-mix(in srgb, #d28d23 20%, transparent);
+}
+
+.session-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.session-heading-icon {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--accent) 20%, var(--surface-2));
 }
 
 .feed {
@@ -380,6 +542,10 @@ button.icon {
     padding: 0;
     background: color-mix(in srgb, var(--surface-2) 70%, transparent);
     border-color: var(--glass-border);
+}
+
+button.icon:hover {
+    border-color: var(--vscode-focusBorder);
 }
 
 button.session {

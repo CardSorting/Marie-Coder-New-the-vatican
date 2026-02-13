@@ -7,14 +7,19 @@ export function HeaderBar({
     availableModels,
     onProvider,
     onModel,
+    onOpenSettings,
+    onRefreshModels,
 }: {
     config: UiConfig
     isLoading: boolean
     availableModels: string[]
     onProvider: (provider: string) => void
     onModel: (model: string) => void
+    onOpenSettings: () => void
+    onRefreshModels: () => void
 }) {
     const [modelDraft, setModelDraft] = useState(config.model)
+    const [isConfigOpen, setIsConfigOpen] = useState(false)
 
     useEffect(() => {
         setModelDraft(config.model)
@@ -31,47 +36,96 @@ export function HeaderBar({
         onModel(next)
     }
 
+    const closeConfig = () => setIsConfigOpen(false)
+
     return (
-        <header className="top">
-            <div className="stack">
-                <div className="title-row">
-                    <strong>Marie</strong>
-                    <span className="muted">{isLoading ? "Running…" : "Ready"}</span>
+        <>
+            <header className="top">
+                <div className="stack">
+                    <div className="title-row">
+                        <strong>Marie</strong>
+                        <span className="muted">{isLoading ? "Running…" : "Ready"}</span>
+                    </div>
                 </div>
-            </div>
 
-            <div className="header-controls">
-                <label className="control-field">
-                    <span className="muted">Provider</span>
-                    <select value={config.provider} onChange={(e) => onProvider(e.target.value)}>
-                        <option value="anthropic">anthropic</option>
-                        <option value="openrouter">openrouter</option>
-                        <option value="cerebras">cerebras</option>
-                    </select>
-                </label>
+                <div className="header-controls">
+                    <div className="config-pill-row">
+                        <span className="config-pill">{config.provider}</span>
+                        <span className="config-pill model" title={config.model}>{config.model}</span>
+                        <span className={`config-pill ${config.hasAnyApiKey ? "ok" : "warn"}`}>
+                            {config.hasAnyApiKey ? "API key connected" : "API key needed"}
+                        </span>
+                    </div>
+                    <button className="secondary" onClick={() => setIsConfigOpen(true)}>
+                        Configure AI
+                    </button>
+                </div>
+            </header>
 
-                <label className="control-field model-field">
-                    <span className="muted">Model</span>
-                    <input
-                        list="marie-model-options"
-                        value={modelDraft}
-                        onChange={(e) => setModelDraft(e.target.value)}
-                        onBlur={commitModel}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault()
-                                commitModel()
-                            }
-                        }}
-                        placeholder="Enter model id"
-                    />
-                    <datalist id="marie-model-options">
-                        {modelOptions.map((model) => (
-                            <option key={model} value={model} />
-                        ))}
-                    </datalist>
-                </label>
-            </div>
-        </header>
+            {isConfigOpen && (
+                <div className="modal-backdrop" onClick={closeConfig} role="presentation">
+                    <section
+                        className="config-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Model and provider settings"
+                        onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <strong>Model & Provider</strong>
+                            <button className="icon" onClick={closeConfig} aria-label="Close settings">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="modal-body stack">
+                            <label className="control-field">
+                                <span className="muted">Provider</span>
+                                <select value={config.provider} onChange={(e) => onProvider(e.target.value)}>
+                                    <option value="anthropic">anthropic</option>
+                                    <option value="openrouter">openrouter</option>
+                                    <option value="cerebras">cerebras</option>
+                                </select>
+                            </label>
+
+                            <label className="control-field">
+                                <span className="muted">Model</span>
+                                <input
+                                    list="marie-model-options"
+                                    value={modelDraft}
+                                    onChange={(e) => setModelDraft(e.target.value)}
+                                    onBlur={commitModel}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault()
+                                            commitModel()
+                                        }
+                                    }}
+                                    placeholder="Enter model id"
+                                />
+                                <datalist id="marie-model-options">
+                                    {modelOptions.map((model) => (
+                                        <option key={model} value={model} />
+                                    ))}
+                                </datalist>
+                            </label>
+
+                            <div className="api-status-row">
+                                <span className={`api-dot ${config.hasAnyApiKey ? "ok" : "warn"}`} />
+                                <span>{config.hasAnyApiKey ? "API key is configured" : "No API key configured"}</span>
+                            </div>
+
+                            <div className="row">
+                                <button className="secondary" onClick={onRefreshModels}>
+                                    Refresh models
+                                </button>
+                                <button className="secondary" onClick={onOpenSettings}>
+                                    Open VS Code settings
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            )}
+        </>
     )
 }

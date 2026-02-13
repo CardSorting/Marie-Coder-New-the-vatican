@@ -27,13 +27,16 @@ export function SessionList({
 
     return (
         <aside className="left stack">
+            <div className="session-heading">
+                <span className="session-heading-icon" aria-hidden="true">🗂️</span>
+                <strong>Sessions</strong>
+            </div>
             <div className="row">
                 <button onClick={onCreate}>New</button>
                 <button onClick={onRefresh} className="secondary">
                     Refresh
                 </button>
             </div>
-            <div className="muted">Sessions</div>
             <div className="stack">
                 {sorted.length === 0 && <div className="muted">No sessions</div>}
                 {sorted.map((session) => (
@@ -41,7 +44,10 @@ export function SessionList({
                         key={session.id}
                         onClick={() => onLoad(session.id)}
                         className={`session ${session.id === currentSessionId ? "active" : ""}`}>
-                        <span>{session.isPinned ? "📌 " : ""}{session.title || "New Session"}</span>
+                        <span>
+                            {session.isPinned ? "📌 " : "💬 "}
+                            {session.title || "New Session"}
+                        </span>
                         <span className="muted">{formatSessionDate(session.lastModified)}</span>
                     </button>
                 ))}

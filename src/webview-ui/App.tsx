@@ -26,10 +26,16 @@ function AppContent() {
                 <div className="workspace-glass">
                     <div className="header-wrap">
                         <button
-                            className="icon"
+                            className={`session-toggle ${isSidebarOpen ? "is-open" : ""}`}
                             onClick={() => setIsSidebarOpen((prev) => !prev)}
-                            aria-label={isSidebarOpen ? "Hide sessions" : "Show sessions"}>
-                            {isSidebarOpen ? "✕" : "☰"}
+                            aria-label={isSidebarOpen ? "Hide sessions" : "Show sessions"}
+                            aria-expanded={isSidebarOpen}>
+                            <span className="hamburger" aria-hidden="true">
+                                <span className="bar" />
+                                <span className="bar" />
+                                <span className="bar" />
+                            </span>
+                            <span className="session-toggle-label">Sessions</span>
                         </button>
                         <HeaderBar
                             config={state.config}
@@ -37,6 +43,8 @@ function AppContent() {
                             availableModels={state.availableModels}
                             onProvider={actions.setProvider}
                             onModel={actions.setModel}
+                            onOpenSettings={actions.openSettings}
+                            onRefreshModels={actions.getModels}
                         />
                     </div>
 
