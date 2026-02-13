@@ -172,10 +172,50 @@ class MarieWebviewHost {
     private async setProvider(rawProvider: string): Promise<void> {
         const provider = rawProvider === "openrouter" || rawProvider === "cerebras" ? rawProvider : "anthropic";
         const cfg = vscode.workspace.getConfiguration("marie");
+
+        // Get the current model to check if we need to reset it for the new provider
+        const currentModel = ConfigService.getModel();
+
+        // Define sensible default models for each provider
+        let newModel: string;
+        if (provider === "openrouter") {
+            // For OpenRouter, use the OpenRouter format for Claude
+            newModel = "anthropic/claude-3.5-sonnet";
+        } else if (provider === "cerebras") {
+            // For Cerebras, use Llama
+            newModel = "llama3.1-8b";
+        } else {
+            // For Anthropic, use the default Claude model
+            newModel = "claude-3-5-sonnet-20241022";
+        }
+
+        // Only update model if it's not already set to a compatible model for the provider
+        // Check if current model would work with the new provider
+        const needsModelReset = !this.isModelCompatibleWithProvider(currentModel, provider);
+
         await cfg.update("aiProvider", provider, vscode.ConfigurationTarget.Global);
+        if (needsModelReset) {
+            await cfg.update("model", newModel, vscode.ConfigurationTarget.Global);
+        }
+
         this.marieInstance.updateSettings();
         this.post({ type: "config", config: this.getConfigSnapshot() });
         this.post({ type: "models", models: await this.marieInstance.getModels() });
+    }
+
+    private isModelCompatibleWithProvider(model: string, provider: string): boolean {
+        if (provider === "anthropic") {
+            // Anthropic accepts claude-* models
+            return model.startsWith("claude-");
+        } else if (provider === "openrouter") {
+            // OpenRouter accepts models in various formats (anthropic/*, openai/*, google/*, etc.)
+            // or common models like llama-*
+            return model.includes("/") || model.startsWith("llama-") || model.startsWith("gpt-");
+        } else if (provider === "cerebras") {
+            // Cerebras accepts llama-* models
+            return model.startsWith("llama-");
+        }
+        return false;
     }
 
     private async setModel(rawModel: string): Promise<void> {
