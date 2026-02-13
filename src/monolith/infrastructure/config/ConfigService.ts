@@ -120,16 +120,16 @@ export class ConfigService {
         return config.requireApproval !== false;
     }
 
-    static getAutonomyMode(): 'balanced' | 'high' | 'yolo' {
+    static getAutonomyMode(): 'balanced' | 'high' | 'ascension' {
         const vscode = getVscode();
         if (vscode) {
-            const configured = vscode.workspace.getConfiguration("marie").get<'balanced' | 'high' | 'yolo'>("autonomyMode");
+            const configured = vscode.workspace.getConfiguration("marie").get<'balanced' | 'high' | 'ascension'>("autonomyMode");
             if (configured) return configured;
             return this.getRequireApproval() ? 'balanced' : 'high';
         }
 
         const config = getCliConfig();
-        const configured = config.autonomyMode as 'balanced' | 'high' | 'yolo' | undefined;
+        const configured = config.autonomyMode as 'balanced' | 'high' | 'ascension' | undefined;
         if (configured) return configured;
         return config.requireApproval === false ? 'high' : 'balanced';
     }
@@ -179,36 +179,36 @@ export class ConfigService {
         return 0.25;
     }
 
-    static isYoloEnabled(): boolean {
+    static isAscensionEnabled(): boolean {
         const vscode = getVscode();
         if (vscode) {
-            return vscode.workspace.getConfiguration("marie").get<boolean>("yoloEnabled", true);
+            return vscode.workspace.getConfiguration("marie").get<boolean>("ascensionEnabled", true);
         }
         return true;
     }
 
-    static getYoloProfile(): 'demo_day' | 'balanced' | 'recovery' {
+    static getAscensionProfile(): 'demo_day' | 'balanced' | 'recovery' {
         const vscode = getVscode();
         if (vscode) {
-            return vscode.workspace.getConfiguration("marie").get<'demo_day' | 'balanced' | 'recovery'>("yoloProfile", "balanced");
+            return vscode.workspace.getConfiguration("marie").get<'demo_day' | 'balanced' | 'recovery'>("ascensionProfile", "balanced");
         }
         return "balanced";
     }
 
-    static getYoloAggression(): number {
+    static getAscensionIntensity(): number {
         const vscode = getVscode();
         let value = 1.0;
         if (vscode) {
-            value = vscode.workspace.getConfiguration("marie").get<number>("yoloAggression", 1.0);
+            value = vscode.workspace.getConfiguration("marie").get<number>("ascensionIntensity", 1.0);
         }
         return Math.max(0.5, Math.min(1.5, value));
     }
 
-    static getYoloMaxRequiredActions(): number {
+    static getAscensionMaxRequiredActions(): number {
         const vscode = getVscode();
         let value = 2;
         if (vscode) {
-            value = vscode.workspace.getConfiguration("marie").get<number>("yoloMaxRequiredActions", 2);
+            value = vscode.workspace.getConfiguration("marie").get<number>("ascensionMaxRequiredActions", 2);
         }
         return Math.max(0, Math.min(5, value));
     }

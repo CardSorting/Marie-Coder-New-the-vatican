@@ -25,11 +25,11 @@ export interface MarieConfig {
     model: string;
     requireApproval: boolean;
     maxContextTokens: number;
-    yoloEnabled: boolean;
-    yoloProfile: 'demo_day' | 'balanced' | 'recovery';
-    yoloAggression: number;
-    yoloMaxRequiredActions: number;
-    autonomyMode: 'balanced' | 'high' | 'yolo';
+    ascensionEnabled: boolean;
+    ascensionProfile: 'demo_day' | 'balanced' | 'recovery';
+    ascensionIntensity: number;
+    ascensionMaxRequiredActions: number;
+    autonomyMode: 'balanced' | 'high' | 'ascension';
 }
 
 const defaultConfig: MarieConfig = {
@@ -37,11 +37,11 @@ const defaultConfig: MarieConfig = {
     model: 'claude-3-5-sonnet-20241022',
     requireApproval: true,
     maxContextTokens: 100000,
-    yoloEnabled: true,
-    yoloProfile: 'balanced',
-    yoloAggression: 1,
-    yoloMaxRequiredActions: 2,
-    autonomyMode: 'yolo'
+    ascensionEnabled: true,
+    ascensionProfile: 'balanced',
+    ascensionIntensity: 1,
+    ascensionMaxRequiredActions: 2,
+    autonomyMode: 'ascension'
 };
 
 export class Storage {

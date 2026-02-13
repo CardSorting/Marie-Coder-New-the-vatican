@@ -8,7 +8,7 @@ import { ToolRegistry } from "../../tools/ToolRegistry.js";
 
 export type MarieSessionPromptProfile = 'full' | 'continuation';
 
-import { YoloMemory } from "./MarieYOLOTypes.js";
+import { AscensionState } from "./MarieAscensionTypes.js";
 
 /**
  * Manages a single AI chat session with a reactive streaming model.
@@ -30,14 +30,14 @@ export class MarieSession {
             : SYSTEM_PROMPT;
     }
 
-    public async *executeLoop(messages: any[], signal?: AbortSignal, memory?: YoloMemory): AsyncGenerator<AIStreamEvent> {
+    public async *executeLoop(messages: any[], signal?: AbortSignal, state?: AscensionState): AsyncGenerator<AIStreamEvent> {
         // PHASE 6: Generator Disposal Grace - Snapshot messages before modification
         // This ensures we can restore to a consistent state if aborted mid-run
         const messagesSnapshot = messages.map(m => ({ ...m }));
         let messagesModified = false;
 
         try {
-            const managedMessages = await ContextManager.manage(messages, this.provider, memory);
+            const managedMessages = await ContextManager.manage(messages, this.provider, state);
 
             if (managedMessages !== messages) {
                 messages.length = 0;
@@ -181,11 +181,11 @@ export class MarieSession {
      * Non-streaming version for simpler engine integration.
      */
     public async generate(): Promise<MarieResponse> {
-        const memory = this.tracker?.getRun().yoloMemory;
+        const state = this.tracker?.getRun().ascensionState;
         const params = {
             model: ConfigService.getModel(),
             max_tokens: 2048,
-            messages: await ContextManager.manage(this.messages, this.provider, memory),
+            messages: await ContextManager.manage(this.messages, this.provider, state),
             system: this.resolveSystemPrompt(),
             tools: this.toolRegistry.getTools(),
         } as any;

@@ -1,7 +1,7 @@
 import { ToolRegistry } from "../../tools/ToolRegistry.js";
 import { MarieProgressTracker } from "./MarieProgressTracker.js";
 import { MarieToolProcessor } from "./MarieToolProcessor.js";
-import { YoloMemory } from "./MarieYOLOTypes.js";
+import { AscensionState } from "./MarieAscensionTypes.js";
 import { StringUtils } from "../../../plumbing/utils/StringUtils.js";
 import { JsonUtils } from "../../../plumbing/utils/JsonUtils.js";
 
@@ -22,7 +22,7 @@ export class MarieToolMender {
         error: string,
         tracker: MarieProgressTracker,
         processor: MarieToolProcessor,
-        memory: YoloMemory,
+        state: AscensionState,
         signal?: AbortSignal
     ): Promise<string | null> {
         // 1. Tool Name Repair
@@ -55,7 +55,7 @@ export class MarieToolMender {
         if (error.includes('ENOENT') || error.includes('not found')) {
             const problematicPath = toolCall.input?.path || toolCall.input?.targetFile || toolCall.input?.file;
             if (problematicPath && typeof problematicPath === 'string') {
-                const recentFiles = memory.recentFiles || [];
+                const recentFiles = state.recentFiles || [];
                 let bestPathName = '';
                 let bestPathSim = 0;
 

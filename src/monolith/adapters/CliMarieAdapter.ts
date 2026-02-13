@@ -79,7 +79,7 @@ export class MarieCLI extends RuntimeAdapterBase<RuntimeAutomationPort> {
             shouldBypassApprovals: () => {
                 const config = Storage.getConfig();
                 const autonomyMode = config.autonomyMode || (config.requireApproval === false ? 'high' : 'balanced');
-                return autonomyMode === 'yolo';
+                return autonomyMode === 'ascension';
             }
         });
 

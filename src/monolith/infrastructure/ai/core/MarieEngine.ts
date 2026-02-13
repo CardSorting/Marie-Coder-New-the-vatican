@@ -4,8 +4,8 @@ import { MarieProgressTracker } from "./MarieProgressTracker.js";
 import { MarieSession, MarieSessionPromptProfile } from "./MarieSession.js";
 import { MarieEventDispatcher } from "./MarieEventDispatcher.js";
 import { MarieToolProcessor } from "./MarieToolProcessor.js";
-import { MarieYOLO } from "../agents/MarieYOLO.js";
-import { YoloMemory, YoloDecision } from "./MarieYOLOTypes.js";
+import { MarieAscendant } from "../agents/MarieAscendant.js";
+import { AscensionState, AscensionDecree } from "./MarieAscensionTypes.js";
 import { MarieLockManager } from "./MarieLockManager.js";
 import { MarieToolMender } from "./MarieToolMender.js";
 import { MariePulseService } from "./MariePulseService.js";
@@ -22,8 +22,8 @@ export function getPromptProfileForDepth(depth: number): MarieSessionPromptProfi
  */
 export class MarieEngine {
     private static readonly CONTENT_BUFFER_MAX_BYTES = 1024 * 1024;
-    private yolo: MarieYOLO;
-    private memory: YoloMemory;
+    private ascendant: MarieAscendant;
+    private state: AscensionState;
     private lockManager: MarieLockManager;
     private toolMender: MarieToolMender;
     private pulseService: MariePulseService | undefined;
@@ -41,22 +41,22 @@ export class MarieEngine {
         private approvalRequester: (name: string, input: any) => Promise<boolean>,
         private providerFactory?: (type: string) => AIProvider
     ) {
-        this.yolo = new MarieYOLO(this.provider);
-        this.memory = this.initializeMemory();
+        this.ascendant = new MarieAscendant(this.provider);
+        this.state = this.initializeState();
         this.lockManager = new MarieLockManager();
         this.toolMender = new MarieToolMender(this.toolRegistry);
         this.reasoningBudget = new ReasoningBudget();
     }
 
-    private initializeMemory(): YoloMemory {
+    private initializeState(): AscensionState {
         return {
             errorHotspots: {},
             totalErrorCount: 0,
-            flowState: 50,
+            spiritPressure: 50,
             recentFiles: [],
             toolHistory: [],
-            toolExecutions: [],
-            successStreak: 0,
+            techniqueExecutions: [],
+            victoryStreak: 0,
             shakyResponseDensity: 0,
             writtenFiles: [],
             actionDiffs: {},
@@ -137,14 +137,14 @@ export class MarieEngine {
             tracker.emitEvent({
                 type: 'reasoning',
                 runId: tracker.getRun().runId,
-                text: "The Founder convenes. Execution begins.",
+                text: "🔥 Ascension protocol initiated. Hero's conviction rising.",
                 elapsedMs: tracker.elapsedMs()
             });
         }
 
-        // Decay flow if stale
-        if (Date.now() - (this.memory.toolExecutions.slice(-1)[0]?.timestamp || 0) > 300000) {
-            this.memory.flowState = Math.max(30, this.memory.flowState - 10);
+        // Decay spirit pressure if stale
+        if (Date.now() - (this.state.techniqueExecutions.slice(-1)[0]?.timestamp || 0) > 300000) {
+            this.state.spiritPressure = Math.max(30, this.state.spiritPressure - 10);
         }
 
         const processor = new MarieToolProcessor(
@@ -158,14 +158,14 @@ export class MarieEngine {
                         runId: tracker.getRun().runId,
                         status: 'approved',
                         toolName: name,
-                        summary: { what: 'Founder Auto-Approved', why: 'High Confidence', impact: 'Velocity' },
+                        summary: { what: 'Ascension Auto-Approved', why: 'Heroic Conviction', impact: 'Maximum Speed' },
                         elapsedMs: tracker.elapsedMs()
                     });
                     return true;
                 }
                 return this.approvalRequester(name, input);
             },
-            this.memory
+            this.state
         );
 
         let finalContent = "";
@@ -285,20 +285,20 @@ export class MarieEngine {
         if (totalToolCount > 0) {
             messages.push({ role: "user", content: toolResultBlocks });
 
-            // YOLO EVALUATION: Determine next trajectory
-            const yoloDecision = await this.yolo.evaluate(messages, this.memory);
-            this.memory.lastDecision = yoloDecision;
+            // ASCENSION EVALUATION: Determine next trajectory
+            const decree = await this.ascendant.evaluate(messages, this.state);
+            this.state.lastDecree = decree;
 
             tracker.emitEvent({
                 type: 'reasoning',
                 runId: tracker.getRun().runId,
-                text: `⚡ Founder Decrees: ${yoloDecision.strategy} @ ${yoloDecision.confidence.toFixed(2)} — ${yoloDecision.reason}`,
+                text: `⚡ Protocol Decree: ${decree.strategy} @ ${decree.confidence.toFixed(2)} — ${decree.reason}`,
                 elapsedMs: tracker.elapsedMs()
             });
 
-            if (yoloDecision.strategy === 'PANIC') {
-                this.memory.panicCoolDown = 3;
-                messages.push({ role: "user", content: "🚨 SYSTEM PANIC: Critical logic drift detected. Re-evaluating strategy immediately." });
+            if (decree.strategy === 'PANIC') {
+                this.state.panicCoolDown = 3;
+                messages.push({ role: "user", content: "🚨 SYSTEM PANIC: Instability detected. Re-evaluating ascension trajectory." });
             }
 
             saveHistory(tracker.getRun()).catch(e => console.error("History Save Error:", e));
@@ -312,7 +312,7 @@ export class MarieEngine {
         tracker.emitEvent({
             type: 'reasoning',
             runId: tracker.getRun().runId,
-            text: "The Founder confirms victory. The pattern holds.",
+            text: "✨ Convergence achieved. The pattern sparks joy.",
             elapsedMs: tracker.elapsedMs()
         });
 
@@ -321,47 +321,47 @@ export class MarieEngine {
     }
 
     private handleSuccess(tracker: MarieProgressTracker, toolName: string, durationMs: number, filePath?: string) {
-        this.memory.successStreak++;
-        this.memory.totalErrorCount = 0;
-        this.memory.flowState = Math.min(100, this.memory.flowState + 10);
-        this.memory.toolExecutions.push({ name: toolName, durationMs, success: true, timestamp: Date.now(), filePath });
-        this.memory.toolHistory.push(toolName);
-        if (filePath && !this.memory.recentFiles.includes(filePath)) {
-            this.memory.recentFiles.push(filePath);
-            if (this.memory.recentFiles.length > 10) this.memory.recentFiles.shift();
+        this.state.victoryStreak++;
+        this.state.totalErrorCount = 0;
+        this.state.spiritPressure = Math.min(100, this.state.spiritPressure + 10);
+        this.state.techniqueExecutions.push({ name: toolName, durationMs, success: true, timestamp: Date.now(), filePath });
+        this.state.toolHistory.push(toolName);
+        if (filePath && !this.state.recentFiles.includes(filePath)) {
+            this.state.recentFiles.push(filePath);
+            if (this.state.recentFiles.length > 10) this.state.recentFiles.shift();
         }
     }
 
     private handleFailure(tracker: MarieProgressTracker, toolName: string, error: string, filePath?: string) {
-        this.memory.successStreak = 0;
-        this.memory.flowState = Math.max(0, this.memory.flowState - 20);
-        this.memory.toolExecutions.push({ name: toolName, durationMs: 0, success: false, timestamp: Date.now(), filePath });
+        this.state.victoryStreak = 0;
+        this.state.spiritPressure = Math.max(0, this.state.spiritPressure - 20);
+        this.state.techniqueExecutions.push({ name: toolName, durationMs: 0, success: false, timestamp: Date.now(), filePath });
         if (filePath) {
-            this.memory.errorHotspots[filePath] = (this.memory.errorHotspots[filePath] || 0) + 1;
-            this.memory.totalErrorCount++;
+            this.state.errorHotspots[filePath] = (this.state.errorHotspots[filePath] || 0) + 1;
+            this.state.totalErrorCount++;
         }
 
         tracker.emitEvent({
             type: 'reasoning',
             runId: tracker.getRun().runId,
-            text: `The Founder notes a disturbance in ${filePath || 'system'}. The pattern requires mending.`,
+            text: `⚠️ Disturbance detected in ${filePath || 'system'}. Technique adjustment required.`,
             elapsedMs: tracker.elapsedMs()
         });
     }
 
     private updateShakyResponse() {
-        this.memory.shakyResponseDensity = Math.min(1, this.memory.shakyResponseDensity + 0.2);
+        this.state.shakyResponseDensity = Math.min(1, this.state.shakyResponseDensity + 0.2);
     }
 
     private shouldAutoApprove(toolName: string, input: any): boolean {
         const safeTools = ['read_file', 'view_file', 'list_dir', 'grep_search', 'search_web', 'get_file_diagnostics'];
         if (safeTools.includes(toolName)) return true;
 
-        const flow = this.memory.flowState;
-        const streak = this.memory.successStreak;
+        const pressure = this.state.spiritPressure;
+        const streak = this.state.victoryStreak;
 
-        // Founder's Mandate: High flow and good streak allows auto-approval of writes
-        if (flow > 70 && streak > 5) return true;
+        // Founder's Mandate: High pressure and good streak allows auto-approval of writes
+        if (pressure > 70 && streak > 5) return true;
 
         return false;
     }

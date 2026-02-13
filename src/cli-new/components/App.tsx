@@ -94,8 +94,8 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
                 break;
             case 'autonomy': {
                 const level = (args[0] || '').toLowerCase();
-                if (level === 'balanced' || level === 'high' || level === 'yolo') {
-                    Storage.saveConfig({ autonomyMode: level as 'balanced' | 'high' | 'yolo' });
+                if (level === 'balanced' || level === 'high' || level === 'ascension') {
+                    Storage.saveConfig({ autonomyMode: level as 'balanced' | 'high' | 'ascension' });
                 }
                 break;
             }
@@ -191,7 +191,7 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
 
             <Box marginTop={1}>
                 <Text color={marieTheme.colors.muted} dimColor>
-                    Ctrl+C Cancel • Ctrl+S Sessions • Ctrl+N New • /autonomy [balanced|high|yolo] • /config Settings • /help Commands
+                    Ctrl+C Cancel • Ctrl+S Sessions • Ctrl+N New • /autonomy [balanced|high|ascension] • /config Settings • /help Commands
                 </Text>
             </Box>
         </Box>

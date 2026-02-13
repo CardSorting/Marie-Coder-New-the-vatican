@@ -2,7 +2,7 @@ export type MarieRunStage = 'thinking' | 'planning' | 'responding' | 'calling_to
 
 export type ObjectiveStatus = 'pending' | 'in_progress' | 'completed' | 'verified' | 'blocked' | 'skipped' | 'cancelled';
 
-export interface YoloDecisionSnapshot {
+export interface AscensionDecreeSnapshot {
     profile: 'demo_day' | 'balanced' | 'recovery';
     strategy: string;
     confidence: number;
@@ -87,14 +87,14 @@ export type MarieStreamEvent =
         passHistory?: Array<{ pass: number, summary: string, reflection: string }>;
         metrics?: { cherishedFiles: string[], releasedDebtCount: number };
         heuristicFixes?: string[];
-        yoloMemory?: any; // Simplified for broad compatibility
+        ascensionState?: any; // Simplified for broad compatibility
     }
     | {
-        type: 'council_heartbeat';
+        type: 'ascension_heartbeat';
         runId: string;
         strategy: string;
         mood: string;
-        flow: number;
+        spiritPressure: number;
         streak: number;
         errors: number;
         toolCount: number;
@@ -178,7 +178,7 @@ export interface RunTelemetry {
     heuristicFixes?: string[];
     // PHASE 6: Store originating session ID for deep session fencing
     originatingSessionId?: string;
-    yoloMemory?: any; // Simplified for broad compatibility
+    ascensionState?: any; // Simplified for broad compatibility
 }
 
 export interface MarieCallbacks {

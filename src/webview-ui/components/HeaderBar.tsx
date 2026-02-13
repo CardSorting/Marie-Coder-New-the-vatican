@@ -21,13 +21,13 @@ export function HeaderBar({
                 <div>
                     <strong>Marie</strong> · {config.provider} · {config.model}
                 </div>
-                <div className="muted">Autonomy: {config.autonomyMode}{isLoading ? " · Running…" : ""}</div>
+                <div className="muted">Spirit Pressure: {config.autonomyMode === 'ascension' ? 'ASCENDANT' : config.autonomyMode}{isLoading ? " · Running…" : ""}</div>
             </div>
             <div className="row">
                 <select value={config.autonomyMode} onChange={(e) => onAutonomyMode(e.target.value)}>
                     <option value="balanced">balanced</option>
                     <option value="high">high</option>
-                    <option value="yolo">yolo</option>
+                    <option value="ascension">ascension</option>
                 </select>
                 <button onClick={onClear} className="secondary">
                     Clear

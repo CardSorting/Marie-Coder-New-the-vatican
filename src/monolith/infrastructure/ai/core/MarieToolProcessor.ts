@@ -22,7 +22,7 @@ import { RitualService } from "../../../domain/joy/RitualService.js";
 import { getStringArg } from "../../tools/ToolUtils.js";
 import { getErrorMessage } from "../../../plumbing/utils/ErrorUtils.js";
 import { MarieGhostService } from "../../../services/MarieGhostService.js";
-import { YoloMemory } from "./MarieYOLOTypes.js";
+import { AscensionState } from "./MarieAscensionTypes.js";
 import { withRetry, RetryConfig } from "../../../plumbing/utils/RetryUtils.js";
 import { backupFile, restoreFile, clearBackups, rollbackAll } from "../../../plumbing/filesystem/FileService.js";
 
@@ -36,7 +36,7 @@ export class MarieToolProcessor {
         private toolRegistry: ToolRegistry,
         private tracker: MarieProgressTracker,
         private approvalRequester: (name: string, input: any, diff?: { old: string, new: string }) => Promise<boolean>,
-        private memory: YoloMemory
+        private state: AscensionState
     ) { }
 
     public async process(toolCall: { id: string, name: string, input: any, repaired?: boolean }, signal?: AbortSignal): Promise<string> {
@@ -170,17 +170,17 @@ export class MarieToolProcessor {
             // Phase 11: Code Impact Analysis
             this.recordCodeStats(toolCall.name, input);
 
-            // YOLO Mastery: Record execution
-            this.memory.toolExecutions.push({
+            // Ascension Mastery: Record execution
+            this.state.techniqueExecutions.push({
                 name: toolCall.name,
                 durationMs: toolDurationMs,
                 success: true,
                 timestamp: Date.now(),
                 filePath: typeof execFile === 'string' ? execFile : undefined
             });
-            this.memory.toolHistory.push(toolCall.name);
-            if (this.memory.toolHistory.length > 20) this.memory.toolHistory.shift();
-            this.memory.successStreak++;
+            this.state.toolHistory.push(toolCall.name);
+            if (this.state.toolHistory.length > 20) this.state.toolHistory.shift();
+            this.state.victoryStreak++;
 
             // Phase 7: Track sentimental metrics
             const runMetrics = this.tracker.getRun();
@@ -232,19 +232,19 @@ export class MarieToolProcessor {
             this.recordError(name, rawMsg, isTerminal, toolCall.id);
             console.error(`[Marie] Tool ${name} failed: ${rawMsg}`);
 
-            // YOLO Mastery: Record failure
+            // Ascension Mastery: Record failure
             const failFile = toolCall.input?.path || toolCall.input?.targetFile || toolCall.input?.file || toolCall.input?.filePath;
-            this.memory.toolExecutions.push({
+            this.state.techniqueExecutions.push({
                 name: name,
                 durationMs: 0,
                 success: false,
                 timestamp: Date.now(),
                 filePath: typeof failFile === 'string' ? failFile : undefined
             });
-            this.memory.totalErrorCount++;
-            this.memory.successStreak = 0;
+            this.state.totalErrorCount++;
+            this.state.victoryStreak = 0;
             if (typeof failFile === 'string') {
-                this.memory.errorHotspots[failFile] = (this.memory.errorHotspots[failFile] || 0) + 1;
+                this.state.errorHotspots[failFile] = (this.state.errorHotspots[failFile] || 0) + 1;
             }
 
             if (isTerminal || state.count >= 3) {
@@ -255,20 +255,20 @@ export class MarieToolProcessor {
             // Constructive Feedback Layer
             const msgParts: string[] = [`Error executing ${name}: ${rawMsg}`];
 
-            // YOLO-Aware Error Hotspot Hint
+            // Ascension-Aware Error Hotspot Hint
             if (failFile && typeof failFile === 'string') {
-                const hotspotCount = this.memory.errorHotspots[failFile] || 0;
+                const hotspotCount = this.state.errorHotspots[failFile] || 0;
                 if (hotspotCount >= 2) {
-                    msgParts.push(`\n\n🔥 ERROR HOTSPOT: This file (${failFile}) has failed ${hotspotCount} times. Strongly consider a DIFFERENT approach or file.`);
+                    msgParts.push(`\n\n🔥 CURSE HOTSPOT: This file (${failFile}) has failed ${hotspotCount} times. Technique adjustment required.`);
                 }
             }
 
-            if (this.memory.flowState < 30) {
-                msgParts.push(`\n⚠️ Low flow state (${this.memory.flowState}/100). Simplify your next action.`);
+            if (this.state.spiritPressure < 30) {
+                msgParts.push(`\n⚠️ Low spirit pressure (${this.state.spiritPressure}/100). Simplify your next action.`);
             }
 
-            if (this.memory.mood === 'CAUTIOUS') {
-                msgParts.push(`\n🛡️ YOLO Mood: CAUTIOUS. Read before writing. Verify before acting.`);
+            if (this.state.mood === 'CAUTIOUS') {
+                msgParts.push(`\n🛡️ Ascension Mood: CAUTIOUS. Observe before acting. Verify the pattern.`);
             }
 
             if (rawMsg.includes("ENOENT") || rawMsg.includes("no such file")) {

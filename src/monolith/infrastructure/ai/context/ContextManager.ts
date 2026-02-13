@@ -5,7 +5,7 @@ import { SUMMARIZATION_SYSTEM_PROMPT, SUMMARIZATION_USER_PROMPT } from "../../..
 import { AIProvider } from "../providers/AIProvider.js";
 import { getErrorMessage } from "../../../plumbing/utils/ErrorUtils.js";
 import { StringUtils } from "../../../plumbing/utils/StringUtils.js";
-import { YoloMemory } from "../core/MarieYOLOTypes.js";
+import { AscensionState } from "../core/MarieAscensionTypes.js";
 
 export class ContextManager {
     private static estimateTokens(text: string, tokensPerChar: number): number {
@@ -66,7 +66,7 @@ export class ContextManager {
     static async manage(
         messages: Anthropic.MessageParam[],
         provider: AIProvider,
-        memory?: YoloMemory
+        state?: AscensionState
     ): Promise<Anthropic.MessageParam[]> {
         const maxTokens = ConfigService.getMaxContextTokens();
         const tokensPerChar = ConfigService.getTokensPerChar(); // Hoisted config access
@@ -101,24 +101,24 @@ export class ContextManager {
 
             const summaryText = StringUtils.extractText(summaryResponse.content) || "Summary unavailable.";
 
-            // YOLO Preservation: Prepend memory state to the summary so it survives compression
-            let yoloNote = '';
-            if (memory) {
-                const hotspots = Object.entries(memory.errorHotspots)
+            // Ascension Preservation: Prepend state snapshot to the summary so it survives compression
+            let ascensionNote = '';
+            if (state) {
+                const hotspots = Object.entries(state.errorHotspots)
                     .filter(([_, c]) => (c as any) >= 2)
                     .map(([f, c]) => `${f}(${c}x)`)
                     .join(', ');
 
-                const strategy = memory.lastDecision?.strategy || 'EXECUTE';
-                const strategyReason = memory.lastDecision?.reason || 'None';
+                const strategy = state.lastDecree?.strategy || 'EXECUTE';
+                const strategyReason = state.lastDecree?.reason || 'None';
 
-                yoloNote = `[YOLO STATE] Strategy: ${strategy}, Mood: ${memory.mood}, Flow: ${memory.flowState}/100, Streak: ${memory.successStreak}${hotspots ? `, Hotspots: ${hotspots}` : ''}, Last Reason: ${strategyReason}\n\n`;
+                ascensionNote = `[ASCENSION STATE] Strategy: ${strategy}, Mood: ${state.mood}, Spirit Pressure (Flow): ${state.spiritPressure}/100, Victory Streak: ${state.victoryStreak}${hotspots ? `, Hotspots: ${hotspots}` : ''}, Last Intent: ${strategyReason}\n\n`;
             }
 
             const newHistory: Anthropic.MessageParam[] = [
                 {
                     role: "user",
-                    content: `[System Note: Previous conversation summary]\n${yoloNote}${summaryText}`
+                    content: `[System Note: Previous conversation summary]\n${ascensionNote}${summaryText}`
                 },
                 ...recentMessages
             ];

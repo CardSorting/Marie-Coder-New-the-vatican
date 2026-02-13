@@ -234,7 +234,7 @@ export class MarieProgressTracker {
             passHistory: this.run.passHistory ? [...this.run.passHistory] : undefined,
             metrics: this.run.metrics ? { ...this.run.metrics } : undefined,
             heuristicFixes: this.run.heuristicFixes ? [...this.run.heuristicFixes] : undefined,
-            yoloMemory: this.run.yoloMemory,
+            ascensionState: this.run.ascensionState,
             elapsedMs: Date.now() - this.run.startedAt,
         });
     }
