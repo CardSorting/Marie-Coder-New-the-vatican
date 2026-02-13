@@ -475,7 +475,7 @@ export class MarieToolProcessor {
 
     private async runZoningSentinel(filePath: string, toolResult?: string): Promise<string | null> {
         try {
-            const { detectMigrationNeeds } = await import("../../../domain/joy/JoyTools.js");
+            const { detectMigrationNeeds } = await import("../../../plumbing/analysis/CodeHealthService.js");
             const { readFile } = await import("../../../plumbing/filesystem/FileService.js");
             const content = await readFile(filePath);
 

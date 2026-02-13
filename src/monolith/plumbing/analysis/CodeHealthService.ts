@@ -1,6 +1,5 @@
 import * as fs from 'fs/promises';
 import { getGratitudeMessage, getCelebrationMessage } from '../../../prompts.js';
-import { detectMigrationNeeds } from '../../domain/joy/JoyTools.js';
 
 export interface HealthReport {
     path: string;
@@ -21,6 +20,30 @@ export interface HealthReport {
         illegalImports: string[];
         migrationNeed?: { shouldMigrate: boolean, targetZone?: string, reason?: string };
     };
+}
+
+export function detectMigrationNeeds(filePath: string, content: string): { shouldMigrate: boolean, targetZone?: string, reason?: string } {
+    const isPlumbing = filePath.includes('/plumbing/');
+    const isInfrastructure = filePath.includes('/infrastructure/');
+    const lowerContent = content.toLowerCase();
+
+    // If a plumbing file starts talking about "Entity", "User", "Order", it's leaking domain.
+    const domainKeywords = ['entity', 'user', 'order', 'product', 'logic', 'business'];
+    const domainMatch = domainKeywords.find(word => lowerContent.includes(word));
+
+    if (isPlumbing && domainMatch) {
+        return {
+            shouldMigrate: true,
+            targetZone: 'src/domain',
+            reason: `Found domain keyword '${domainMatch}' in plumbing. This file has evolved and deserves ascension.`
+        };
+    }
+
+    if (isInfrastructure && (lowerContent.includes('sql') || lowerContent.includes('fetch'))) {
+        // This is fine, infrastructure is for IO/Adapters.
+    }
+
+    return { shouldMigrate: false };
 }
 
 export async function checkCodeHealth(path: string): Promise<HealthReport> {

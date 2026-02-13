@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { ConfigService } from "../../infrastructure/config/ConfigService.js";
-import { checkCodeHealth, HealthReport } from "../../plumbing/analysis/CodeHealthService.js";
 
 export async function logGratitude(message: string): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -22,6 +21,7 @@ export async function logGratitude(message: string): Promise<void> {
 }
 
 export async function generateJoyDashboard(rootPath: string, signal?: AbortSignal): Promise<string> {
+    const { checkCodeHealth } = await import("../../plumbing/analysis/CodeHealthService.js");
     const files = await getAllFiles(rootPath, signal);
     let totalScore = 0;
     let scoredFiles = 0;
@@ -110,6 +110,7 @@ export async function foldCode(filePath: string): Promise<string> {
 }
 
 export async function generateTidyChecklist(rootPath: string, signal?: AbortSignal): Promise<string> {
+    const { checkCodeHealth } = await import("../../plumbing/analysis/CodeHealthService.js");
     const files = await getAllFiles(rootPath, signal);
 
     const clothes: string[] = []; // Source code
@@ -349,29 +350,6 @@ export async function scaffoldZoneAbstractions(rootPath: string): Promise<string
     return createdCount > 0 ? `Scaffolded ${createdCount} zone abstractions. The patterns are set. 🏛️` : "Zones are already well-guarded.";
 }
 
-export function detectMigrationNeeds(filePath: string, content: string): { shouldMigrate: boolean, targetZone?: string, reason?: string } {
-    const isPlumbing = filePath.includes('/plumbing/');
-    const isInfrastructure = filePath.includes('/infrastructure/');
-    const lowerContent = content.toLowerCase();
-
-    // If a plumbing file starts talking about "Entity", "User", "Order", it's leaking domain.
-    const domainKeywords = ['entity', 'user', 'order', 'product', 'logic', 'business'];
-    const domainMatch = domainKeywords.find(word => lowerContent.includes(word));
-
-    if (isPlumbing && domainMatch) {
-        return {
-            shouldMigrate: true,
-            targetZone: 'src/domain',
-            reason: `Found domain keyword '${domainMatch}' in plumbing. This file has evolved and deserves ascension.`
-        };
-    }
-
-    if (isInfrastructure && (lowerContent.includes('sql') || lowerContent.includes('fetch'))) {
-        // This is fine, infrastructure is for IO/Adapters.
-    }
-
-    return { shouldMigrate: false };
-}
 export interface ClusteringProposal {
     zone: string;
     fileCount: number;

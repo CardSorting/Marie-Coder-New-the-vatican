@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import Anthropic from '@anthropic-ai/sdk';
-import { MessageParam } from '@anthropic-ai/sdk/resources/messages/index.js';
 import { ConfigService } from "../../config/ConfigService.js";
 import { SUMMARIZATION_SYSTEM_PROMPT, SUMMARIZATION_USER_PROMPT } from "../../../../prompts.js";
 import { AIProvider } from "../providers/AIProvider.js";
@@ -36,11 +34,11 @@ export class ContextManager {
         return total;
     }
 
-    private static getMessageTokens(message: MessageParam, tokensPerChar: number): number {
+    private static getMessageTokens(message: any, tokensPerChar: number): number {
         if (typeof message.content === 'string') {
             return this.estimateTokens(message.content, tokensPerChar);
         } else if (Array.isArray(message.content)) {
-            return message.content.reduce((acc, block) => {
+            return message.content.reduce((acc: number, block: any) => {
                 if (block.type === 'text') {
                     return acc + this.estimateTokens(block.text, tokensPerChar);
                 }
@@ -60,15 +58,15 @@ export class ContextManager {
         return 0;
     }
 
-    private static getTotalTokens(messages: MessageParam[], tokensPerChar: number): number {
+    private static getTotalTokens(messages: any[], tokensPerChar: number): number {
         return messages.reduce((acc, msg) => acc + this.getMessageTokens(msg, tokensPerChar), 0);
     }
 
     static async manage(
-        messages: MessageParam[],
+        messages: any[],
         provider: AIProvider,
         state?: AscensionState
-    ): Promise<MessageParam[]> {
+    ): Promise<any[]> {
         const maxTokens = ConfigService.getMaxContextTokens();
         const tokensPerChar = ConfigService.getTokensPerChar(); // Hoisted config access
         const currentTokens = this.getTotalTokens(messages, tokensPerChar);
@@ -93,7 +91,7 @@ export class ContextManager {
             const summaryResponse = await provider.createMessage({
                 model: ConfigService.getModel(),
                 max_tokens: 1024,
-                messages: (olderMessages as any).concat({
+                messages: olderMessages.concat({
                     role: "user",
                     content: SUMMARIZATION_USER_PROMPT
                 }),
@@ -116,7 +114,7 @@ export class ContextManager {
                 ascensionNote = `[ASCENSION STATE] Strategy: ${strategy}, Mood: ${state.mood}, Spirit Pressure (Flow): ${state.spiritPressure}/100, Victory Streak: ${state.victoryStreak}${hotspots ? `, Hotspots: ${hotspots}` : ''}, Last Intent: ${strategyReason}\n\n`;
             }
 
-            const newHistory: MessageParam[] = [
+            const newHistory: any[] = [
                 {
                     role: "user",
                     content: `[System Note: Previous conversation summary]\n${ascensionNote}${summaryText}`
