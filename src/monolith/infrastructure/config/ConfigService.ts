@@ -362,4 +362,13 @@ export class ConfigService {
 
         return true;
     }
+
+    static getAutoRepair(): boolean {
+        const vscode = getVscode();
+        if (vscode) {
+            return vscode.workspace.getConfiguration("marie").get<boolean>("autoRepair", false);
+        }
+        const config = getCliConfig();
+        return (config.autoRepair as boolean) || false;
+    }
 }

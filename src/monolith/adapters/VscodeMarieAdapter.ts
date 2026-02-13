@@ -61,6 +61,8 @@ export class Marie extends RuntimeAdapterBase<JoyAutomationService> implements v
 
     constructor(private context: vscode.ExtensionContext, public readonly joyService: JoyService) {
         const automationService = new JoyAutomationService(context, joyService);
+        automationService.startAutonomousHeartbeat();
+
         const runtime = new MarieRuntime<JoyAutomationService>({
             config: new VscodeConfigPort(),
             sessionStore: new VscodeSessionStorePort(context),

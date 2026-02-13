@@ -322,6 +322,9 @@ export class MarieEngine {
                 elapsedMs: tracker.elapsedMs()
             });
 
+            // ZENITH AUTONOMY: Autonomous Strategic Calibration
+            this.calibrateStrategicTrajectory(decree, tracker);
+
             if (decree.strategy === 'PANIC') {
                 this.state.panicCoolDown = 3;
                 messages.push({ role: "user", content: "🚨 SYSTEM PANIC: Instability detected. Re-evaluating ascension trajectory." });
@@ -398,6 +401,9 @@ export class MarieEngine {
         if (filePath && !this.state.recentFiles.includes(filePath)) {
             this.state.recentFiles.push(filePath);
             if (this.state.recentFiles.length > 10) this.state.recentFiles.shift();
+
+            // ZENITH AUTONOMY: Proactive Context Anchoring
+            this.proactiveContextAnchoring(filePath, tracker);
         }
     }
 
@@ -484,5 +490,49 @@ export class MarieEngine {
     private ensurePulseService(tracker: MarieProgressTracker): MariePulseService {
         if (!this.pulseService) this.pulseService = new MariePulseService(tracker);
         return this.pulseService;
+    }
+
+    private calibrateStrategicTrajectory(decree: AscensionDecree, tracker: MarieProgressTracker) {
+        const run = tracker.getRun();
+        if (decree.strategy === 'RESEARCH' || (decree.urgency === 'HIGH' && decree.confidence > 2.0)) {
+            const oldPasses = run.totalPasses || 3;
+            if (oldPasses < 10) {
+                run.totalPasses = oldPasses + 1;
+                tracker.emitEvent({
+                    type: 'reasoning',
+                    runId: run.runId,
+                    text: `🌌 ZENITH: Autonomously expanded roadmap to ${run.totalPasses} passes. Focus sharpened: ${decree.reason}`,
+                    elapsedMs: tracker.elapsedMs()
+                });
+            }
+        }
+    }
+
+    private async proactiveContextAnchoring(filePath: string, tracker: MarieProgressTracker) {
+        // Only anchor critical files
+        const isCritical = /Domain|Config|Service|Interface|types/i.test(filePath);
+        if (isCritical) {
+            try {
+                const { ContextArchiveService } = await import("../../../infrastructure/ai/context/ContextArchiveService.js");
+                const { readFile } = await import("../../../plumbing/filesystem/FileService.js");
+                const content = await readFile(filePath);
+
+                await ContextArchiveService.getInstance().anchor({
+                    id: `proactive_${filePath.split('/').pop()}`,
+                    label: `Strategic: ${filePath.split('/').pop()}`,
+                    content: content.substring(0, 2000), // Cap at 2k chars
+                    type: 'file_ref'
+                });
+
+                tracker.emitEvent({
+                    type: 'reasoning',
+                    runId: tracker.getRun().runId,
+                    text: `⚓ ZENITH: Proactively anchored \`${filePath.split('/').pop()}\` to strategic memory.`,
+                    elapsedMs: tracker.elapsedMs()
+                });
+            } catch (e) {
+                console.warn("[Zenith] Failed proactive anchoring", e);
+            }
+        }
     }
 }

@@ -806,13 +806,19 @@ export function registerMarieTools(registry: ToolRegistry, automationService: Jo
                     }
                 }
 
+                // Mirror Polishing II: Post-Execution Tidying (Ascension Autonomy)
+                await foldCode(src);
+                await foldCode(dest);
+
                 return `Successfully moved \`${sym}\` to \`${dest.split('/').pop()}\`. 🗡️\n\n` +
                     `**Methodology Complete**: Required imports were identified and copied to the destination.\n` +
                     (updatedFiles.length > 0
                         ? `**Downstream Migration**: Automatically updated imports in ${updatedFiles.length} file(s): ${updatedFiles.join(', ')}. ✨`
-                        : `**Mirror Polishing**: No external downstream imports required migration.`);
-            } catch (error) {
-                return `Semantic move failed: ${error}`;
+                        : `**Mirror Polishing**: No external downstream imports required migration.`) +
+                    `\n\n**Autonomy Note**: Post-execution tidying completed for both source and destination. 🌸`;
+            } catch (error: any) {
+                // Autonomous Self-Healing Trigger
+                return await automationService.executeSelfHealing(src, error.message);
             }
         }
     });
@@ -1365,6 +1371,14 @@ export function registerMarieTools(registry: ToolRegistry, automationService: Jo
     });
 
     registry.register({
+        name: "execute_joy_maintenance",
+        description: "Perform autonomous maintenance on the garden structure (Restoration Ritual).",
+        isDestructive: true,
+        input_schema: { type: "object", properties: {} },
+        execute: async () => await automationService.executeAutonomousRestoration()
+    });
+
+    registry.register({
         name: "fold_file",
         description: "Format and organize imports in a file.",
         input_schema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
@@ -1402,8 +1416,18 @@ export function registerMarieTools(registry: ToolRegistry, automationService: Jo
             const p = getStringArg(args, 'path');
             const s = getStringArg(args, 'search');
             const r = getStringArg(args, 'replace');
-            const { replaceInFile } = await import("../../plumbing/filesystem/FileService.js");
-            return await replaceInFile(p, s, r);
+            try {
+                const { replaceInFile } = await import("../../plumbing/filesystem/FileService.js");
+                const result = await replaceInFile(p, s, r);
+
+                // Post-Execution Tidying
+                await foldCode(p);
+
+                return `${result}\n\n**Autonomy Note**: Post-execution tidying completed. 🌸`;
+            } catch (error: any) {
+                // Autonomous Self-Healing Trigger
+                return await automationService.executeSelfHealing(p, error.message);
+            }
         }
     });
 

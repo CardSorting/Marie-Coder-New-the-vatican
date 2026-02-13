@@ -1,5 +1,6 @@
 import type * as vscodeTypes from "vscode";
 import { ToolRegistry } from "../../tools/ToolRegistry.js";
+import * as path from "path";
 
 // Lazy-load vscode to avoid CLI errors
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -195,7 +196,23 @@ export class MarieToolProcessor {
                 this.tracker.emitProgressUpdate('Technical debt released 🍂');
             }
 
-            return typeof result === 'string' ? result : JSON.stringify(result);
+            let finalResult = typeof result === 'string' ? result : JSON.stringify(result);
+
+            // ZENITH AUTONOMY: Autonomous Dependency Sentinel
+            if (tool.isDestructive && execFile && typeof execFile === 'string') {
+                const zoningAlert = await this.runZoningSentinel(execFile, typeof result === 'string' ? result : undefined);
+                if (zoningAlert) {
+                    finalResult += `\n\n🛡️ **ZENITH: Zoning Sentinel Alert**\n${zoningAlert}`;
+                }
+
+                // SINGULARITY AUTONOMY: Autonomous Build Sentinel
+                const buildAlert = await this.runBuildSentinel(execFile);
+                if (buildAlert) {
+                    finalResult += `\n\n🧱 **SINGULARITY: Build Sentinel Alert**\n${buildAlert}`;
+                }
+            }
+
+            return finalResult;
 
         } catch (error) {
             const rawMsg = getErrorMessage(error);
@@ -442,5 +459,65 @@ export class MarieToolProcessor {
             message: (isTerminal ? "[TERMINAL] " : "") + message,
             elapsedMs: this.tracker.elapsedMs()
         });
+    }
+
+    private async runZoningSentinel(filePath: string, toolResult?: string): Promise<string | null> {
+        try {
+            const { detectMigrationNeeds } = await import("../../../domain/joy/JoyTools.js");
+            const { readFile } = await import("../../../plumbing/filesystem/FileService.js");
+            const content = await readFile(filePath);
+
+            const { shouldMigrate, targetZone, reason } = detectMigrationNeeds(filePath, content);
+
+            if (shouldMigrate) {
+                this.tracker.emitEvent({
+                    type: 'reasoning',
+                    runId: this.tracker.getRun().runId,
+                    text: `🛡️ ZENITH: Zoning Sentinel detected a leak in \`${filePath.split('/').pop()}\`.`,
+                    elapsedMs: this.tracker.elapsedMs()
+                });
+                return `⚠️ **Dependency Leak**: ${reason}\nSuggested Zone: \`${targetZone}\`. Consider moving this file or refactoring its dependencies.`;
+            }
+
+            // Also check for cross-zone import leaks (Heuristic)
+            if (filePath.includes('/domain/') && (content.includes('/infrastructure/') || content.includes('/adapters/'))) {
+                return `⚠️ **Architectural Heresy**: Domain layer should not depend on Infrastructure. Found infrastructure imports in \`${path.basename(filePath)}\`.`;
+            }
+
+            return null;
+        } catch (e) {
+            console.warn("[Zenith] Zoning Sentinel failed", e);
+            return null;
+        }
+    }
+
+    private async runBuildSentinel(filePath: string): Promise<string | null> {
+        const vscode = getVscode();
+        if (!vscode) return null;
+
+        try {
+            // Wait a bit for LSP to catch up
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(filePath));
+            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+
+            if (errors.length > 0) {
+                this.tracker.emitEvent({
+                    type: 'reasoning',
+                    runId: this.tracker.getRun().runId,
+                    text: `🧱 SINGULARITY: Build Sentinel detected ${errors.length} error(s) in \`${filePath.split('/').pop()}\`.`,
+                    elapsedMs: this.tracker.elapsedMs()
+                });
+
+                const errorSummary = errors.map(e => `- [Line ${e.range.start.line + 1}] ${e.message}`).join('\n');
+                return `🚨 **Build Regressions Detected**: Your recent change introduced compilation errors:\n${errorSummary}\n\n**Action Required**: Fix these errors immediately before proceeding.`;
+            }
+
+            return null;
+        } catch (e) {
+            console.warn("[Singularity] Build Sentinel failed", e);
+            return null;
+        }
     }
 }

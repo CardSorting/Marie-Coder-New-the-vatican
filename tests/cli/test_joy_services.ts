@@ -273,7 +273,7 @@ async function testPerformGardenPulse() {
 
     const result = await automationService.performGardenPulse();
 
-    assert.ok(result.includes('Garden pulse complete'), 'Should report garden pulse completion');
+    assert.ok(result.includes('evolve in harmony'), 'Should report garden pulse completion');
     assert.ok(result.includes('Synthesized') || result.includes('manuals'), 'Should synthesize manuals');
 
     joyService.dispose();

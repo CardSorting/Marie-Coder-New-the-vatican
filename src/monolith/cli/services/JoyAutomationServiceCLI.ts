@@ -7,7 +7,11 @@ import {
     scaffoldZoneAbstractions,
     sowFeature,
     synthesizeZoneManuals,
-    isProjectJoyful
+    isProjectJoyful,
+    proposeReorganization,
+    proposeClustering,
+    generateJoyDashboard,
+    generateTidyChecklist
 } from '../../domain/joy/JoyTools.js';
 
 export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
@@ -34,28 +38,47 @@ export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
     public async triggerGenesis(): Promise<string> {
         await this.ensureWorkingDir();
         const result = await executeGenesisRitual(this.workingDir);
-        await this.joyService.addAchievement('Performed Genesis Ritual in CLI mode.', 50);
+        await this.joyService.addAchievement('Performed Genesis Ritual in CLI mode. Project reborn in JOY. ✨', 50);
         return result;
     }
 
     public async sowJoyFeature(name: string, _intent: string): Promise<string> {
         await this.ensureWorkingDir();
         const result = await sowFeature(this.workingDir, name, _intent);
-        await this.joyService.addAchievement(`Sowed feature '${name}' in CLI mode.`, 10);
+        await this.joyService.addAchievement(`Sowed feature '${name}' in CLI mode. 🌱`, 10);
         return result;
     }
 
     public async performGardenPulse(): Promise<string> {
         await this.ensureWorkingDir();
-        const joyful = await isProjectJoyful(this.workingDir);
-        await ensureJoyZoningFolders(this.workingDir);
-        const scaffolded = await scaffoldZoneAbstractions(this.workingDir);
-        const manuals = await synthesizeZoneManuals(this.workingDir);
-        const status = joyful
-            ? 'Garden pulse complete. JOY structure is stable.'
-            : 'Garden pulse complete. JOY structure initialized.';
-        await this.joyService.addAchievement('Performed garden pulse in CLI mode.', 5);
-        return `${status}\n${scaffolded}\n${manuals}`;
+        let finalReport = "";
+        try {
+            const joyful = await isProjectJoyful(this.workingDir);
+            await ensureJoyZoningFolders(this.workingDir);
+            const scaffolded = await scaffoldZoneAbstractions(this.workingDir);
+            finalReport += scaffolded;
+
+            const proposals = await proposeReorganization(this.workingDir);
+            const clustering = await proposeClustering(this.workingDir);
+            const manuals = await synthesizeZoneManuals(this.workingDir);
+
+            if (!joyful) {
+                finalReport += `\n- ⚠️ **Architectural Void**: This project has not yet embraced the JOY structure. Use the Genesis Ritual to begin your journey.`;
+            }
+            if (proposals.length > 0) finalReport += `\n- ${proposals.length} structural drifts detected.`;
+            if (clustering.length > 0) finalReport += `\n- ${clustering.length} zones ripe for clustering.`;
+
+            await this.joyService.addAchievement('Performed garden pulse in CLI mode. 🌸', 5);
+            return `${finalReport}\n${manuals}\n\nThe garden continues to evolve in harmony. ✨`;
+        } catch (e: any) {
+            return `\n- ❌ **Pulse Interrupted**: A structural error occurred during synthesis: ${e.message}`;
+        }
+    }
+
+    public async triggerReview(): Promise<string> {
+        const dashboard = await generateJoyDashboard(this.workingDir);
+        const checklist = await generateTidyChecklist(this.workingDir);
+        return `# 🌸 Joy Review\n\n${dashboard}\n\n## 📋 Tidy Checklist\n${checklist}`;
     }
 
     public async autoScaffold(): Promise<void> {
