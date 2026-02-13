@@ -17,7 +17,10 @@ const testFiles = [
     'test_joy_services.ts',
     'test_tool_definitions.ts',
     'test_marie_cli.ts',
-    'test_strategy_engine.ts'
+    'test_strategy_engine.ts',
+    'test_marie_lock_manager.ts',
+    'test_marie_progress_tracker.ts',
+    'test_marie_state_machine.ts'
 ];
 
 async function runTest(testFile: string): Promise<TestResult> {
