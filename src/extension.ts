@@ -111,6 +111,12 @@ class MarieWebviewHost {
             case "get_models":
                 this.post({ type: "models", models: await this.marieInstance.getModels() });
                 return;
+            case "set_provider":
+                await this.setProvider(String(message.provider || "anthropic"));
+                return;
+            case "set_model":
+                await this.setModel(String(message.model || ""));
+                return;
             case "set_autonomy_mode":
                 await this.setAutonomyMode(String(message.mode || "balanced"));
                 return;
@@ -156,6 +162,25 @@ class MarieWebviewHost {
         const cfg = vscode.workspace.getConfiguration("marie");
         await cfg.update("autonomyMode", mode, vscode.ConfigurationTarget.Global);
         await cfg.update("requireApproval", mode === "balanced", vscode.ConfigurationTarget.Global);
+        this.marieInstance.updateSettings();
+        this.post({ type: "config", config: this.getConfigSnapshot() });
+    }
+
+    private async setProvider(rawProvider: string): Promise<void> {
+        const provider = rawProvider === "openrouter" || rawProvider === "cerebras" ? rawProvider : "anthropic";
+        const cfg = vscode.workspace.getConfiguration("marie");
+        await cfg.update("aiProvider", provider, vscode.ConfigurationTarget.Global);
+        this.marieInstance.updateSettings();
+        this.post({ type: "config", config: this.getConfigSnapshot() });
+        this.post({ type: "models", models: await this.marieInstance.getModels() });
+    }
+
+    private async setModel(rawModel: string): Promise<void> {
+        const model = rawModel.trim();
+        if (!model) return;
+
+        const cfg = vscode.workspace.getConfiguration("marie");
+        await cfg.update("model", model, vscode.ConfigurationTarget.Global);
         this.marieInstance.updateSettings();
         this.post({ type: "config", config: this.getConfigSnapshot() });
     }

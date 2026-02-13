@@ -17,6 +17,7 @@ const initialState: WebviewState = {
     streamingBuffer: "",
     pendingApproval: null,
     config: defaultConfig,
+    availableModels: [],
 }
 
 type WebviewActions = {
@@ -28,6 +29,8 @@ type WebviewActions = {
     stopGeneration: () => void
     openSettings: () => void
     getModels: () => void
+    setProvider: (provider: string) => void
+    setModel: (model: string) => void
     approveTool: (approved: boolean) => void
     setAutonomyMode: (mode: string) => void
 }
@@ -133,10 +136,12 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                     return
 
                 case "models":
-                    addMessage(
-                        "system",
-                        `Available models:\n${(message.models || []).map((m: any) => `- ${m.id || m.name || String(m)}`).join("\n")}`,
-                    )
+                    setState((prev) => ({
+                        ...prev,
+                        availableModels: Array.isArray(message.models)
+                            ? message.models.map((m: any) => String(m?.id || m?.name || m)).filter(Boolean)
+                            : prev.availableModels,
+                    }))
                     return
 
                 case "config":
@@ -155,6 +160,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
         window.addEventListener("message", onMessage)
         vscode.postMessage({ type: "ready" })
         vscode.postMessage({ type: "list_sessions" })
+        vscode.postMessage({ type: "get_models" })
 
         return () => {
             window.removeEventListener("message", onMessage)
@@ -171,6 +177,8 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             stopGeneration: () => vscode.postMessage({ type: "stop_generation" }),
             openSettings: () => vscode.postMessage({ type: "open_settings" }),
             getModels: () => vscode.postMessage({ type: "get_models" }),
+            setProvider: (provider: string) => vscode.postMessage({ type: "set_provider", provider }),
+            setModel: (model: string) => vscode.postMessage({ type: "set_model", model }),
             approveTool: (approved: boolean) => {
                 if (!state.pendingApproval) return
                 vscode.postMessage({ type: "approve_tool", requestId: state.pendingApproval.requestId, approved })

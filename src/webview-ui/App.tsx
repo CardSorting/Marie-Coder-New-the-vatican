@@ -34,10 +34,9 @@ function AppContent() {
                         <HeaderBar
                             config={state.config}
                             isLoading={state.isLoading}
-                            onAutonomyMode={actions.setAutonomyMode}
-                            onClear={actions.clearSession}
-                            onStop={actions.stopGeneration}
-                            onSettings={actions.openSettings}
+                            availableModels={state.availableModels}
+                            onProvider={actions.setProvider}
+                            onModel={actions.setModel}
                         />
                     </div>
 
@@ -49,7 +48,7 @@ function AppContent() {
                         isLoading={state.isLoading}
                     />
 
-                    <Composer isLoading={state.isLoading} onSend={actions.sendMessage} onModels={actions.getModels} />
+                    <Composer isLoading={state.isLoading} onSend={actions.sendMessage} />
                 </div>
             </main>
         </div>

@@ -3,11 +3,9 @@ import { useEffect, useRef, useState } from "react"
 export function Composer({
     isLoading,
     onSend,
-    onModels,
 }: {
     isLoading: boolean
     onSend: (text: string) => void
-    onModels: () => void
 }) {
     const [input, setInput] = useState("")
     const [showThinking, setShowThinking] = useState(false)
@@ -70,14 +68,9 @@ export function Composer({
                     <div className="composer-status">
                         {showThinking ? <span className="thinking">Thinking…</span> : <span className="muted">Enter to send</span>}
                     </div>
-                    <div className="row">
-                        <button onClick={onModels} className="secondary">
-                            Models
-                        </button>
-                        <button onClick={submit} disabled={isLoading}>
-                            Send
-                        </button>
-                    </div>
+                    <button onClick={submit} disabled={isLoading}>
+                        Send
+                    </button>
                 </div>
             </div>
         </footer>

@@ -111,6 +111,30 @@ body {
     gap: var(--space-3);
 }
 
+.title-row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.header-controls {
+    display: flex;
+    align-items: end;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.control-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 140px;
+}
+
+.model-field {
+    min-width: 300px;
+}
+
 .feed {
     flex: 1;
     overflow-y: auto;
@@ -318,7 +342,8 @@ body {
 }
 
 button,
-select {
+select,
+input {
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     font: inherit;
@@ -375,6 +400,13 @@ select {
     background: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
     border-color: var(--vscode-dropdown-border);
+    padding: 6px 8px;
+}
+
+input {
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border-color: var(--vscode-input-border);
     padding: 6px 8px;
 }
 

@@ -35,4 +35,5 @@ export type WebviewState = {
     streamingBuffer: string
     pendingApproval: ApprovalRequest | null
     config: UiConfig
+    availableModels: string[]
 }
