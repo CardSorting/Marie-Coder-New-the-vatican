@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { UiConfig } from "../types.js"
 
 export function HeaderBar({
@@ -20,6 +20,7 @@ export function HeaderBar({
 }) {
     const [modelDraft, setModelDraft] = useState(config.model)
     const [isConfigOpen, setIsConfigOpen] = useState(false)
+    const providerRef = useRef<HTMLSelectElement | null>(null)
 
     useEffect(() => {
         setModelDraft(config.model)
@@ -37,6 +38,21 @@ export function HeaderBar({
     }
 
     const closeConfig = () => setIsConfigOpen(false)
+
+    useEffect(() => {
+        if (!isConfigOpen) return
+
+        providerRef.current?.focus()
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                closeConfig()
+            }
+        }
+
+        window.addEventListener("keydown", onKeyDown)
+        return () => window.removeEventListener("keydown", onKeyDown)
+    }, [isConfigOpen])
 
     return (
         <>
@@ -80,7 +96,7 @@ export function HeaderBar({
                         <div className="modal-body stack">
                             <label className="control-field">
                                 <span className="muted">Provider</span>
-                                <select value={config.provider} onChange={(e) => onProvider(e.target.value)}>
+                                <select ref={providerRef} value={config.provider} onChange={(e) => onProvider(e.target.value)}>
                                     <option value="anthropic">anthropic</option>
                                     <option value="openrouter">openrouter</option>
                                     <option value="cerebras">cerebras</option>
@@ -114,6 +130,10 @@ export function HeaderBar({
                                 <span>{config.hasAnyApiKey ? "API key is configured" : "No API key configured"}</span>
                             </div>
 
+                            <div className="muted">
+                                API keys are managed in VS Code settings per provider.
+                            </div>
+
                             <div className="row">
                                 <button className="secondary" onClick={onRefreshModels}>
                                     Refresh models
@@ -121,6 +141,7 @@ export function HeaderBar({
                                 <button className="secondary" onClick={onOpenSettings}>
                                     Open VS Code settings
                                 </button>
+                                <button onClick={closeConfig}>Done</button>
                             </div>
                         </div>
                     </section>

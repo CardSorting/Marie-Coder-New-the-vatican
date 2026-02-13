@@ -54,9 +54,12 @@ body {
     grid-template-columns: 0 1fr;
     height: 100%;
     transition: grid-template-columns var(--motion-medium) ease;
+    position: relative;
 }
 
 .session-drawer {
+    position: relative;
+    z-index: 22;
     opacity: 0;
     transform: translateX(-8px);
     pointer-events: none;
@@ -78,8 +81,21 @@ body {
 }
 
 .workspace {
+    position: relative;
+    z-index: 20;
     padding: var(--space-4);
     min-width: 0;
+}
+
+.session-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.22);
+    cursor: pointer;
 }
 
 .workspace-glass {
@@ -161,6 +177,23 @@ body {
 .session-toggle-label {
     font-weight: 600;
     font-size: 12px;
+}
+
+.session-toggle-count {
+    min-width: 20px;
+    height: 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--glass-border));
+    background: color-mix(in srgb, var(--surface-0) 74%, transparent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.session-toggle.is-open .session-toggle-count {
+    background: color-mix(in srgb, var(--accent) 28%, var(--surface-0));
 }
 
 .hamburger {
@@ -254,6 +287,10 @@ body {
     padding: var(--space-4);
 }
 
+.modal-body .row {
+    justify-content: flex-end;
+}
+
 .api-status-row {
     display: inline-flex;
     align-items: center;
@@ -285,6 +322,8 @@ body {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--glass-border);
 }
 
 .session-heading-icon {
@@ -560,6 +599,11 @@ button.session {
 
 button.session.active {
     border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface-0));
+}
+
+button.session:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
 }
 
 select {
@@ -628,5 +672,19 @@ input {
     50% {
         transform: translateY(-3px);
         opacity: 1;
+    }
+}
+
+@media (max-width: 900px) {
+    .header-controls {
+        gap: var(--space-2);
+    }
+
+    .config-pill.model {
+        max-width: 220px;
+    }
+
+    .workspace {
+        padding: var(--space-2);
     }
 }
