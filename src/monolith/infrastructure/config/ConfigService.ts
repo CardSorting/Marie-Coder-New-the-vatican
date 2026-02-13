@@ -4,7 +4,10 @@
 import type * as vscodeTypes from 'vscode';
 import { createRequire } from 'module';
 
-const nodeRequire = createRequire(`${process.cwd()}/package.json`);
+const requireBase = typeof __filename === 'string'
+    ? __filename
+    : (process.argv[1] || process.cwd());
+const nodeRequire = createRequire(requireBase);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let vscodeModule: typeof vscodeTypes | null = null;
@@ -49,14 +52,31 @@ function getVscode(): typeof vscodeTypes | null {
 
 function getCliConfig(): Record<string, unknown> {
     try {
-        // Dynamic require to avoid issues in VSCode environment.
-        // Intentionally re-read config on each call so runtime updates
-        // (e.g. setup wizard /config changes) are picked up immediately.
+        // Prefer loading the CLI config directly from ~/.marie to avoid module resolution issues
+        // when running the globally installed CLI.
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { Storage } = nodeRequire('../../cli/storage.js');
-        return Storage.getConfig() || {};
+        const fs = nodeRequire('fs') as typeof import('fs');
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const path = nodeRequire('path') as typeof import('path');
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const os = nodeRequire('os') as typeof import('os');
+
+        const configPath = path.join(os.homedir(), '.marie', 'config.json');
+        if (!fs.existsSync(configPath)) {
+            return {};
+        }
+
+        const raw = fs.readFileSync(configPath, 'utf-8');
+        return JSON.parse(raw) || {};
     } catch {
-        return {};
+        try {
+            // Fallback when ConfigService is loaded from the CLI entrypoint path.
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const { Storage } = nodeRequire('../monolith/cli/storage.js');
+            return Storage.getConfig() || {};
+        } catch {
+            return {};
+        }
     }
 }
 
