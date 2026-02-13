@@ -1,8 +1,6 @@
-import * as vscode from "vscode";
-import { ProgressUpdate } from "../../../domain/marie/MarieTypes.js";
 import { AIStreamEvent } from "../providers/AIProvider.js";
 import { MarieProgressTracker } from "./MarieProgressTracker.js";
-import { MarieGhostService } from "../../../services/MarieGhostService.js";
+import { GhostPort } from "./GhostPort.js";
 
 /**
  * Routes raw AI events to the appropriate domain and UI handlers.
@@ -16,7 +14,10 @@ export class MarieEventDispatcher {
     private readonly THROTTLE_MS = 50;
     private readonly TOOL_THROTTLE_MS = 100;
 
-    constructor(private tracker: MarieProgressTracker) { }
+    constructor(
+        private tracker: MarieProgressTracker,
+        private ghostPort?: GhostPort
+    ) { }
 
     public dispatch(event: AIStreamEvent) {
         const run = this.tracker.getRun();
@@ -95,7 +96,9 @@ export class MarieEventDispatcher {
                 elapsedMs: this.tracker.elapsedMs(),
             });
 
-            MarieGhostService.handleDelta(id, name, event.argumentsDelta);
+            if (this.ghostPort) {
+                this.ghostPort.handleDelta(id, name, event.argumentsDelta);
+            }
 
             // Optimization: Only run regex if keywords are present
             if (event.argumentsDelta.includes('path') || event.argumentsDelta.includes('file')) {
@@ -145,7 +148,9 @@ export class MarieEventDispatcher {
                 elapsedMs: this.tracker.elapsedMs(),
             });
 
-            MarieGhostService.handleDelta(id, name, delta);
+            if (this.ghostPort) {
+                this.ghostPort.handleDelta(id, name, delta);
+            }
 
             if (delta.includes('path') || delta.includes('file')) {
                 const pathMatch = delta.match(/"path"\s*:\s*"([^"]*)"/);

@@ -1,5 +1,7 @@
 import { MarieCallbacks, RunTelemetry } from "../domain/marie/MarieTypes.js";
 import { AIProvider } from "../infrastructure/ai/providers/AIProvider.js";
+import { FileSystemPort } from "../infrastructure/ai/core/FileSystemPort.js";
+import { GhostPort } from "../infrastructure/ai/core/GhostPort.js";
 
 export type MarieProviderType = 'anthropic' | 'openrouter' | 'cerebras';
 
@@ -39,6 +41,8 @@ export interface RuntimeOptions<TAutomation extends RuntimeAutomationPort> {
     automationService: TAutomation;
     onProgressEvent?: (event: any) => void;
     shouldBypassApprovals?: () => boolean;
+    fs?: FileSystemPort;
+    ghostPort?: GhostPort;
 }
 
 export interface RuntimeMessageHandler {

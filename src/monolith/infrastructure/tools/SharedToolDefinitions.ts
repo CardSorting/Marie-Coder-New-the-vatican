@@ -19,19 +19,20 @@ export function registerSharedToolDefinitions(
     options?: { includeExtended?: boolean }
 ) {
     registry.register({
-        name: "write_file",
+        name: "write_to_file",
         description: "Write content to a file.",
         isDestructive: true,
         input_schema: {
             type: "object",
             properties: {
                 path: { type: "string", description: "Path to the file" },
+                targetFile: { type: "string", description: "Alias for path" },
                 content: { type: "string", description: "The content to write" },
             },
-            required: ["path", "content"],
+            required: ["content"],
         },
         execute: async (args, onProgress, signal) => {
-            const p = runtime.resolvePath(getStringArg(args, 'path'));
+            const p = runtime.resolvePath(getStringArg(args, 'path') || getStringArg(args, 'targetFile'));
             const c = getStringArg(args, 'content');
             await runtime.writeFile(p, c, signal);
             return `File written to ${p}`;
@@ -143,23 +144,61 @@ export function registerSharedToolDefinitions(
 
     if (runtime.replaceInFile) {
         registry.register({
-            name: "replace_in_file",
-            description: "Replace text in a file.",
+            name: "replace_file_content",
+            description: "Replace a specific string with another in a file. Surgical and mindful.",
             isDestructive: true,
             input_schema: {
                 type: "object",
                 properties: {
                     path: { type: "string", description: "File path" },
+                    targetFile: { type: "string", description: "Alias for path" },
+                    targetContent: { type: "string", description: "Text to find (alias for search)" },
+                    replacementContent: { type: "string", description: "Replacement text (alias for replace)" },
                     search: { type: "string", description: "Text to find" },
                     replace: { type: "string", description: "Replacement text" }
                 },
-                required: ["path", "search", "replace"]
+                required: ["path"]
             },
             execute: async (args, onProgress, signal) => {
-                const p = runtime.resolvePath(getStringArg(args, 'path'));
-                const s = getStringArg(args, 'search');
-                const r = getStringArg(args, 'replace');
+                const p = runtime.resolvePath(getStringArg(args, 'path') || getStringArg(args, 'targetFile'));
+                const s = getStringArg(args, 'targetContent') || getStringArg(args, 'search');
+                const r = getStringArg(args, 'replacementContent') || getStringArg(args, 'replace');
                 return await runtime.replaceInFile!(p, s, r, signal);
+            }
+        });
+
+        registry.register({
+            name: "multi_replace_file_content",
+            description: "Apply multiple replacements to a single file at once.",
+            isDestructive: true,
+            input_schema: {
+                type: "object",
+                properties: {
+                    path: { type: "string" },
+                    targetFile: { type: "string" },
+                    replacementChunks: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                targetContent: { type: "string" },
+                                replacementContent: { type: "string" }
+                            },
+                            required: ["targetContent", "replacementContent"]
+                        }
+                    }
+                },
+                required: ["replacementChunks"]
+            },
+            execute: async (args, onProgress, signal) => {
+                const p = runtime.resolvePath(getStringArg(args, 'path') || getStringArg(args, 'targetFile'));
+                const chunks = args.replacementChunks as any[];
+                let result = "";
+                for (const chunk of chunks) {
+                    const r = await runtime.replaceInFile!(p, chunk.targetContent, chunk.replacementContent, signal);
+                    result += r + "\n";
+                }
+                return result;
             }
         });
     }

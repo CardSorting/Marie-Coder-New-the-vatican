@@ -12,6 +12,8 @@ import { MariePulseService } from "./MariePulseService.js";
 import { MarieStabilityMonitor } from "./MarieStabilityMonitor.js";
 import { ReasoningBudget } from "./ReasoningBudget.js";
 import { ConfigService } from "../../config/ConfigService.js";
+import { FileSystemPort } from "./FileSystemPort.js";
+import { GhostPort } from "./GhostPort.js";
 
 export function getPromptProfileForDepth(depth: number): MarieSessionPromptProfile {
     return depth > 0 ? 'continuation' : 'full';
@@ -39,7 +41,9 @@ export class MarieEngine {
         private provider: AIProvider,
         private toolRegistry: ToolRegistry,
         private approvalRequester: (name: string, input: any) => Promise<boolean>,
-        private providerFactory?: (type: string) => AIProvider
+        private providerFactory?: (type: string) => AIProvider,
+        private fs?: FileSystemPort,
+        private ghostPort?: GhostPort
     ) {
         this.ascendant = new MarieAscendant(this.provider);
         this.state = this.initializeState();
@@ -133,7 +137,7 @@ export class MarieEngine {
 
         tracker.resetReasoningBudget();
         this.lockManager = new MarieLockManager(tracker);
-        const dispatcher = new MarieEventDispatcher(tracker);
+        const dispatcher = new MarieEventDispatcher(tracker, this.ghostPort);
         MarieStabilityMonitor.start();
 
         if (tracker.getRun().steps === 0 && !tracker.getRun().isResuming) {
@@ -191,7 +195,8 @@ export class MarieEngine {
                 }
                 return this.approvalRequester(name, input);
             },
-            this.state
+            this.state,
+            this.fs
         );
 
         let finalContent = "";

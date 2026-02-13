@@ -3,9 +3,11 @@ import { registerMarieToolsCLI } from '../cli/MarieToolDefinitionsCLI.js';
 import { Storage, SessionMetadata } from '../cli/storage.js';
 import { JoyServiceCLI } from '../cli/services/JoyServiceCLI.js';
 import { MarieRuntime } from '../runtime/MarieRuntime.js';
+import { JoyAutomationServiceCLI } from '../cli/services/JoyAutomationServiceCLI.js';
 import { MarieProviderType, RuntimeAutomationPort, RuntimeConfigPort, RuntimeSessionStorePort } from '../runtime/types.js';
 import { createDefaultProvider } from '../runtime/providerFactory.js';
 import { RuntimeAdapterBase } from '../runtime/RuntimeAdapterBase.js';
+import { CliFileSystemPort } from '../cli/CliFileSystemPort.js';
 
 class CliConfigPort implements RuntimeConfigPort {
     getAiProvider(): MarieProviderType {
@@ -60,23 +62,17 @@ export class MarieCLI extends RuntimeAdapterBase<RuntimeAutomationPort> {
 
     constructor(workingDir: string = process.cwd()) {
         const joyService = new JoyServiceCLI();
-        const automationService: RuntimeAutomationPort = {
-            setCurrentRun: (_run: RunTelemetry | undefined) => {
-                // CLI automation hooks are intentionally minimal.
-            },
-            dispose: () => {
-                // No-op
-            }
-        };
+        const automationService = new JoyAutomationServiceCLI(workingDir, joyService);
 
-        const runtime = new MarieRuntime<RuntimeAutomationPort>({
+        const runtime = new MarieRuntime<JoyAutomationServiceCLI>({
             config: new CliConfigPort(),
             sessionStore: new CliSessionStorePort(),
             toolRegistrar: (registry, automation) => registerMarieToolsCLI(registry, automation, workingDir),
             providerFactory: createDefaultProvider,
             automationService,
             onProgressEvent: (event) => joyService.emitRunProgress(event as any),
-            shouldBypassApprovals: () => true
+            shouldBypassApprovals: () => true,
+            fs: new CliFileSystemPort(workingDir)
         });
 
         super(runtime);

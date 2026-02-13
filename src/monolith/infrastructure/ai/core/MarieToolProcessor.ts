@@ -25,7 +25,8 @@ import { getErrorMessage } from "../../../plumbing/utils/ErrorUtils.js";
 import { MarieGhostService } from "../../../services/MarieGhostService.js";
 import { AscensionState } from "./MarieAscensionTypes.js";
 import { withRetry, RetryConfig } from "../../../plumbing/utils/RetryUtils.js";
-import { backupFile, restoreFile, clearBackups, rollbackAll } from "../../../plumbing/filesystem/FileService.js";
+import { FileSystemPort } from "./FileSystemPort.js";
+import { restoreFile, rollbackAll } from "../../../plumbing/filesystem/FileService.js";
 
 /**
  * Handles the validation and execution of AI tool calls.
@@ -37,7 +38,8 @@ export class MarieToolProcessor {
         private toolRegistry: ToolRegistry,
         private tracker: MarieProgressTracker,
         private approvalRequester: (name: string, input: any, diff?: { old: string, new: string }) => Promise<boolean>,
-        private state: AscensionState
+        private state: AscensionState,
+        private fs?: FileSystemPort
     ) { }
 
     public async process(toolCall: { id: string, name: string, input: any, repaired?: boolean }, signal?: AbortSignal): Promise<string> {
@@ -107,12 +109,16 @@ export class MarieToolProcessor {
             if (tool.isDestructive) {
                 if (execFile && typeof execFile === 'string') {
                     impactedFiles.push(execFile);
-                    await backupFile(execFile);
+                    if (this.fs) {
+                        await this.fs.backupFile(execFile);
+                    }
                 }
                 // Custom handling for multi-file tools
                 if (name === 'execute_semantic_move' && input.dest) {
                     impactedFiles.push(input.dest);
-                    await backupFile(input.dest);
+                    if (this.fs) {
+                        await this.fs.backupFile(input.dest);
+                    }
                 }
             }
 
@@ -136,7 +142,9 @@ export class MarieToolProcessor {
             }
 
             // TRANSACTIONAL SUCCESS: Clear backups for this tool/turn
-            clearBackups();
+            if (this.fs) {
+                this.fs.clearBackups();
+            }
 
             // CIRCUIT BREAKER FLUSH: Tool succeeded
             this.failureCircuitBreaker.delete(name);
@@ -225,7 +233,11 @@ export class MarieToolProcessor {
             // TRANSACTIONAL RECOVERY: Restore state on failure
             try {
                 console.log(`[Marie] Initiating systemic rollback for tool failure: ${name}`);
-                await rollbackAll();
+                if (this.fs) {
+                    await this.fs.rollbackAll();
+                } else {
+                    await rollbackAll();
+                }
             } catch (restoreError) {
                 console.error(`[Marie] Transactional recovery failed: ${restoreError}`);
             }
@@ -427,12 +439,12 @@ export class MarieToolProcessor {
             if (toolName === 'write_to_file') {
                 // Counts as strict addition
                 const lines = this.countLines(input.content);
-                const path = input.targetFile || input.file; // Handle varying schemas
+                const path = input.targetFile || input.file || input.path || input.filePath; // Handle varying schemas
                 if (path) this.tracker.recordFileChange(path, lines, 0);
             } else if (toolName === 'replace_file_content') {
                 const added = this.countLines(input.replacementContent);
                 const removed = this.countLines(input.targetContent);
-                const path = input.targetFile || input.file;
+                const path = input.targetFile || input.file || input.path || input.filePath;
                 if (path) this.tracker.recordFileChange(path, added, removed);
             } else if (toolName === 'multi_replace_file_content' && Array.isArray(input.replacementChunks)) {
                 let added = 0;
@@ -441,7 +453,7 @@ export class MarieToolProcessor {
                     added += this.countLines(chunk.replacementContent);
                     removed += this.countLines(chunk.targetContent);
                 }
-                const path = input.targetFile || input.file;
+                const path = input.targetFile || input.file || input.path || input.filePath;
                 if (path) this.tracker.recordFileChange(path, added, removed);
             }
         } catch (e) {

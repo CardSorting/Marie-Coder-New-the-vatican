@@ -8,6 +8,8 @@ import { MarieRuntime } from "../runtime/MarieRuntime.js";
 import { MarieProviderType, RuntimeConfigPort, RuntimeSessionStorePort, SessionMetadata } from "../runtime/types.js";
 import { createDefaultProvider } from "../runtime/providerFactory.js";
 import { RuntimeAdapterBase } from "../runtime/RuntimeAdapterBase.js";
+import { VscodeFileSystemPort } from "../infrastructure/ai/core/VscodeFileSystemPort.js";
+import { MarieGhostService } from "../services/MarieGhostService.js";
 
 class VscodeConfigPort implements RuntimeConfigPort {
     getAiProvider(): MarieProviderType {
@@ -70,7 +72,11 @@ export class Marie extends RuntimeAdapterBase<JoyAutomationService> implements v
             providerFactory: createDefaultProvider,
             automationService,
             onProgressEvent: (event) => this.joyService.onRunProgress(event as any),
-            shouldBypassApprovals: () => true
+            shouldBypassApprovals: () => true,
+            fs: new VscodeFileSystemPort(),
+            ghostPort: {
+                handleDelta: (id, name, delta) => MarieGhostService.handleDelta(id, name, delta)
+            }
         });
 
         super(runtime);

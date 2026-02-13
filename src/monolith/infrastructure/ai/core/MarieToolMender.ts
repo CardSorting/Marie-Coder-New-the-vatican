@@ -5,6 +5,21 @@ import { AscensionState } from "./MarieAscensionTypes.js";
 import { StringUtils } from "../../../plumbing/utils/StringUtils.js";
 import { JsonUtils } from "../../../plumbing/utils/JsonUtils.js";
 
+const PROACTIVE_REPAIRS: Record<string, string> = {
+    "write_file": "write_to_file",
+    "edit_file": "replace_file_content",
+    "replace_in_file": "replace_file_content",
+    "read_files": "read_file",
+    "list_files": "list_dir",
+    "search_files": "grep_search",
+    "execute_command": "run_command",
+    "get_folder_tree": "get_folder_structure",
+    "multi_replace": "multi_replace_file_content",
+    "multi_edit_file": "multi_replace_file_content",
+    "delete_file": "discard_file", // Maps CLI to VS Code name
+    "discard_file": "delete_file"  // Maps VS Code to CLI name
+};
+
 /**
  * ATMOSPHERIC SEPARATION: MarieToolMender
  * Handles fuzzy hallucination repair for tool names and file paths.
@@ -25,6 +40,22 @@ export class MarieToolMender {
         state: AscensionState,
         signal?: AbortSignal
     ): Promise<string | null> {
+        // 0. Proactive Mapping (Quick lookups for common hallucinations)
+        if (PROACTIVE_REPAIRS[toolCall.name]) {
+            const mappedName = PROACTIVE_REPAIRS[toolCall.name];
+            // Only map if the target exists in the registry
+            if (this.toolRegistry.getTools().some(t => t.name === mappedName)) {
+                tracker.emitEvent({
+                    type: 'reasoning',
+                    runId: tracker.getRun().runId,
+                    text: `🩹 PROACTIVE REPAIR: Mapping hallucinated tool: ${toolCall.name} -> ${mappedName}`,
+                    elapsedMs: tracker.elapsedMs()
+                });
+                toolCall.name = mappedName;
+                toolCall.repaired = true;
+                return await processor.process(toolCall, signal);
+            }
+        }
         // 1. Tool Name Repair
         const registeredTools = this.toolRegistry.getTools();
         let bestToolName = '';

@@ -1400,22 +1400,25 @@ export function registerMarieTools(registry: ToolRegistry, automationService: Jo
     });
 
     registry.register({
-        name: "replace_in_file",
+        name: "replace_file_content",
         description: "Replace a specific string with another in a file. Surgical and mindful.",
         isDestructive: true,
         input_schema: {
             type: "object",
             properties: {
                 path: { type: "string" },
+                targetFile: { type: "string" },
+                targetContent: { type: "string" },
+                replacementContent: { type: "string" },
                 search: { type: "string" },
                 replace: { type: "string" }
             },
-            required: ["path", "search", "replace"]
+            required: ["path"]
         },
         execute: async (args, onProgress, signal) => {
-            const p = getStringArg(args, 'path');
-            const s = getStringArg(args, 'search');
-            const r = getStringArg(args, 'replace');
+            const p = getStringArg(args, 'path') || getStringArg(args, 'targetFile');
+            const s = getStringArg(args, 'targetContent') || getStringArg(args, 'search');
+            const r = getStringArg(args, 'replacementContent') || getStringArg(args, 'replace');
             try {
                 const { replaceInFile } = await import("../../plumbing/filesystem/FileService.js");
                 const result = await replaceInFile(p, s, r);

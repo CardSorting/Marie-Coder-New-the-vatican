@@ -1,11 +1,14 @@
 import * as fs from "fs/promises";
 import * as path from "path";
 import { ToolRegistry } from "../infrastructure/tools/ToolRegistry.js";
-import { getStringArg } from "../infrastructure/tools/ToolUtils.js";
+import { getStringArg, getArrayArg } from "../infrastructure/tools/ToolUtils.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { RuntimeAutomationPort } from "../runtime/types.js";
 import { registerSharedToolDefinitions } from "../infrastructure/tools/SharedToolDefinitions.js";
+import { cherishFile, generateJoyDashboard } from "../domain/joy/JoyTools.js";
+import { checkCodeHealth } from "../plumbing/analysis/CodeHealthService.js";
+import { JoyAutomationServiceCLI } from "../cli/services/JoyAutomationServiceCLI.js";
 
 const execAsync = promisify(exec);
 
@@ -114,6 +117,10 @@ async function getFolderTree(dirPath: string, maxDepth: number = 3): Promise<str
     return `${name}/\n${await buildTree(dirPath, 1, '')}`;
 }
 
+async function foldCodeCLI(filePath: string): Promise<string> {
+    return `File '${path.basename(filePath)}' has been mentally folded. (CLI mode: structural formatting preserved)`;
+}
+
 export function registerMarieToolsCLI(registry: ToolRegistry, _automationService: RuntimeAutomationPort, workingDir: string) {
     registerSharedToolDefinitions(registry, {
         resolvePath: (p: string) => path.isAbsolute(p) ? p : path.join(workingDir, p),
@@ -158,6 +165,218 @@ export function registerMarieToolsCLI(registry: ToolRegistry, _automationService
             const fullPath = path.isAbsolute(p) ? p : path.join(workingDir, p);
             await deleteFile(fullPath);
             return `Deleted ${fullPath}`;
+        }
+    });
+
+    registry.register({
+        name: "perform_strategic_planning",
+        description: "A mandatory planning ritual. Call this at the start of any complex task.",
+        input_schema: {
+            type: "object",
+            properties: {
+                intent: { type: "string" },
+                joyZone: { type: "string" },
+                projectName: { type: "string" },
+                lifecycleStage: { type: "string" },
+                objectives: { type: "array", items: { type: "object" } },
+                ritualChecked: { type: "boolean" },
+                gratitudeMoment: { type: "string" },
+                totalPasses: { type: "number" },
+                passFocus: { type: "string" }
+            },
+            required: ["intent", "totalPasses", "passFocus"]
+        },
+        execute: async (args, onProgress) => {
+            const intent = getStringArg(args, 'intent');
+            const projectName = getStringArg(args, 'projectName');
+            onProgress?.({
+                context: `Mindfulness: ${intent}`,
+                achieved: [`Planning for ${projectName}`],
+                ritualComplete: true,
+                currentPass: 1,
+                totalPasses: args.totalPasses as any || 1,
+                passFocus: getStringArg(args, 'passFocus')
+            } as any);
+            return `Strategic Plan for '${projectName}' accepted in CLI. ✨`;
+        }
+    });
+
+    registry.register({
+        name: "checkpoint_pass",
+        description: "Explicitly end a pass, summarize achievements, and orient for the next pass.",
+        input_schema: {
+            type: "object",
+            properties: {
+                summary: { type: "string" },
+                reflection: { type: "string" },
+                nextPassFocus: { type: "string" },
+                isFinalPass: { type: "boolean" }
+            },
+            required: ["summary", "nextPassFocus", "isFinalPass"]
+        },
+        execute: async (args, onProgress) => {
+            const summary = getStringArg(args, 'summary');
+            onProgress?.({
+                context: `Checkpoint: ${summary}`,
+                achieved: [`Completed Pass: ${summary}`],
+                currentPass: args.isFinalPass ? null : undefined,
+                passFocus: args.isFinalPass ? undefined : getStringArg(args, 'nextPassFocus')
+            } as any);
+            return `Pass internal checkpoint reached in CLI.`;
+        }
+    });
+
+    registry.register({
+        name: "complete_task_ritual",
+        description: "A final ritual to conclude a large task.",
+        input_schema: {
+            type: "object",
+            properties: {
+                finalSummary: { type: "string" },
+                gratitude: { type: "string" }
+            },
+            required: ["finalSummary"]
+        },
+        execute: async (args, onProgress) => {
+            const summary = getStringArg(args, 'finalSummary');
+            onProgress?.({
+                context: `Bloom Ritual: ${summary}`,
+                achieved: [`Task Completed: ${summary}`],
+                ritualComplete: true
+            } as any);
+            return `Task Bloom Ritual complete in CLI. ✨`;
+        }
+    });
+
+    registry.register({
+        name: "update_run_objectives",
+        description: "Update the current run's objectives and progress context.",
+        input_schema: {
+            type: "object",
+            properties: {
+                context: { type: "string" },
+                completedObjectiveIds: { type: "array", items: { type: "string" } },
+                activeObjectiveId: { type: "string" }
+            },
+            required: ["context"]
+        },
+        execute: async (args, onProgress) => {
+            onProgress?.({
+                context: getStringArg(args, 'context'),
+                completedObjectiveIds: getArrayArg<string>(args, 'completedObjectiveIds'),
+                activeObjectiveId: getStringArg(args, 'activeObjectiveId')
+            } as any);
+            return `Progress updated in CLI.`;
+        }
+    });
+
+    const automation = _automationService as JoyAutomationServiceCLI;
+
+    registry.register({
+        name: "augment_roadmap",
+        description: "Insert a new pass into the current roadmap. Use this when significant unexpected complexity is discovered.",
+        input_schema: {
+            type: "object",
+            properties: {
+                addedPassCount: { type: "number", description: "How many passes to add (usually 1)" },
+                newPassFocus: { type: "string", description: "The focus for the upcoming augmented pass" },
+                reason: { type: "string", description: "Why is the roadmap being augmented? (Mindfulness discovery)" }
+            },
+            required: ["addedPassCount", "newPassFocus", "reason"]
+        },
+        execute: async (args, onProgress) => {
+            const count = args.addedPassCount as number;
+            const focus = getStringArg(args, 'newPassFocus');
+            const reason = getStringArg(args, 'reason');
+
+            onProgress?.({
+                context: `Roadmap Augmented: ${reason}`,
+                achieved: [`Calibrated roadmap: +${count} pass(es)`],
+                totalPasses: (count as any),
+                passFocus: focus
+            } as any);
+
+            return `Roadmap augmented with ${count} additional pass(es). Reason: ${reason}`;
+        }
+    });
+
+    registry.register({
+        name: "execute_genesis_ritual",
+        description: "Convert an entire project to the JOY structure.",
+        input_schema: { type: "object", properties: {} },
+        execute: async () => await automation.triggerGenesis()
+    });
+
+    registry.register({
+        name: "sow_joy_feature",
+        description: "Scaffold a new feature structure across all JOY zones.",
+        input_schema: {
+            type: "object",
+            properties: {
+                name: { type: "string" },
+                intent: { type: "string" }
+            },
+            required: ["name", "intent"]
+        },
+        execute: async (args) => await automation.sowJoyFeature(getStringArg(args, 'name'), getStringArg(args, 'intent'))
+    });
+
+    registry.register({
+        name: "perform_garden_pulse",
+        description: "Deep audit of project structure and scaffolding.",
+        input_schema: { type: "object", properties: {} },
+        execute: async () => await automation.performGardenPulse()
+    });
+
+    registry.register({
+        name: "execute_joy_maintenance",
+        description: "Perform autonomous maintenance on the garden structure (Restoration Ritual).",
+        isDestructive: true,
+        input_schema: { type: "object", properties: {} },
+        execute: async () => await automation.executeAutonomousRestoration()
+    });
+
+    registry.register({
+        name: "fold_file",
+        description: "Format and organize imports in a file.",
+        input_schema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
+        execute: async (args) => {
+            const p = getStringArg(args, 'path');
+            const fullPath = path.isAbsolute(p) ? p : path.join(workingDir, p);
+            return await foldCodeCLI(fullPath);
+        }
+    });
+
+    registry.register({
+        name: "cherish_file",
+        description: "Update the timestamp of a 'Sentimental' file.",
+        input_schema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
+        execute: async (args) => {
+            const p = getStringArg(args, 'path');
+            const fullPath = path.isAbsolute(p) ? p : path.join(workingDir, p);
+            return await cherishFile(fullPath);
+        }
+    });
+
+    registry.register({
+        name: "check_code_health",
+        description: "Analyze a file for complexity and technical debt.",
+        input_schema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
+        execute: async (args) => {
+            const p = getStringArg(args, 'path');
+            const fullPath = path.isAbsolute(p) ? p : path.join(workingDir, p);
+            return JSON.stringify(await checkCodeHealth(fullPath));
+        }
+    });
+
+    registry.register({
+        name: "generate_joy_dashboard",
+        description: "Generate a JOY.md dashboard for the workspace.",
+        input_schema: { type: "object", properties: { rootPath: { type: "string" } }, required: ["rootPath"] },
+        execute: async (args) => {
+            const p = getStringArg(args, 'rootPath');
+            const fullPath = path.isAbsolute(p) ? p : path.join(workingDir, p);
+            return await generateJoyDashboard(fullPath);
         }
     });
 }

@@ -11,15 +11,16 @@ import {
     proposeReorganization,
     proposeClustering,
     generateJoyDashboard,
-    generateTidyChecklist
+    generateTidyChecklist,
+    executeRestoration
 } from '../../domain/joy/JoyTools.js';
 
 export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
     private currentRun: RunTelemetry | undefined;
 
     constructor(
-        private readonly joyService: JoyServiceCLI,
-        private readonly workingDir: string
+        private readonly workingDir: string,
+        private readonly joyService: JoyServiceCLI
     ) { }
 
     private async ensureWorkingDir(): Promise<void> {
@@ -84,6 +85,18 @@ export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
     public async autoScaffold(): Promise<void> {
         await this.ensureWorkingDir();
         await scaffoldZoneAbstractions(this.workingDir);
+    }
+
+    public async executeAutonomousRestoration(): Promise<string> {
+        await this.ensureWorkingDir();
+        const result = await executeRestoration(this.workingDir);
+        await this.joyService.addAchievement("The Garden was autonomously restored to harmony in CLI. ✨", 50);
+        return result;
+    }
+
+    public async executeSelfHealing(failedPath: string, errorReason: string): Promise<string> {
+        await this.joyService.addAchievement("Self-healing initiated in CLI. 🧬", 15);
+        return `Self-healing: Analyzing \`${failedPath}\` to resolve: ${errorReason}. \nPlease retry the operation to refresh context. ✨`;
     }
 
     public dispose(): void {

@@ -249,7 +249,7 @@ export class MarieRuntime<TAutomation extends RuntimeAutomationPort> implements 
 
         const approvalRequester = async (): Promise<boolean> => true;
 
-        const engine = new MarieEngine(this.provider, this.toolRegistry, approvalRequester, this.createProvider.bind(this));
+        const engine = new MarieEngine(this.provider, this.toolRegistry, approvalRequester, this.createProvider.bind(this), this.options.fs, this.options.ghostPort);
 
         tracker.emitEvent({ type: 'run_started', runId: run.runId, startedAt: run.startedAt });
         tracker.emitProgressUpdate('Thinking...');

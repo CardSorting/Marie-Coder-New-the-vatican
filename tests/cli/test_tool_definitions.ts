@@ -43,7 +43,7 @@ async function testToolRegistrySetup() {
 
         // Verify all expected tools are registered
         const expectedTools = [
-            'write_file',
+            'write_to_file',
             'read_file',
             'list_dir',
             'grep_search',
@@ -51,7 +51,11 @@ async function testToolRegistrySetup() {
             'get_git_context',
             'run_command',
             'get_folder_structure',
-            'replace_in_file'
+            'replace_file_content',
+            'perform_strategic_planning',
+            'checkpoint_pass',
+            'complete_task_ritual',
+            'update_run_objectives'
         ];
 
         for (const toolName of expectedTools) {
@@ -72,9 +76,9 @@ async function testWriteFileTool() {
 
     try {
         const { registry } = createRegistry();
-        const writeFileTool = registry.getTool('write_file');
+        const writeFileTool = registry.getTool('write_to_file');
 
-        assert.ok(writeFileTool, 'write_file tool should exist');
+        assert.ok(writeFileTool, 'write_to_file tool should exist');
 
         // Test writing a file
         const testContent = 'Hello, World!';
@@ -211,10 +215,10 @@ async function testReplaceInFileTool() {
 
     try {
         const { registry } = createRegistry();
-        const replaceTool = registry.getTool('replace_in_file');
+        const replaceTool = registry.getTool('replace_file_content');
 
-        assert.ok(replaceTool, 'replace_in_file tool should exist');
-        assert.strictEqual(replaceTool.isDestructive, true, 'replace_in_file should be marked as destructive');
+        assert.ok(replaceTool, 'replace_file_content tool should exist');
+        assert.strictEqual(replaceTool.isDestructive, true, 'replace_file_content should be marked as destructive');
 
         // Create a test file
         const testFile = path.join(TEST_DIR, 'replace_test.txt');
@@ -224,8 +228,8 @@ async function testReplaceInFileTool() {
         // Replace text
         const result = await replaceTool.execute({
             path: testFile,
-            search: 'World',
-            replace: 'Universe'
+            targetContent: 'World',
+            replacementContent: 'Universe'
         });
 
         const newContent = fs.readFileSync(testFile, 'utf-8');
@@ -235,8 +239,8 @@ async function testReplaceInFileTool() {
         // Test replace non-existent text
         const errorResult = await replaceTool.execute({
             path: testFile,
-            search: 'NonExistentText',
-            replace: 'Something'
+            targetContent: 'NonExistentText',
+            replacementContent: 'Something'
         });
         assert.ok(errorResult.includes('Error'), 'Should return error for non-existent text');
 
