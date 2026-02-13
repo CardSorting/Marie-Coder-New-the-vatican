@@ -40,6 +40,7 @@ Memory Snapshot:
 - Recent Echoes: ${state.recentFiles.slice(-5).join(', ')}
 - Protocol: ${profile}
 - Intensity: ${aggression}
+- Environment: ${state.environment}
 
 [SOVEREIGN DUTIES]
 Your decree integrates Strategic Trajectory, Quality Audit, and Stability Guardianship.

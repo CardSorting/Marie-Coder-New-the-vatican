@@ -23,6 +23,9 @@ async function readFile(filePath: string, startLine?: number, endLine?: number):
 }
 
 async function writeFile(filePath: string, content: string): Promise<void> {
+    if (process.env.MARIE_DEBUG) {
+        console.log(`[CLI Debug] Writing to file: ${filePath}`);
+    }
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, content, 'utf-8');
 }
@@ -139,6 +142,9 @@ export function registerMarieToolsCLI(registry: ToolRegistry, _automationService
         runCommand: async (cmd) => await runCommand(cmd, workingDir),
         getFolderStructure: async (p, depth) => await getFolderTree(p, depth),
         replaceInFile: async (p, s, r) => {
+            if (process.env.MARIE_DEBUG) {
+                console.log(`[CLI Debug] Replacing in file: ${p}`);
+            }
             const content = await fs.readFile(p, 'utf-8');
             if (!content.includes(s)) {
                 return `Error: Search text not found in file`;

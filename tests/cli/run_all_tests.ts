@@ -16,7 +16,8 @@ const testFiles = [
     'test_storage.ts',
     'test_joy_services.ts',
     'test_tool_definitions.ts',
-    'test_marie_cli.ts'
+    'test_marie_cli.ts',
+    'test_strategy_engine.ts'
 ];
 
 async function runTest(testFile: string): Promise<TestResult> {

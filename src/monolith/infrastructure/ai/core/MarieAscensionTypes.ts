@@ -47,4 +47,5 @@ export interface AscensionState {
     isAwakened: boolean;
     karmaBond?: string;
     panicCoolDown: number;
+    environment: 'cli' | 'vscode' | 'unknown';
 }

@@ -28,7 +28,7 @@ function setupTestEnv() {
 // Helper to create a fresh registry
 function createRegistry() {
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
     const registry = new ToolRegistry();
     registerMarieToolsCLI(registry, automationService, TEST_DIR);
     return { registry, joyService, automationService };

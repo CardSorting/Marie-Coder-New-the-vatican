@@ -69,7 +69,8 @@ export class MarieEngine {
             isSpiritBurstActive: false,
             isAwakened: false,
             karmaBond: undefined,
-            panicCoolDown: 0
+            panicCoolDown: 0,
+            environment: this.fs?.type === 'vscode' ? 'vscode' : 'cli'
         };
     }
 
@@ -220,6 +221,14 @@ export class MarieEngine {
             pulse.startHeartbeat();
 
             try {
+                // Determine if we need to transition objectives
+                if (tracker.getRun().activeObjectiveId === 'understand_request') {
+                    tracker.setObjectiveStatus('understand_request', 'completed');
+                    tracker.setObjectiveStatus('execute_plan', 'in_progress');
+                    tracker.getRun().activeObjectiveId = 'execute_plan';
+                    tracker.emitProgressUpdate(`Executing technique: ${toolCall.name}`);
+                }
+
                 let toolResult = await processor.process(toolCall, signal);
 
                 // Buffer Hard-Cap
@@ -262,14 +271,21 @@ export class MarieEngine {
                 lastTokenTime = now;
                 pulse.startHeartbeat();
 
+                // RESTORE EVENT ROUTING: Dispatch all stream events
+                if (process.env.MARIE_DEBUG) {
+                    console.log(`[Engine Debug] AI Event: ${event.type}`, event.type === 'content_delta' ? `(${event.text.length} chars)` : '');
+                }
+                dispatcher.dispatch(event);
+
                 if (event.type === 'content_delta') {
                     finalContent += event.text;
                     this.contentBuffer += event.text;
 
                     if (this.contentBuffer.length >= MarieEngine.CONTENT_BUFFER_MAX_BYTES) break;
 
+                    // Note: dispatcher.dispatch(event) already handles UI streaming.
+                    // We only keep contentBuffer for final content aggregation.
                     if (now - this.lastContentEmit > 100) {
-                        tracker.emitStream(this.contentBuffer);
                         this.contentBuffer = "";
                         this.lastContentEmit = now;
                     }
@@ -306,7 +322,6 @@ export class MarieEngine {
         }
 
         if (this.contentBuffer.length > 0) {
-            tracker.emitStream(this.contentBuffer);
             this.contentBuffer = "";
         }
 

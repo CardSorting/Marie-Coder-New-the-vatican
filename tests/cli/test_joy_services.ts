@@ -194,7 +194,7 @@ async function testJoyAutomationServiceConstruction() {
     console.log('🧪 Testing JoyAutomationServiceCLI Construction...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     assert.ok(automationService, 'JoyAutomationServiceCLI should be created');
 
@@ -206,7 +206,7 @@ async function testSetCurrentRun() {
     console.log('🧪 Testing Set Current Run...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     // Initially no run
     assert.strictEqual(automationService.getCurrentRun(), undefined, 'Should have no current run initially');
@@ -239,7 +239,7 @@ async function testTriggerGenesis() {
     console.log('🧪 Testing Trigger Genesis...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     const result = await automationService.triggerGenesis();
 
@@ -254,7 +254,7 @@ async function testSowJoyFeature() {
     console.log('🧪 Testing Sow Joy Feature...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     const result = await automationService.sowJoyFeature('MyFeature', 'Test feature intent');
 
@@ -269,7 +269,7 @@ async function testPerformGardenPulse() {
     console.log('🧪 Testing Perform Garden Pulse...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     const result = await automationService.performGardenPulse();
 
@@ -284,7 +284,7 @@ async function testAutoScaffold() {
     console.log('🧪 Testing Auto Scaffold...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     // Should not throw (no-op in CLI)
     await automationService.autoScaffold();
@@ -297,7 +297,7 @@ async function testJoyAutomationDispose() {
     console.log('🧪 Testing JoyAutomationServiceCLI Dispose...');
 
     const joyService = new JoyServiceCLI();
-    const automationService = new JoyAutomationServiceCLI(joyService, TEST_DIR);
+    const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService);
 
     // Should not throw (no-op in CLI)
     automationService.dispose();

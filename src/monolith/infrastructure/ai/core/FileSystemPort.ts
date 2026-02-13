@@ -11,4 +11,5 @@ export interface FileSystemPort {
     restoreFile(path: string): Promise<void>;
     rollbackAll(): Promise<void>;
     clearBackups(): void;
+    readonly type: string;
 }

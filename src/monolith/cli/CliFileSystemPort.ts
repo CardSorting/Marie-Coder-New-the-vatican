@@ -7,6 +7,7 @@ import { FileSystemPort } from "../infrastructure/ai/core/FileSystemPort.js";
  * Uses standard Node.js fs/promises for file operations.
  */
 export class CliFileSystemPort implements FileSystemPort {
+    public readonly type = 'cli';
     private backups = new Map<string, string>();
 
     constructor(private workingDir: string) { }

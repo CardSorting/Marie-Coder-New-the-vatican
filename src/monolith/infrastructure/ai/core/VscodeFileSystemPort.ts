@@ -6,6 +6,7 @@ import { backupFile, restoreFile, clearBackups, rollbackAll, readFile, writeFile
  * Delegates all operations to the existing FileService which uses vscode.workspace.fs.
  */
 export class VscodeFileSystemPort implements FileSystemPort {
+    public readonly type = 'vscode';
     async readFile(path: string, signal?: AbortSignal): Promise<string> {
         return readFile(path, undefined, undefined, signal);
     }
