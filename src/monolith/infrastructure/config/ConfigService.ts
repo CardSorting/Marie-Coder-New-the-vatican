@@ -2,12 +2,22 @@
 // Works in both VSCode extension and CLI environments
 
 import type * as vscodeTypes from 'vscode';
-import { createRequire } from 'module';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
-const requireBase = typeof __filename === 'string'
-    ? __filename
-    : (process.argv[1] || process.cwd());
-const nodeRequire = createRequire(requireBase);
+const requireBase = (import.meta as any).url
+    ? fileURLToPath((import.meta as any).url)
+    : (typeof __filename === 'string' ? __filename : (process.argv[1] || process.cwd()));
+
+let nodeRequire: any;
+try {
+    nodeRequire = createRequire(requireBase);
+} catch {
+    // Fallback if createRequire fails
+    nodeRequire = (id: string) => {
+        throw new Error(`Cannot require ${id} in this environment`);
+    };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let vscodeModule: typeof vscodeTypes | null = null;

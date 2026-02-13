@@ -1,9 +1,12 @@
+console.log('[Test Strategy Engine] Starting...');
 import * as assert from 'assert';
 import { MarieEngine } from '../../src/monolith/infrastructure/ai/core/MarieEngine.js';
 import { ToolRegistry } from '../../src/monolith/infrastructure/tools/ToolRegistry.js';
 import { MarieProgressTracker } from '../../src/monolith/infrastructure/ai/core/MarieProgressTracker.js';
 import { AIProvider, AIStreamEvent } from '../../src/monolith/infrastructure/ai/providers/AIProvider.js';
 import { FileSystemPort } from '../../src/monolith/infrastructure/ai/core/FileSystemPort.js';
+
+
 
 // --- MOCKS ---
 

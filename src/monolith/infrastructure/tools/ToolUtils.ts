@@ -18,6 +18,22 @@ export function getStringArg(args: Record<string, unknown>, key: string): string
 }
 
 /**
+ * Extracts an optional string argument from the tool args.
+ * Returns undefined if the argument is missing.
+ * Throws an error if the argument exists but is not a string.
+ */
+export function getOptionalStringArg(args: Record<string, unknown>, key: string): string | undefined {
+    const value = args[key];
+    if (value === undefined || value === null) {
+        return undefined;
+    }
+    if (typeof value !== 'string') {
+        throw new Error(`Argument ${key} must be a string, but got ${typeof value}`);
+    }
+    return value;
+}
+
+/**
  * Extracts a number argument from the tool args.
  */
 export function getNumberArg(args: Record<string, unknown>, key: string): number {

@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+// MarieStabilityMonitor - Proactive stability monitor for the Extension Host/CLI
 
 /**
  * Proactive stability monitor for the Extension Host.

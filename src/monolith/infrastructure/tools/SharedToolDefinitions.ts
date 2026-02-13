@@ -1,4 +1,4 @@
-import { getStringArg } from "./ToolUtils.js";
+import { getStringArg, getOptionalStringArg } from "./ToolUtils.js";
 import { ToolRegistry } from "./ToolRegistry.js";
 
 export interface SharedToolRuntime {
@@ -31,11 +31,16 @@ export function registerSharedToolDefinitions(
             },
             required: ["content"],
         },
-        execute: async (args, onProgress, signal) => {
-            const p = runtime.resolvePath(getStringArg(args, 'path') || getStringArg(args, 'targetFile'));
-            const c = getStringArg(args, 'content');
-            await runtime.writeFile(p, c, signal);
-            return `File written to ${p}`;
+        execute: async (args, _onProgress, signal) => {
+            const p = getOptionalStringArg(args, 'path') || getOptionalStringArg(args, 'targetFile');
+            if (!p) throw new Error("Missing required argument: path (or targetFile)");
+
+            const content = getOptionalStringArg(args, 'content') || getOptionalStringArg(args, 'fileContent');
+            if (content === undefined) throw new Error("Missing required argument: content (or fileContent)");
+
+            const resolvedPath = runtime.resolvePath(p);
+            await runtime.writeFile(resolvedPath, content, signal);
+            return `File successfully updated: ${resolvedPath}`;
         }
     });
 
@@ -159,11 +164,31 @@ export function registerSharedToolDefinitions(
                 },
                 required: ["path"]
             },
-            execute: async (args, onProgress, signal) => {
-                const p = runtime.resolvePath(getStringArg(args, 'path') || getStringArg(args, 'targetFile'));
-                const s = getStringArg(args, 'targetContent') || getStringArg(args, 'search');
-                const r = getStringArg(args, 'replacementContent') || getStringArg(args, 'replace');
-                return await runtime.replaceInFile!(p, s, r, signal);
+            execute: async (args, _onProgress, signal) => {
+                const p = getOptionalStringArg(args, 'path') || getOptionalStringArg(args, 'targetFile');
+                if (!p) throw new Error("Missing required argument: path (or targetFile)");
+
+                const search = getOptionalStringArg(args, 'targetContent') || getOptionalStringArg(args, 'search');
+                if (search === undefined) throw new Error("Missing required argument: targetContent (or search)");
+
+                const replace = getOptionalStringArg(args, 'replacementContent') || getOptionalStringArg(args, 'replace');
+                if (replace === undefined) throw new Error("Missing required argument: replacementContent (or replace)");
+
+                if (runtime.replaceInFile) {
+                    return await runtime.replaceInFile(runtime.resolvePath(p), search, replace, signal);
+                }
+
+                const resolvedPath = runtime.resolvePath(p);
+                const content = await runtime.readFile(resolvedPath, undefined, undefined, signal);
+                if (!content.includes(search)) {
+                    return `Error: Could not find target content in ${p}. No changes made.`;
+                }
+
+                const occurrences = content.split(search).length - 1;
+                const newContent = content.split(search).join(replace);
+                await runtime.writeFile(resolvedPath, newContent, signal);
+
+                return `Replaced ${occurrences} occurrence(s) of target content in ${p}.`;
             }
         });
 
@@ -191,7 +216,10 @@ export function registerSharedToolDefinitions(
                 required: ["replacementChunks"]
             },
             execute: async (args, onProgress, signal) => {
-                const p = runtime.resolvePath(getStringArg(args, 'path') || getStringArg(args, 'targetFile'));
+                const pathRaw = getOptionalStringArg(args, 'path') || getOptionalStringArg(args, 'targetFile');
+                if (!pathRaw) throw new Error("Missing required argument: path (or targetFile)");
+
+                const p = runtime.resolvePath(pathRaw);
                 const chunks = args.replacementChunks as any[];
                 let result = "";
                 for (const chunk of chunks) {
