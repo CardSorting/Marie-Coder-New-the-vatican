@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export function Composer({
     isLoading,
@@ -10,6 +10,27 @@ export function Composer({
     onModels: () => void
 }) {
     const [input, setInput] = useState("")
+    const [showThinking, setShowThinking] = useState(false)
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+    useEffect(() => {
+        const textarea = textareaRef.current
+        if (!textarea) return
+
+        textarea.style.height = "auto"
+        const nextHeight = Math.min(textarea.scrollHeight, 220)
+        textarea.style.height = `${Math.max(52, nextHeight)}px`
+    }, [input])
+
+    useEffect(() => {
+        if (!isLoading) {
+            setShowThinking(false)
+            return
+        }
+
+        const timer = window.setTimeout(() => setShowThinking(true), 1200)
+        return () => window.clearTimeout(timer)
+    }, [isLoading])
 
     const submit = () => {
         const text = input.trim()
@@ -19,25 +40,45 @@ export function Composer({
     }
 
     return (
-        <footer className="composer">
-            <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault()
-                        submit()
-                    }
-                }}
-                placeholder="Ask Marie…"
-            />
-            <div className="stack">
-                <button onClick={submit} disabled={isLoading}>
-                    Send
-                </button>
-                <button onClick={onModels} className="secondary">
-                    Models
-                </button>
+        <footer className="composer-container">
+            <div className="composer-box">
+                <textarea
+                    ref={textareaRef}
+                    className="textarea-minimal"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                            e.preventDefault()
+                            submit()
+                            return
+                        }
+
+                        if (e.key === "Enter" && e.shiftKey) {
+                            return
+                        }
+
+                        if (e.key === "Enter") {
+                            e.preventDefault()
+                            submit()
+                        }
+                    }}
+                    placeholder="Ask Marie…"
+                />
+
+                <div className="composer-actions">
+                    <div className="composer-status">
+                        {showThinking ? <span className="thinking">Thinking…</span> : <span className="muted">Enter to send</span>}
+                    </div>
+                    <div className="row">
+                        <button onClick={onModels} className="secondary">
+                            Models
+                        </button>
+                        <button onClick={submit} disabled={isLoading}>
+                            Send
+                        </button>
+                    </div>
+                </div>
             </div>
         </footer>
     )

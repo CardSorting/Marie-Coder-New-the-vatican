@@ -226,6 +226,9 @@ class MarieWebviewHost {
         const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this.context.extensionUri, "dist", "webview-ui", "main.js")
         );
+        const styleUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this.context.extensionUri, "dist", "webview-ui", "main.css")
+        );
         const nonce = `${Date.now()}${Math.random().toString(36).slice(2)}`;
 
         return `<!DOCTYPE html>
@@ -234,6 +237,7 @@ class MarieWebviewHost {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}';" />
+    <link rel="stylesheet" type="text/css" href="${styleUri}" />
     <title>Marie</title>
 </head>
 <body>
