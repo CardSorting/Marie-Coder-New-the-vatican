@@ -103,9 +103,6 @@ export function ChatPanel({
                 return (
                     <div className={`msg ${message.role}`} key={message.id}>
                         <div className="msg-meta">
-                            <span className={`msg-avatar ${message.role}`} aria-hidden="true">
-                                {message.role === "user" ? "🧑" : "✨"}
-                            </span>
                             <span className="msg-role">{roleLabel}</span>
                             <span className="msg-time">{formatTime(message.timestamp)}</span>
                         </div>
@@ -117,9 +114,6 @@ export function ChatPanel({
             {streamingBuffer && (
                 <div className="msg assistant">
                     <div className="msg-meta">
-                        <span className="msg-avatar assistant" aria-hidden="true">
-                            ✨
-                        </span>
                         <span className="msg-role">Marie</span>
                         <span className="msg-time">Typing…</span>
                     </div>
@@ -130,9 +124,6 @@ export function ChatPanel({
             {toolStreamingBuffer && (
                 <div className="msg assistant tool-input">
                     <div className="msg-meta">
-                        <span className="msg-avatar assistant" aria-hidden="true">
-                            🛠️
-                        </span>
                         <span className="msg-role">{activeToolName || "Tool"}</span>
                         <span className="msg-time">Receiving input…</span>
                     </div>
