@@ -3,12 +3,7 @@ import { Providers } from "./Providers.js"
 import { ChatPanel } from "./components/ChatPanel.js"
 import { Composer } from "./components/Composer.js"
 import { HeaderBar } from "./components/HeaderBar.js"
-import { StageRail } from "./components/StageRail.js"
-import { StatusPanel } from "./components/StatusPanel.js"
 import { SessionList } from "./components/SessionList.js"
-import { ActivityTimeline } from "./components/ActivityTimeline.js"
-import { AgentPulse } from "./components/AgentPulse.js"
-import { MissionBrief } from "./components/MissionBrief.js"
 import { useWebviewState } from "./context/WebviewStateContext.js"
 
 function AppContent() {
@@ -82,36 +77,10 @@ function AppContent() {
                                 onProvider={actions.setProvider}
                                 onModel={actions.setModel}
                                 onSetApiKey={actions.setApiKey}
-                                onOpenSettings={actions.openSettings}
                                 onRefreshModels={actions.getModels}
-                            />
-                            <AgentPulse
-                                stage={state.stage}
-                                isLoading={state.isLoading}
-                                pendingApproval={state.pendingApproval}
                             />
                         </div>
                     </div>
-
-                    <StageRail stage={state.stage} onSelect={actions.setStage} />
-
-                    <div className="status-grid">
-                        <StatusPanel
-                            stage={state.stage}
-                            summary={state.stageSummary}
-                            hint={state.stageHint}
-                            actions={state.stageActions}
-                            onActionClick={actions.sendMessage}
-                            pendingApproval={state.pendingApproval}
-                            isLoading={state.isLoading}
-                        />
-                        <ActivityTimeline messages={state.messages} />
-                    </div>
-
-                    <MissionBrief
-                        brief={state.missionBrief}
-                        onSave={(brief) => actions.setMissionBrief(brief)}
-                    />
 
                     <ChatPanel
                         messages={state.messages}

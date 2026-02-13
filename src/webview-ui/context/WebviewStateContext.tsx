@@ -71,7 +71,6 @@ type WebviewActions = {
     loadSession: (id: string) => void
     clearSession: () => void
     stopGeneration: () => void
-    openSettings: () => void
     getModels: () => void
     setProvider: (provider: string) => void
     setModel: (model: string) => void
@@ -239,7 +238,6 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             loadSession: (id: string) => vscode.postMessage({ type: "load_session", id }),
             clearSession: () => vscode.postMessage({ type: "clear_session" }),
             stopGeneration: () => vscode.postMessage({ type: "stop_generation" }),
-            openSettings: () => vscode.postMessage({ type: "open_settings" }),
             getModels: () => vscode.postMessage({ type: "get_models" }),
             setProvider: (provider: string) => vscode.postMessage({ type: "set_provider", provider }),
             setModel: (model: string) => vscode.postMessage({ type: "set_model", model }),

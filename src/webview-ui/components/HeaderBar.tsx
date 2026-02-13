@@ -8,7 +8,6 @@ export function HeaderBar({
     onProvider,
     onModel,
     onSetApiKey,
-    onOpenSettings,
     onRefreshModels,
 }: {
     config: UiConfig
@@ -17,10 +16,10 @@ export function HeaderBar({
     onProvider: (provider: string) => void
     onModel: (model: string) => void
     onSetApiKey: (provider: string, apiKey: string) => void
-    onOpenSettings: () => void
     onRefreshModels: () => void
 }) {
     const [modelDraft, setModelDraft] = useState(config.model)
+    const [providerDraft, setProviderDraft] = useState(config.provider)
     const [isConfigOpen, setIsConfigOpen] = useState(false)
     const [apiKeyDraft, setApiKeyDraft] = useState("")
     const providerRef = useRef<HTMLSelectElement | null>(null)
@@ -28,6 +27,10 @@ export function HeaderBar({
     useEffect(() => {
         setModelDraft(config.model)
     }, [config.model])
+
+    useEffect(() => {
+        setProviderDraft(config.provider)
+    }, [config.provider])
 
     useEffect(() => {
         if (!isConfigOpen) {
@@ -105,7 +108,14 @@ export function HeaderBar({
                         <div className="modal-body stack">
                             <label className="control-field">
                                 <span className="muted">Provider</span>
-                                <select ref={providerRef} value={config.provider} onChange={(e) => onProvider(e.target.value)}>
+                                <select
+                                    ref={providerRef}
+                                    value={providerDraft}
+                                    onChange={(e) => {
+                                        const nextProvider = e.target.value
+                                        setProviderDraft(nextProvider)
+                                        onProvider(nextProvider)
+                                    }}>
                                     <option value="anthropic">anthropic</option>
                                     <option value="openrouter">openrouter</option>
                                     <option value="cerebras">cerebras</option>
@@ -169,9 +179,6 @@ export function HeaderBar({
                             <div className="row">
                                 <button className="secondary" onClick={onRefreshModels}>
                                     Refresh models
-                                </button>
-                                <button className="secondary" onClick={onOpenSettings}>
-                                    Open VS Code settings
                                 </button>
                                 <button onClick={closeConfig}>Done</button>
                             </div>
