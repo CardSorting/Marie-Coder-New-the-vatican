@@ -1,7 +1,7 @@
 :root {
     color-scheme: light dark;
 
-    /* Spacing System - More granular for better rhythm */
+    /* Spacing System */
     --space-05: 2px;
     --space-1: 4px;
     --space-2: 8px;
@@ -12,50 +12,62 @@
     --space-8: 32px;
     --space-12: 48px;
 
-    /* Radius System - Softer, more modern feel */
-    --radius-xs: 2px;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --radius-xl: 20px;
+    /* Radius System */
+    --radius-xs: 3px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
     --radius-pill: 9999px;
 
-    /* Colors - Leveraging VS Code tokens with smart fallbacks */
+    /* Colors - World-Class Midnight & Aurora Palette */
     --text-primary: var(--vscode-foreground);
-    --text-muted: color-mix(in srgb, var(--vscode-foreground) 65%, transparent);
-    --text-disabled: color-mix(in srgb, var(--vscode-foreground) 40%, transparent);
+    --text-muted: color-mix(in srgb, var(--vscode-foreground) 60%, transparent);
+    --text-disabled: color-mix(in srgb, var(--vscode-foreground) 35%, transparent);
     --text-error: var(--vscode-errorForeground);
-    
-    --accent: var(--vscode-button-background);
-    --accent-hover: var(--vscode-button-hoverBackground);
-    --accent-contrast: var(--vscode-button-foreground);
-    --accent-soft: color-mix(in srgb, var(--accent) 15%, transparent);
 
+    --accent: #00ffff;
+    --accent-secondary: #ffb7c5;
+    --accent-hover: #1affff;
+    --accent-contrast: #000000;
+    --accent-soft: rgba(0, 255, 255, 0.1);
+
+    /* Surfaces - Deep Midnight */
     --surface-0: var(--vscode-editor-background);
-    --surface-1: color-mix(in srgb, var(--surface-0) 95%, var(--vscode-sideBar-background));
-    --surface-2: color-mix(in srgb, var(--surface-0) 90%, var(--vscode-sideBar-background));
-    --surface-3: color-mix(in srgb, var(--surface-0) 80%, var(--vscode-sideBar-background));
-    --surface-elevated: color-mix(in srgb, var(--surface-1) 98%, white 2%);
+    --surface-1: color-mix(in srgb, var(--surface-0), #0a0e14 15%);
+    --surface-2: color-mix(in srgb, var(--surface-0), #0a0e14 25%);
+    --surface-3: color-mix(in srgb, var(--surface-0), #0a0e14 40%);
+    --surface-elevated: color-mix(in srgb, var(--surface-1) 97%, white 3%);
 
-    /* Glass Effects */
-    --glass-bg: color-mix(in srgb, var(--surface-1) 75%, transparent);
-    --glass-border: color-mix(in srgb, var(--vscode-panel-border) 40%, transparent);
-    --glass-highlight: color-mix(in srgb, white 5%, transparent);
-    
+    /* Glassmorphism 2.0 */
+    --glass-bg: rgba(10, 14, 20, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-highlight: rgba(255, 255, 255, 0.03);
+    --blur-intensity: 16px;
+
     /* Status Colors */
-    --status-ok: var(--vscode-testing-iconPassedColor, #28a745);
-    --status-warn: var(--vscode-testing-iconQueuedColor, #e2b012);
-    --status-info: var(--vscode-textLink-foreground, #3794ff);
-    --status-error: var(--vscode-errorForeground, #f14c4c);
+    --status-ok: #2ecc71;
+    --status-warn: #f1c40f;
+    --status-info: #3498db;
+    --status-error: #e74c3c;
 
-    /* Shadows - Layered for depth */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-glow: 0 0 15px var(--accent-soft);
+    /* Shadows - World-Class Depth */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 20px var(--accent-soft);
 
     /* Motion */
-    --motion-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
-    --motion-medium: 220ms cubic-bezier(0.4, 0, 0.2, 1);
-    --motion-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-fast: 150ms cubic-bezier(0.23, 1, 0.32, 1);
+    --motion-medium: 300ms cubic-bezier(0.23, 1, 0.32, 1);
+    --motion-slow: 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Base Glassmorphism Class */
+.glass-effect {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-intensity));
+    -webkit-backdrop-filter: blur(var(--blur-intensity));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md), inset 0 0 0 1px var(--glass-highlight);
 }

@@ -1,6 +1,13 @@
-import React from "react";
+import { SVGProps } from "react";
 
-interface IconProps extends React.SVGProps<SVGSVGElement> {
+const breatheAnimation = `
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+`;
+
+interface IconProps extends SVGProps<SVGSVGElement> {
     size?: number;
 }
 
@@ -11,8 +18,10 @@ export const MascotIcon = ({ size = 24, ...props }: IconProps) => (
         viewBox="0 0 1024 1024"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        style={{ animation: "breathe 4s ease-in-out infinite" }}
         {...props}
     >
+        <style>{breatheAnimation}</style>
         {/* Stylized Hair/Head */}
         <path
             d="M512 150C300 150 150 320 150 512V700C150 800 230 880 330 880H694C794 880 874 800 874 700V512C874 320 724 150 512 150Z"
@@ -40,6 +49,36 @@ export const MascotIcon = ({ size = 24, ...props }: IconProps) => (
         >
             <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
         </path>
+    </svg>
+);
+
+export const IconicLogo = ({ size = 24, ...props }: IconProps) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 1024 1024"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+    >
+        <defs>
+            <linearGradient id="sakura-grad-icon" x1="200" y1="200" x2="800" y2="800" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFB7C5" />
+                <stop offset="100%" stop-color="#FF69B4" />
+            </linearGradient>
+            <linearGradient id="neural-grad-icon" x1="200" y1="200" x2="800" y2="800" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#00FFFF" />
+                <stop offset="100%" stop-color="#00CED1" />
+            </linearGradient>
+        </defs>
+        <path d="M512 512C512 512 350 350 250 400C150 450 180 600 250 700C320 800 512 512 512 512Z" fill="url(#sakura-grad-icon)" opacity="0.8" />
+        <path d="M512 512C512 512 400 200 550 150C700 100 800 300 700 450C600 600 512 512 512 512Z" fill="url(#sakura-grad-icon)" opacity="0.6" />
+        <circle cx="650" cy="512" r="40" fill="url(#neural-grad-icon)" />
+        <circle cx="750" cy="400" r="30" fill="url(#neural-grad-icon)" />
+        <circle cx="750" cy="624" r="30" fill="url(#neural-grad-icon)" />
+        <circle cx="850" cy="512" r="25" fill="url(#neural-grad-icon)" />
+        <path d="M512 512L650 512M650 512L750 400M650 512L750 624M750 400L850 512M750 624L850 512" stroke="url(#neural-grad-icon)" strokeWidth="12" strokeLinecap="round" />
+        <circle cx="512" cy="512" r="60" fill="white" />
     </svg>
 );
 

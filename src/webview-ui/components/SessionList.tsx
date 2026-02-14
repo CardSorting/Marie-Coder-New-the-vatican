@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Session } from "../types.js";
-import { SessionIcon, SearchIcon, MascotIcon, PinIcon } from "./Icons.js";
+import { SessionIcon, SearchIcon, MascotIcon, PinIcon, IconicLogo } from "./Icons.js";
 
 function formatSessionDate(timestamp: number) {
   try {
@@ -53,7 +53,7 @@ export function SessionList({
     ? "No matching sessions"
     : "No sessions yet";
 
-  const emptyStateIcon = query.trim() ? <SearchIcon size={32} /> : <MascotIcon size={32} />;
+  const emptyStateIcon = query.trim() ? <SearchIcon size={32} /> : <IconicLogo size={64} />;
 
   return (
     <aside className="left stack">
