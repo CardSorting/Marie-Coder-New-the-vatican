@@ -75,6 +75,8 @@ export function ChatPanel({
   pendingApproval,
   onApprove,
   isLoading,
+  stageHint,
+  stageSummary,
 }: {
   messages: UiMessage[];
   streamingBuffer: string;
@@ -83,6 +85,8 @@ export function ChatPanel({
   pendingApproval: ApprovalRequest | null;
   onApprove: (approved: boolean) => void;
   isLoading: boolean;
+  stageHint?: string;
+  stageSummary?: string;
 }) {
   const chatRef = useRef<HTMLDivElement | null>(null);
 
@@ -210,9 +214,16 @@ export function ChatPanel({
       )}
 
       {isLoading && !streamingBuffer && !toolStreamingBuffer && (
-        <div className="activity-inline">
-          <LoadingDots size={24} />
-          <span>Marie is thinking…</span>
+        <div className="activity-inline holographic-scan">
+          <LoadingDots size={24} className="premium-aura" />
+          <div className="stack" style={{ gap: "4px" }}>
+            <span style={{ fontWeight: 600 }}>{stageHint || "Marie is thinking…"}</span>
+            {stageSummary && (
+              <span className="muted" style={{ fontSize: "0.85em" }}>
+                {stageSummary}
+              </span>
+            )}
+          </div>
           <ThinkingTimer />
         </div>
       )}

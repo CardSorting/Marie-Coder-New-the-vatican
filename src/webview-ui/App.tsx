@@ -98,6 +98,8 @@ function AppContent() {
             pendingApproval={state.pendingApproval}
             onApprove={actions.approveTool}
             isLoading={state.isLoading}
+            stageHint={state.stageHint}
+            stageSummary={state.stageSummary}
           />
 
           <Composer

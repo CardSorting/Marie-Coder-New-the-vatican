@@ -71,3 +71,64 @@
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md), inset 0 0 0 1px var(--glass-highlight);
 }
+
+/* Holographic Scan Animation */
+@keyframes aurora-scan {
+    0% {
+        transform: translateX(-100%) skewX(-15deg);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+
+    80% {
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translateX(200%) skewX(-15deg);
+        opacity: 0;
+    }
+}
+
+.holographic-scan {
+    position: relative;
+    overflow: hidden;
+}
+
+.holographic-scan::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(0, 255, 255, 0.2),
+            rgba(255, 183, 197, 0.2),
+            transparent);
+    animation: aurora-scan 2.5s infinite linear;
+}
+
+@keyframes pulse-aura {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.6));
+    }
+}
+
+.premium-aura {
+    animation: pulse-aura 3s ease-in-out infinite;
+}
