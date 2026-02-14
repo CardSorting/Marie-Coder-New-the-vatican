@@ -1,6 +1,6 @@
 # Marie: The Sovereign AI Architecture 🌸
 
-[![NPM Version](https://img.shields.io/npm/v/marie.svg?style=flat-square&color=FF69B4)](https://www.npmjs.com/package/marie)
+[![NPM Version](https://img.shields.io/npm/v/marie-cli.svg?style=flat-square&color=FF69B4)](https://www.npmjs.com/package/marie-cli)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)](LICENSE.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
@@ -54,7 +54,7 @@ Marie's performance is driven by the **Ascension Protocol**, a state-machine tha
 
 ```bash
 # Global installation for universal sovereignty
-npm install -g marie
+npm install -g marie-cli
 ```
 
 ### Direct Invocation

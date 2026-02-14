@@ -13,8 +13,8 @@ const createDecorationType = vscode.window.createTextEditorDecorationType({
     fontWeight: "bold",
   },
   gutterIconPath: vscode.Uri.parse(
-    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTggMEwxMCA2TDE2IDhMMTAgMTBZnOEwxNiA2TDEwIDhMMCA4TDYgNkw4IDB6IiBmaWxsPSIjMDBmZmZmIi8+PC9zdmc+",
-  ), // Simple Sparkle
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTggMEw5LjUgNi41TDE2IDhMOS41IDkuNUw4IDE2TDYuNSA5LjVMMCA4TDYuNSA2LjVMOCAwWiIgZmlsbD0idXJsKCNncmFkKSIvPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMTYiIHkyPSIxNiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzAwZmZmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmYjdjNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==",
+  ), // Refined Sparkle with Sakura Gradient
   gutterIconSize: "contain",
 });
 
@@ -31,8 +31,8 @@ const modifyDecorationType = vscode.window.createTextEditorDecorationType({
     fontWeight: "bold",
   },
   gutterIconPath: vscode.Uri.parse(
-    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDJkZjc4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDVsMiAyLTUgNWw1IDUtMiAyeiIvPjwvc3ZnPg==",
-  ), // Pencil
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDJkZjc4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTMgMTNWNU0zIDExTDExIDNNMTEgNWwtMi0yTDMgMTFsMiAyIi8+PC9zdmc+",
+  ), // Refined Git-themed Pencil
   gutterIconSize: "contain",
 });
 

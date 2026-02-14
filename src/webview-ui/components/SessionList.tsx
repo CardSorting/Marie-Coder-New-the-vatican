@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Session } from "../types.js";
+import { SessionIcon, SearchIcon, MascotIcon, PinIcon } from "./Icons.js";
 
 function formatSessionDate(timestamp: number) {
   try {
@@ -52,13 +53,13 @@ export function SessionList({
     ? "No matching sessions"
     : "No sessions yet";
 
-  const emptyStateIcon = query.trim() ? "🔎" : "✨";
+  const emptyStateIcon = query.trim() ? <SearchIcon size={32} /> : <MascotIcon size={32} />;
 
   return (
     <aside className="left stack">
       <div className="session-heading">
         <span className="session-heading-icon" aria-hidden="true">
-          🗂️
+          <SessionIcon size={18} />
         </span>
         <strong>Sessions</strong>
       </div>
@@ -92,7 +93,11 @@ export function SessionList({
             className={`session ${session.id === currentSessionId ? "active" : ""}`}
           >
             <span className="session-title">
-              {session.isPinned ? "📌 " : "💬 "}
+              {session.isPinned ? (
+                <PinIcon size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} />
+              ) : (
+                <SessionIcon size={14} style={{ marginRight: "6px", verticalAlign: "middle" }} />
+              )}
               {session.title || "New Session"}
             </span>
             <span className="session-date muted">

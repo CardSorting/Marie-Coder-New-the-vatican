@@ -1,5 +1,12 @@
 import { useState } from "react";
 import type { AgentStage } from "../types.js";
+import { PlanIcon, ExecuteIcon, ReviewIcon } from "./Icons.js";
+
+const stageIcons: Record<AgentStage, React.ReactNode> = {
+  plan: <PlanIcon />,
+  execute: <ExecuteIcon />,
+  review: <ReviewIcon />,
+};
 
 const stageOrder: AgentStage[] = ["plan", "execute", "review"];
 
@@ -53,7 +60,11 @@ export function StageRail({
                   onClick={() => onSelect(step)}
                 >
                   <span className="stage-icon" aria-hidden="true">
-                    {isComplete ? "✓" : index + 1}
+                    {isActive || !isComplete ? (
+                      stageIcons[step]
+                    ) : (
+                      <ReviewIcon size={14} />
+                    )}
                   </span>
                   <span className="stage-label">{stageLabels[step]}</span>
                 </button>

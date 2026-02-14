@@ -1,5 +1,5 @@
 {
-  "name": "marie",
+  "name": "marie-cli",
   "displayName": "Marie",
   "version": "0.1.0",
   "description": "Marie: A high-fidelity, autonomous AI coding architecture designed for Technical Sovereignty.",
@@ -76,7 +76,7 @@
         {
           "id": "marieSidebar",
           "title": "Marie",
-          "icon": "assets/icon.png"
+          "icon": "assets/icon.svg"
         }
       ]
     },
@@ -86,7 +86,7 @@
           "id": "marieView",
           "name": "Marie",
           "type": "webview",
-          "icon": "assets/icon.png"
+          "icon": "assets/icon.svg"
         }
       ]
     }

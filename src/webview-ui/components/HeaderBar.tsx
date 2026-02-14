@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { UiConfig } from "../types.js";
+import { CloseIcon, SettingsIcon } from "./Icons.js";
 
 export function HeaderBar({
   config,
@@ -147,6 +148,7 @@ export function HeaderBar({
               setIsConfigOpen(true);
             }}
           >
+            <SettingsIcon size={14} style={{ marginRight: "4px" }} />
             Configure AI
           </button>
         </div>
@@ -172,7 +174,7 @@ export function HeaderBar({
                 onClick={closeConfig}
                 aria-label="Close settings"
               >
-                ✕
+                <CloseIcon size={20} />
               </button>
             </div>
             {toast && (

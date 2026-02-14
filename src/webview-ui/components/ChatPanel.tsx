@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { marked } from "marked";
 import type { UiMessage, ApprovalRequest } from "../types.js";
+import { MascotIcon, UserIcon, ToolIcon, LoadingDots } from "./Icons.js";
 
 function renderMarkdown(content: string): string {
   const escaped = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -106,7 +107,10 @@ export function ChatPanel({
               )}
               <details className="activity-log">
                 <summary>
-                  <span className="activity-tag">Activity</span>
+                  <span className="activity-tag">
+                    <ToolIcon size={12} style={{ marginRight: "4px" }} />
+                    Activity
+                  </span>
                   <span>{summarizeActivity(message.content)}</span>
                 </summary>
                 <div
@@ -124,7 +128,14 @@ export function ChatPanel({
         return (
           <div className={`msg ${message.role}`} key={message.id}>
             <div className="msg-meta">
-              <span className="msg-role">{roleLabel}</span>
+              <span className="msg-role">
+                {message.role === "user" ? (
+                  <UserIcon size={14} style={{ marginRight: "4px" }} />
+                ) : (
+                  <MascotIcon size={14} style={{ marginRight: "4px" }} />
+                )}
+                {roleLabel}
+              </span>
               <span className="msg-time">{formatTime(message.timestamp)}</span>
             </div>
             <div
@@ -140,7 +151,10 @@ export function ChatPanel({
       {streamingBuffer && (
         <div className="msg assistant">
           <div className="msg-meta">
-            <span className="msg-role">Marie</span>
+            <span className="msg-role">
+              <MascotIcon size={14} style={{ marginRight: "4px" }} />
+              Marie
+            </span>
             <span className="msg-time">Typing…</span>
           </div>
           <div
@@ -155,7 +169,10 @@ export function ChatPanel({
       {toolStreamingBuffer && (
         <div className="msg assistant tool-input">
           <div className="msg-meta">
-            <span className="msg-role">{activeToolName || "Tool"}</span>
+            <span className="msg-role">
+              <ToolIcon size={14} style={{ marginRight: "4px" }} />
+              {activeToolName || "Tool"}
+            </span>
             <span className="msg-time">Receiving input…</span>
           </div>
           <details className="tool-stream-panel" open>
@@ -193,9 +210,7 @@ export function ChatPanel({
 
       {isLoading && !streamingBuffer && !toolStreamingBuffer && (
         <div className="activity-inline">
-          <span className="dot" />
-          <span className="dot" />
-          <span className="dot" />
+          <LoadingDots size={24} />
           <span>Running tools…</span>
         </div>
       )}
