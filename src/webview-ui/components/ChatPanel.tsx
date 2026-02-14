@@ -98,11 +98,18 @@ export function ChatPanel({
 
   return (
     <section className="feed" ref={chatRef}>
-      {messages.map((message) => {
-        if (message.role === "system") {
-          const stageLabel = stageSeparatorLabel(message.content);
-          return (
-            <div key={message.id} className="activity-group">
+      {(() => {
+        const renderedMessages: React.ReactNode[] = [];
+        let currentStack: UiMessage[] = [];
+
+        const flushStack = () => {
+          if (currentStack.length === 0) return;
+          const stack = [...currentStack];
+          const latest = stack[stack.length - 1];
+          const stageLabel = stageSeparatorLabel(latest.content);
+
+          renderedMessages.push(
+            <div key={`stack-${latest.id}`} className="activity-group stacked">
               {stageLabel && (
                 <div className="stage-separator">
                   <span className="stage-line" aria-hidden="true" />
@@ -110,48 +117,83 @@ export function ChatPanel({
                   <span className="stage-line" aria-hidden="true" />
                 </div>
               )}
-              <details className="activity-log">
+              <details className="activity-log stacked">
                 <summary>
                   <span className="activity-tag">
                     <ToolIcon size={12} style={{ marginRight: "4px" }} />
-                    Activity
+                    {stack.length > 1 ? `${stack.length} Activities` : "Activity"}
                   </span>
-                  <span>{summarizeActivity(message.content)}</span>
+                  <span>{summarizeActivity(latest.content)}</span>
+                  {stack.length > 1 && <span className="stack-count">+{stack.length - 1} more</span>}
                 </summary>
+                <div className="activity-stack-body">
+                  {stack.map((m, i) => (
+                    <div key={m.id} className="stacked-item">
+                      <div className="stacked-meta">{formatTime(m.timestamp)}</div>
+                      <div
+                        className="markdown"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMarkdown(m.content),
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+          );
+          currentStack = [];
+        };
+
+        messages.forEach((message, index) => {
+          if (message.role === "system") {
+            currentStack.push(message);
+          } else {
+            flushStack();
+            const prevMessage = index > 0 ? messages[index - 1] : null;
+            const isGrouped =
+              prevMessage &&
+              prevMessage.role === message.role &&
+              message.timestamp - prevMessage.timestamp < 60000;
+
+            const isLastInGroup =
+              index === messages.length - 1 ||
+              messages[index + 1].role !== message.role ||
+              messages[index + 1].timestamp - message.timestamp >= 60000;
+
+            const roleLabel = message.role === "user" ? "You" : "Marie";
+            renderedMessages.push(
+              <div
+                className={`msg ${message.role} ${isGrouped ? "is-grouped" : ""} ${isLastInGroup ? "is-last" : ""}`}
+                key={message.id}
+                style={{ "--stagger": index % 10 } as any}
+              >
+                {!isGrouped && (
+                  <div className="msg-meta">
+                    <span className="msg-role">
+                      {message.role === "user" ? (
+                        <UserIcon size={14} style={{ marginRight: "4px" }} />
+                      ) : (
+                        <MascotIcon size={14} style={{ marginRight: "4px" }} />
+                      )}
+                      {roleLabel}
+                    </span>
+                    <span className="msg-time">{formatTime(message.timestamp)}</span>
+                  </div>
+                )}
                 <div
-                  className="activity-body markdown"
+                  className="markdown"
                   dangerouslySetInnerHTML={{
                     __html: renderMarkdown(message.content),
                   }}
                 />
-              </details>
-            </div>
-          );
-        }
-
-        const roleLabel = message.role === "user" ? "You" : "Marie";
-        return (
-          <div className={`msg ${message.role}`} key={message.id}>
-            <div className="msg-meta">
-              <span className="msg-role">
-                {message.role === "user" ? (
-                  <UserIcon size={14} style={{ marginRight: "4px" }} />
-                ) : (
-                  <MascotIcon size={14} style={{ marginRight: "4px" }} />
-                )}
-                {roleLabel}
-              </span>
-              <span className="msg-time">{formatTime(message.timestamp)}</span>
-            </div>
-            <div
-              className="markdown"
-              dangerouslySetInnerHTML={{
-                __html: renderMarkdown(message.content),
-              }}
-            />
-          </div>
-        );
-      })}
+              </div>
+            );
+          }
+        });
+        flushStack();
+        return renderedMessages;
+      })()}
 
       {streamingBuffer && (
         <div className="msg assistant">
