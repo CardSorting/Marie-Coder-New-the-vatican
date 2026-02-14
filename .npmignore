@@ -1,0 +1,35 @@
+# Source
+src/
+tsconfig.json
+esbuild.mjs
+eslint.config.js
+
+# Tests
+tests/
+dist_tests/
+test_phase4_robustness.ts
+test_phase5_hardening.ts
+
+# VS Code
+.vscode/
+.vscodeignore
+.vscode-test/
+vscode-shim/
+vscode-shim.js
+marie-0.1.0.vsix
+
+# Local/Temp
+.marie/
+.marie-joy-test/
+tmp_test_cli/
+node_modules/
+package-lock.json
+.DS_Store
+
+# Documentation
+docs/
+knowledge_base/
+assets/
+JOY_ZONING.md
+LICENSE.md
+README.md

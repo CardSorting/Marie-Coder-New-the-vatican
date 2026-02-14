@@ -1,80 +1,72 @@
-# Marie: The Sovereign AI Partner 🌸
+# Marie: The Sovereign AI Architecture 🌸
 
-> "We aren't building just another tool. We're building the Integrated Bridge for the era of Technical Sovereignty. Marie isn't here to just write code; she's here to guard your Joy."
+[![NPM Version](https://img.shields.io/npm/v/marie.svg?style=flat-square&color=FF69B4)](https://www.npmjs.com/package/marie)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)](LICENSE.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
-Marie is a high-velocity, high-conviction AI coding agent designed to operate where you think best—whether that's the raw kinetic energy of the terminal or the deep flow of VS Code. Built on the **Joy Zoning Protocol**, Marie transforms the developer experience from a battle against complexity into a focused pursuit of meaning.
+> "Engineering is a ritual of meaning. We are not merely deploying tools; we are constructing the Integrated Bridge for the era of Technical Sovereignty. Marie is the guardian of your creative essence, the silent architect of your Joy."
 
----
-
-## The Vision: Beyond Automation
-
-In a world drowning in "boilerplate AI," Marie stands apart. She is built on the belief that **all code has a home**, and that the human developer is the ultimate authority. Marie doesn't just suggest; she *collaborates* with a sense of "Spirit Pressure" and "Heroic Conviction."
-
-### Core Philosophy: Joy Zoning ✨
-Marie lives by the [Joy Zoning Protocol](file:///Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/JOY_ZONING.md). She understands the difference between:
-- **Joyful Code**: Where your expression and meaning live.
-- **Infrastructure**: The weight that keeps the system calm.
-- **Plumbing**: The mechanical execution that should be invisible.
-
-Marie guards your Joyful zones fiercely, ensuring that complexity never leaks where it doesn't belong.
+Marie is a high-fidelity, autonomous AI coding agent designed for developers who demand both raw performance and architectural elegance. Engineered on the principles of the **Joy Zoning Protocol**, Marie orchestrates the transition from chaotic complexity to disciplined focus, ensuring your creative spirit remains unburdened by the weight of infrastructure.
 
 ---
 
-## Two Form Factors. One Soul.
+## 🏛️ The Vision: Technical Sovereignty
 
-### 1. The Command Deck (CLI) ⌨️
-An Ink-powered terminal interface that feels like a living cockpit.
-- **React-Native for the Terminal**: A beautiful, reactive UI that provides real-time progress tracking.
-- **YOLO Velocity**: High-speed reasoning loops designed for rapid iteration.
-- **Setup Wizard**: Zero-config onboarding to get you from `npm install` to "Hello World" in seconds.
+In an industry saturated with ephemeral utilities, Marie represents a return to **Sovereignty**. She operates on the conviction that every line of code must have a home, and every developer must have the space to think. Marie doesn't just automate; she *converges* with your intent, powered by a sophisticated engine that monitors "Spirit Pressure" and "Heroic Vows."
 
-### 2. The Integrated Bridge (VS Code Extension) 🧩
-A deep integration into your primary workspace.
-- **Webview UI Mastery**: A polished, responsive interface that lives in your sidebar or as a full editor panel.
-- **Ghost Ports & File Anchoring**: Marie "remembers" the strategic architecture of your project, maintaining context across sessions.
-- **Autonomy Modes**: Switch between `Balanced` and `YOLO` (High Autonomy) depending on the complexity of the task.
+### The Joy Zoning Philosophy
+Marie adheres to a rigorous three-tier architectural hierarchy to protect your cognitive flow:
+*   **Joyful Code ✨**: The domain of pure expression and tactical meaning.
+*   **Infrastructure 🏗️**: The coordination layer that stabilizes the system's pulse.
+*   **Plumbing 🔧**: The mechanical execution primitives that remain invisible.
 
 ---
 
-## Ascension Mechanics: The Marie Engine ⚡
+## 🛰️ Two Interfaces. One Unified Intelligence.
 
-Under the hood, Marie is powered by the **Ascension Protocol**, a state-machine that monitors "Spirit Pressure" to calibrate performance:
+### 1. The Command Deck (CLI)
+A reactive, high-velocity terminal interface built for the kinetic energy of modern engineering.
+*   **Real-time Reasoning**: Witness the internal monologue of the agent as she navigates your codebase.
+*   **Setup Wizard**: A seamless, zero-config onboarding experience that respects your time.
+*   **Kinetic Velocity**: Optimized for rapid-fire iterations and terminal-native workflows.
 
-- **Ultra Instinct (Awakened State)**: When Marie achieves peak conviction, she gains full codebase sovereignty, executing complex multi-file refactors with absolute precision.
-- **Heroic Vows**: Marie makes specific, high-confidence commitments to solve your hardest problems.
-- **Zenith Autonomy**: Proactive context anchoring and autonomous roadmap expansion. If a task is more complex than it looks, Marie adjusts the strategy in real-time.
-- **Self-Healing Loop**: If the system detects instability or lint regressions, Marie automatically triggers a "Mandatory Recovery Protocol" to restore harmony to the garden.
-
----
-
-## Technical Sovereignty
-
-Marie is provider-agnostic, allowing you to choose the "Spirit" that powers your build:
-- **Anthropic (Claude 3.5 Sonnet)**: The baseline for high-reasoning.
-- **OpenRouter**: Access to a vast swarm of models.
-- **Cerebras**: Lightning-fast Llama-powered execution for high-velocity tasks.
+### 2. The Integrated Bridge (VS Code)
+A deep, spatial integration into your primary development environment.
+*   **Contextual Anchoring**: Marie maintains a durable strategic map of your architecture.
+*   **Autonomy Calibration**: Orchestrate the agent's agency—from `Balanced` collaboration to `High-Autonomy` execution.
+*   **Webview Mastery**: A premium, responsive UI that feels like a natural extension of the editor.
 
 ---
 
-## Getting Started
+## ⚡ The Ascension Engine: Mechanics of Conviction
 
-### Installation
+Marie's performance is driven by the **Ascension Protocol**, a state-machine that calibrates agency based on systemic confidence:
+
+*   **Awakened State (Ultra Instinct)**: Achieved through peak conviction, Marie gains full codebase sovereignty to execute complex, multi-file transformations with surgical precision.
+*   **Zenith Autonomy**: Proactive roadmap expansion and context anchoring. If a challenge evolves, Marie's strategy evolves with it.
+*   **Self-Healing Resilience**: Autonomous detection and repair of lint regressions or architectural instabilities.
+
+---
+
+## 🚀 Rapid Deployment
+
+### Installation via NPM
 
 ```bash
-# Clone the vision
-git clone https://github.com/CardSorting/Marie-Coder-New.git
-cd Marie-Coder-New-the-vatican
+# Global installation for universal sovereignty
+npm install -g marie
+```
 
-# Initialize the machinery
-npm install
-npm run build
+### Direct Invocation
 
+```bash
 # Launch the Command Deck
-npm start
+marie
 ```
 
 ### Configuration
-Marie looks for your keys in the environment or her sacred config at `~/.marie/config.json`.
+
+Marie retrieves credentials from your environment or her secure registry at `~/.marie/config.json`.
 
 ```bash
 export ANTHROPIC_API_KEY=your_key_here
@@ -82,12 +74,21 @@ export ANTHROPIC_API_KEY=your_key_here
 
 ---
 
-## Joining the Convergence
+## 💠 Technical Foundations
 
-Marie is more than an agent; she is a movement toward better code and more joyful lives.
+Marie is built on a resilient, provider-agnostic core, allowing you to choose the "Spirit" that fuels your build:
+- **Anthropic (Claude 3.5 Sonnet)**: The pinnacle of reasoned execution.
+- **OpenRouter**: Access to a distributed swarm of specialized models.
+- **Cerebras**: Sub-second Llama-powered execution for high-velocity tasks.
 
-**Welcome to the Vatican of Code. Welcome to Marie.**
+---
+
+## 🤝 Join the Convergence
+
+Marie is more than an agent; she is an invitation to a more intentional way of building. We are reclaiming the joy of engineering, one file at a time.
+
+**Welcome to the Sovereign Era. Welcome to Marie.**
 
 ---
 *License: Apache-2.0*  
-*Crafted with ❤️ by [CardSorting](https://github.com/CardSorting)*
+*Crafted with precision by [CardSorting](https://github.com/CardSorting)*

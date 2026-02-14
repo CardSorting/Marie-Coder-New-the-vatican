@@ -2,12 +2,24 @@
   "name": "marie",
   "displayName": "Marie",
   "version": "0.1.0",
-  "description": "Marie - AI coding agent for VS Code and CLI",
+  "description": "Marie: A high-fidelity, autonomous AI coding architecture designed for Technical Sovereignty.",
   "publisher": "cardsorting",
+  "author": "CardSorting <https://github.com/CardSorting>",
+  "homepage": "https://github.com/CardSorting/Marie-Coder-New-the-vatican",
+  "bugs": {
+    "url": "https://github.com/CardSorting/Marie-Coder-New-the-vatican/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/CardSorting/Marie-Coder-New.git"
+    "url": "git+https://github.com/CardSorting/Marie-Coder-New-the-vatican.git"
   },
+  "files": [
+    "dist/cli-new",
+    "dist/monolith",
+    "README.md",
+    "LICENSE.md",
+    "JOY_ZONING.md"
+  ],
   "main": "dist/extension.cjs",
   "engines": {
     "vscode": "^1.105.0",
@@ -16,10 +28,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:marie.start",
-    "onView:marieView"
-  ],
+  "activationEvents": [],
   "contributes": {
     "configuration": {
       "title": "Marie",
@@ -76,7 +85,8 @@
         {
           "id": "marieView",
           "name": "Marie",
-          "type": "webview"
+          "type": "webview",
+          "icon": "assets/icon.png"
         }
       ]
     }
@@ -108,7 +118,6 @@
     "coding",
     "agent"
   ],
-  "author": "",
   "license": "Apache-2.0",
   "type": "module",
   "dependencies": {
