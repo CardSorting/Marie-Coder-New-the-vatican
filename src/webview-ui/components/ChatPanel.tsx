@@ -127,7 +127,7 @@ export function ChatPanel({
                   {stack.length > 1 && <span className="stack-count">+{stack.length - 1} more</span>}
                 </summary>
                 <div className="activity-stack-body">
-                  {stack.map((m, i) => (
+                  {stack.map((m) => (
                     <div key={m.id} className="stacked-item">
                       <div className="stacked-meta">{formatTime(m.timestamp)}</div>
                       <div
@@ -145,48 +145,72 @@ export function ChatPanel({
           currentStack = [];
         };
 
-        messages.forEach((message, index) => {
-          if (message.role === "system") {
-            currentStack.push(message);
+        // Combine permanent messages with active buffers for holistic grouping
+        const allItems: (UiMessage | { role: "assistant", type: "buffer", content: string, tool?: string })[] = [...messages];
+        if (toolStreamingBuffer) {
+          allItems.push({ role: "assistant", type: "buffer", content: toolStreamingBuffer, tool: activeToolName });
+        } else if (streamingBuffer) {
+          allItems.push({ role: "assistant", type: "buffer", content: streamingBuffer });
+        }
+
+        allItems.forEach((item, index) => {
+          if ('role' in item && item.role === "system" && !('type' in item)) {
+            currentStack.push(item as UiMessage);
           } else {
             flushStack();
-            const prevMessage = index > 0 ? messages[index - 1] : null;
+            const prevItem = index > 0 ? allItems[index - 1] : null;
             const isGrouped =
-              prevMessage &&
-              prevMessage.role === message.role &&
-              message.timestamp - prevMessage.timestamp < 60000;
+              prevItem &&
+              prevItem.role === item.role &&
+              (!('timestamp' in item) || !('timestamp' in prevItem) || (item.timestamp - prevItem.timestamp < 60000));
 
             const isLastInGroup =
-              index === messages.length - 1 ||
-              messages[index + 1].role !== message.role ||
-              messages[index + 1].timestamp - message.timestamp >= 60000;
+              index === allItems.length - 1 ||
+              allItems[index + 1].role !== item.role;
 
-            const roleLabel = message.role === "user" ? "You" : "Marie";
+            const isBuffer = 'type' in item && item.type === "buffer";
+            const roleLabel = item.role === "user" ? "You" : "Marie";
+
             renderedMessages.push(
               <div
-                className={`msg ${message.role} ${isGrouped ? "is-grouped" : ""} ${isLastInGroup ? "is-last" : ""}`}
-                key={message.id}
+                className={`msg ${item.role} ${isGrouped ? "is-grouped" : ""} ${isLastInGroup ? "is-last" : ""} ${isBuffer ? "is-streaming" : ""}`}
+                key={'id' in item ? item.id : `buffer-${index}`}
                 style={{ "--stagger": index % 10 } as any}
               >
                 {!isGrouped && (
-                  <div className="msg-meta">
-                    <span className="msg-role">
-                      {message.role === "user" ? (
-                        <UserIcon size={14} style={{ marginRight: "4px" }} />
+                  <div className="msg-meta sentinel">
+                    <span className="sentinel-icon">
+                      {item.role === "user" ? (
+                        <UserIcon size={18} />
                       ) : (
-                        <MascotIcon size={14} style={{ marginRight: "4px" }} />
+                        <MascotIcon size={18} className={isBuffer ? "breathing" : ""} />
                       )}
-                      {roleLabel}
                     </span>
-                    <span className="msg-time">{formatTime(message.timestamp)}</span>
+                    <span className="msg-time">{isBuffer ? "Processing..." : 'timestamp' in item ? formatTime(item.timestamp) : ""}</span>
                   </div>
                 )}
-                <div
-                  className="markdown"
-                  dangerouslySetInnerHTML={{
-                    __html: renderMarkdown(message.content),
-                  }}
-                />
+
+                {isBuffer && 'tool' in item ? (
+                  <div className="tool-input-wrapper">
+                    <div className="tool-header">
+                      <ToolIcon size={14} style={{ marginRight: "6px" }} />
+                      {item.tool || "Executing Tool"}
+                    </div>
+                    <pre
+                      className="tool-stream"
+                      dangerouslySetInnerHTML={{
+                        __html: highlightToolInput(item.content),
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="markdown"
+                    dangerouslySetInnerHTML={{
+                      __html: renderMarkdown(item.content),
+                    }}
+                  />
+                )}
               </div>
             );
           }
@@ -195,48 +219,8 @@ export function ChatPanel({
         return renderedMessages;
       })()}
 
-      {streamingBuffer && (
-        <div className="msg assistant">
-          <div className="msg-meta">
-            <span className="msg-role">
-              <MascotIcon size={14} style={{ marginRight: "4px" }} />
-              Marie
-            </span>
-            <span className="msg-time">Typing…</span>
-          </div>
-          <div
-            className="markdown"
-            dangerouslySetInnerHTML={{
-              __html: renderMarkdown(streamingBuffer),
-            }}
-          />
-        </div>
-      )}
-
-      {toolStreamingBuffer && (
-        <div className="msg assistant tool-input">
-          <div className="msg-meta">
-            <span className="msg-role">
-              <ToolIcon size={14} style={{ marginRight: "4px" }} />
-              {activeToolName || "Tool"}
-            </span>
-            <span className="msg-time">Receiving input…</span>
-          </div>
-          <details className="tool-stream-panel" open>
-            <summary>Tool input stream</summary>
-            <pre
-              className="tool-stream"
-              aria-live="polite"
-              dangerouslySetInnerHTML={{
-                __html: highlightToolInput(toolStreamingBuffer),
-              }}
-            />
-          </details>
-        </div>
-      )}
-
       {pendingApproval && (
-        <div className="msg assistant tool-request">
+        <div className="msg assistant tool-request is-last">
           <div className="tool-card">
             <div className="tool-header">Tool Permission Required</div>
             <div>
