@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { marked } from "marked";
 import type { UiMessage, ApprovalRequest } from "../types.js";
 import { MascotIcon, UserIcon, ToolIcon, LoadingDots } from "./Icons.js";
+import { ThinkingTimer } from "./ThinkingTimer.js";
 
 function renderMarkdown(content: string): string {
   const escaped = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -211,7 +212,8 @@ export function ChatPanel({
       {isLoading && !streamingBuffer && !toolStreamingBuffer && (
         <div className="activity-inline">
           <LoadingDots size={24} />
-          <span>Running tools…</span>
+          <span>Marie is thinking…</span>
+          <ThinkingTimer />
         </div>
       )}
     </section>
