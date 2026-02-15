@@ -77,7 +77,7 @@ export class MarieGhostService {
     const timeout = setTimeout(() => {
       activeEditor.setDecorations(this.thoughtDecoration, []);
       this.thoughtTimeouts.delete(timeoutKey);
-    }, 4000);
+    }, 2000);
 
     this.thoughtTimeouts.set(timeoutKey, timeout);
   }
@@ -103,7 +103,7 @@ export class MarieGhostService {
 
     // Schedule flush if not already pending
     if (!this.updateTimer) {
-      this.updateTimer = setTimeout(() => this.flushUpdates(), 50);
+      this.updateTimer = setTimeout(() => this.flushUpdates(), 20);
     }
   }
 
