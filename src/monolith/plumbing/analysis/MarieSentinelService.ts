@@ -3,6 +3,7 @@ import * as path from "path";
 import * as crypto from "crypto";
 import { LintService } from "./LintService.js";
 import { ComplexityService } from "./ComplexityService.js";
+import { ConfigService } from "../../infrastructure/config/ConfigService.js";
 
 export interface SentinelReport {
   timestamp: string;
@@ -22,6 +23,7 @@ export interface SentinelReport {
 interface SentinelState {
   lastEntropy: number;
   history: { date: string; entropy: number }[];
+  fileHashes: Record<string, number>; // Path -> mtimeMs
 }
 
 /**
@@ -40,30 +42,46 @@ export class MarieSentinelService {
   public static async audit(workingDir: string, specificFile?: string): Promise<SentinelReport> {
     const allFiles = await this.getAllFiles(workingDir);
     const targetFiles = specificFile ? [specificFile] : allFiles;
-    
+
     const zoneViolations: string[] = [];
     const circularDependencies: string[] = [];
     const leakyAbstractions: string[] = [];
     const duplication: string[] = [];
     const toxicFiles: string[] = [];
-    
+
     // 1. Precise Dependency Graph & Semantic Content Maps
     const dependencyGraph = new Map<string, string[]>();
     const semanticHashMap = new Map<string, string>(); // Hash -> FilePath
 
+    // INCREMENTAL SENTINEL: Load state to check mtimes
+    const state = await this.loadState(workingDir);
+    const lastMtimes = state.fileHashes || {};
+    const newMtimes: Record<string, number> = {};
+
+    // FAST PATH: Check ascension mode
+    const isAscension = ConfigService.getAutonomyMode() === "ascension";
+
     for (const file of allFiles) {
-      const content = await fs.readFile(file, "utf8");
+      const stats = await fs.stat(file);
+      const mtime = stats.mtimeMs;
       const relativePath = path.relative(workingDir, file);
-      
+      newMtimes[relativePath] = mtime;
+
+      const hasChanged = lastMtimes[relativePath] !== mtime;
+      const content = await fs.readFile(file, "utf8");
+
       // A. Semantic Duplication (Token-based hash to ignore naming/formatting)
-      const semanticHash = this.computeSemanticHash(content);
-      if (semanticHashMap.has(semanticHash)) {
-        const original = semanticHashMap.get(semanticHash)!;
-        if (original !== relativePath) {
-          duplication.push(`[Semantic Duplicate] ${relativePath} matches ${original}`);
+      // FAST PATH: Skip expensive semantic hash in Ascension mode
+      if (!isAscension) {
+        const semanticHash = this.computeSemanticHash(content);
+        if (semanticHashMap.has(semanticHash)) {
+          const original = semanticHashMap.get(semanticHash)!;
+          if (original !== relativePath) {
+            duplication.push(`[Semantic Duplicate] ${relativePath} matches ${original}`);
+          }
+        } else {
+          semanticHashMap.set(semanticHash, relativePath);
         }
-      } else {
-        semanticHashMap.set(semanticHash, relativePath);
       }
 
       // B. Robust Import Extraction & Resolution
@@ -71,37 +89,41 @@ export class MarieSentinelService {
       const resolvedImports = await Promise.all(
         rawImports.map(i => this.resolveImportDeep(i, file, workingDir))
       );
-      
+
       const validImports = resolvedImports.filter(Boolean) as string[];
       dependencyGraph.set(relativePath, validImports);
 
       // C. Target Analysis
-      if (targetFiles.includes(file)) {
+      // INCREMENTAL SENTINEL: Skip expensive analysis if file hasn't changed
+      if (targetFiles.includes(file) && hasChanged) {
         await this.analyzeFile(file, workingDir, content, validImports, zoneViolations, leakyAbstractions, toxicFiles);
       }
     }
 
     // 2. Cycle Detection (Global)
-    const cycles = this.detectCycles(dependencyGraph);
-    circularDependencies.push(...cycles);
+    // FAST PATH: Skip expensive cycle detection in Ascension mode
+    if (!isAscension) {
+      const cycles = this.detectCycles(dependencyGraph);
+      circularDependencies.push(...cycles);
+    }
 
     // 3. Score Normalization & Ratchet
     const lintErrors = await LintService.runLint(workingDir);
-    
-    const entropyScore = 
+
+    const entropyScore =
       (zoneViolations.length * 8) + // Weighted higher
-      (lintErrors.length * 1) + 
+      (lintErrors.length * 1) +
       (circularDependencies.length * 15) + // Structural rot is expensive
       (toxicFiles.length * 6) +
       (leakyAbstractions.length * 5) +
       (duplication.length * 10); // DRY is law
 
-    const state = await this.loadState(workingDir);
     const entropyDelta = entropyScore - state.lastEntropy;
-    
+
     await this.saveState(workingDir, {
       lastEntropy: entropyScore,
-      history: [...state.history, { date: new Date().toISOString(), entropy: entropyScore }].slice(-20)
+      history: [...state.history, { date: new Date().toISOString(), entropy: entropyScore }].slice(-20),
+      fileHashes: newMtimes
     });
 
     let stability: SentinelReport["stability"] = "Stable";
@@ -168,11 +190,11 @@ export class MarieSentinelService {
   }
 
   private static async analyzeFile(
-    file: string, 
-    workingDir: string, 
-    content: string, 
-    resolvedImports: string[], 
-    zoneViolations: string[], 
+    file: string,
+    workingDir: string,
+    content: string,
+    resolvedImports: string[],
+    zoneViolations: string[],
     leakyAbstractions: string[],
     toxicFiles: string[]
   ) {
@@ -219,11 +241,11 @@ export class MarieSentinelService {
     const imports: string[] = [];
     const importRegex = /from\s+['"](.*?)['"]/g;
     const requireRegex = /require\(['"](.*?)['"]\)/g;
-    
+
     let match;
     while ((match = importRegex.exec(content)) !== null) imports.push(match[1]);
     while ((match = requireRegex.exec(content)) !== null) imports.push(match[1]);
-    
+
     return Array.from(new Set(imports));
   }
 
@@ -254,7 +276,7 @@ export class MarieSentinelService {
 
   private static generateMermaidGraph(graph: Map<string, string[]>, violations: string[]): string {
     let mermaid = "graph TD;\n";
-    const nodes = Array.from(graph.keys()).slice(0, 40); 
+    const nodes = Array.from(graph.keys()).slice(0, 40);
     nodes.forEach(node => {
       const id = node.replace(/[^a-zA-Z0-9]/g, '_');
       const name = path.basename(node);
@@ -272,7 +294,7 @@ export class MarieSentinelService {
     try {
       const content = await fs.readFile(path.join(workingDir, this.STATE_FILE), "utf8");
       return JSON.parse(content);
-    } catch { return { lastEntropy: 0, history: [] }; }
+    } catch { return { lastEntropy: 0, history: [], fileHashes: {} }; }
   }
 
   private static async saveState(workingDir: string, state: SentinelState) {

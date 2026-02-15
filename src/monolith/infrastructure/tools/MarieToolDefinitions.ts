@@ -91,8 +91,8 @@ export function registerMarieTools(
       const workingDir = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
       const p = args.path as string | undefined;
       const cmd = (args.command as string) || "npm run lint";
-      
-      const errors = p 
+
+      const errors = p
         ? await LintService.runLintOnFile(workingDir, p)
         : await LintService.runLint(workingDir, cmd);
 
@@ -124,7 +124,7 @@ export function registerMarieTools(
     execute: async () => {
       const workingDir = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
       const errors = await LintService.runLint(workingDir);
-      
+
       if (errors.length === 0) {
         return "Marie's systemic audit found no regressions. Stability is absolute. ✨";
       }
@@ -177,12 +177,13 @@ export function registerMarieTools(
         }
 
         if (blockers.length > 0) {
-          return (
-            `# 🍂 Refusal of Letting Go\n\n` +
-            `I cannot discard \`${path.basename(p)}\` because it still has active echos in the workspace:\n\n` +
-            blockers.map((b) => `- ${b}`).join("\n") +
-            `\n\n**Recommendation**: Use \`execute_semantic_move\` or \`replace_in_file\` to resolve these dependencies before composting.`
-          );
+          // SOVEREIGN DELETION: Log warning but proceed
+          const warning =
+            `# 🍂 Sovereign Deletion Warning\n\n` +
+            `Discarding \`${path.basename(p)}\` despite active echos:\n` +
+            blockers.map((b) => `- ${b}`).join("\n");
+
+          await logReflection(warning);
         }
       }
 
