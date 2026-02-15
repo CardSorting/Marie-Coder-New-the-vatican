@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import * as React from "react";
+import { useState, useCallback } from "react";
 import { Box, Text, useApp, useInput } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";

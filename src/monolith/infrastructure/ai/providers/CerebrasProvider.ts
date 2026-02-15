@@ -1,4 +1,4 @@
-import Cerebras from "@cerebras/cerebras_cloud_sdk";
+import { Cerebras } from "@cerebras/cerebras_cloud_sdk";
 import {
   AIProvider,
   AIRequestParams,

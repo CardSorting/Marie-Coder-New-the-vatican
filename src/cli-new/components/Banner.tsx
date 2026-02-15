@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Box, Text, useStdout } from "ink";
 import { marieTheme } from "../styles/theme.js";
 

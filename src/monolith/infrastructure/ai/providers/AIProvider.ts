@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { Anthropic } from "@anthropic-ai/sdk";
 
 export interface JsonObjectSchema {
   type: "object";
@@ -52,21 +52,21 @@ export type AIStreamEvent =
   | { type: "content_delta"; text: string }
   | { type: "reasoning_delta"; text: string }
   | {
-      type: "tool_call_delta";
-      index: number;
-      id?: string;
-      name?: string;
-      argumentsDelta?: string;
-    }
+    type: "tool_call_delta";
+    index: number;
+    id?: string;
+    name?: string;
+    argumentsDelta?: string;
+  }
   | {
-      type: "usage";
-      usage: {
-        inputTokens?: number;
-        outputTokens?: number;
-        totalTokens?: number;
-        reasoningTokens?: number;
-      };
-    }
+    type: "usage";
+    usage: {
+      inputTokens?: number;
+      outputTokens?: number;
+      totalTokens?: number;
+      reasoningTokens?: number;
+    };
+  }
   | { type: "run_started"; timestamp: number }
   | { type: "run_completed"; timestamp: number; durationMs: number }
   | { type: "stage_change"; stage: string; label?: string };

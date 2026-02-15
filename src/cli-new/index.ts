@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import React, { useState } from "react";
+import * as React from "react";
+import { useState } from "react";
 import { render } from "ink";
 import { App } from "./components/App.js";
 import { SetupWizard } from "./components/SetupWizard.js";

@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Box, Text } from "ink";
 import { marieTheme } from "../styles/theme.js";
 import { GitStatus } from "../types/cli.js";

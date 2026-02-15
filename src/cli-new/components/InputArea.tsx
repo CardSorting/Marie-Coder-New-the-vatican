@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import * as React from "react";
+import { useState, useCallback } from "react";
 import { Box, Text, useInput, useApp } from "ink";
 import TextInput from "ink-text-input";
 import { marieTheme } from "../styles/theme.js";

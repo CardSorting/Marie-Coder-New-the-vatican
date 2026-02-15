@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import * as React from "react";
+import { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import { marieTheme, getToolIcon, formatDuration } from "../styles/theme.js";
 import { ToolCall } from "../types/cli.js";

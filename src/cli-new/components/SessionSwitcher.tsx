@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import * as React from "react";
+import { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import SelectInput from "ink-select-input";
 import { marieTheme } from "../styles/theme.js";

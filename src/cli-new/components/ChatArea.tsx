@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import * as React from "react";
+import { useState, useEffect } from "react";
 import { Box, useStdout } from "ink";
 import { MessageBubble } from "./MessageBubble.js";
 import { Message, StreamingState } from "../types/cli.js";
