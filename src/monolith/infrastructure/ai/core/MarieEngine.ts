@@ -119,7 +119,7 @@ export class MarieEngine {
       }
     }
 
-    let resolveTurn: () => void = () => {};
+    let resolveTurn: () => void = () => { };
     MarieEngine.activeTurn = new Promise<void>((resolve) => {
       resolveTurn = resolve;
     });
@@ -156,10 +156,11 @@ export class MarieEngine {
     const pulse = this.ensurePulseService(tracker);
 
     if (depth > 20) {
-      // Bumped depth for YOLO velocity
-      throw new Error(
-        "Extreme Stability Alert: Maximum chatLoop depth reached. Possible infinite reasoning loop detected.",
-      );
+      // Graceful Stability Limit Reached
+      const msg = "⚠️ Stability Alert: Maximum reasoning depth (20) reached. Returning current accumulation to prevent infinite loop.";
+      console.warn(msg);
+      // Return currently accumulated content so the user sees *something*
+      return accumulatedContent + "\n\n" + msg;
     }
 
     tracker.resetReasoningBudget();
@@ -202,7 +203,7 @@ export class MarieEngine {
     // Decay spirit pressure if stale
     if (
       Date.now() -
-        (this.state.techniqueExecutions.slice(-1)[0]?.timestamp || 0) >
+      (this.state.techniqueExecutions.slice(-1)[0]?.timestamp || 0) >
       300000
     ) {
       this.state.spiritPressure = Math.max(30, this.state.spiritPressure - 10);
@@ -246,7 +247,26 @@ export class MarieEngine {
 
     const executeTool = async (toolCall: any) => {
       const tool = this.toolRegistry.getTool(toolCall.name);
+
       if (!tool) {
+        const repairResult = await this.toolMender.performFuzzyRepair(
+          toolCall,
+          "Tool not found",
+          tracker,
+          processor,
+          this.state,
+          signal,
+        );
+
+        if (repairResult) {
+          this.toolCallCounter++;
+          return {
+            type: "tool_result",
+            tool_use_id: toolCall.id,
+            content: repairResult,
+          };
+        }
+
         this.updateShakyResponse();
         return {
           type: "tool_result",
@@ -439,77 +459,26 @@ export class MarieEngine {
     if (totalToolCount > 0) {
       messages.push({ role: "user", content: toolResultBlocks });
 
-      // ASCENSION EVALUATION: Determine next trajectory
+      // ASCENSION EVALUATION: Local decree (NO API CALL)
       const decree = await this.ascendant.evaluate(messages, this.state);
       this.state.lastDecree = decree;
 
+      // Visual feedback only — no state mutations from decree
       tracker.emitEvent({
         type: "reasoning",
         runId: tracker.getRun().runId,
-        text: `⚡ Protocol Decree: ${decree.strategy} @ ${decree.confidence.toFixed(2)} — ${decree.reason}`,
+        text: `⚡ Decree: ${decree.strategy} @ ${decree.confidence.toFixed(2)} — ${decree.reason}`,
         elapsedMs: tracker.elapsedMs(),
       });
-
-      // ZENITH AUTONOMY: Autonomous Strategic Calibration
-      this.calibrateStrategicTrajectory(decree, tracker);
-
-      if (decree.strategy === "PANIC") {
-        this.state.panicCoolDown = 3;
-        messages.push({
-          role: "user",
-          content:
-            "🚨 SYSTEM PANIC: Instability detected. Re-evaluating ascension trajectory.",
-        });
-      }
-
-      if (decree.strategy === "LIMIT_BREAK") {
-        tracker.emitEvent({
-          type: "reasoning",
-          runId: tracker.getRun().runId,
-          text: "⚡ LIMIT BREAK! Bypassing recursive safety seals for peak momentum.",
-          elapsedMs: tracker.elapsedMs(),
-        });
-        // Temporarily allow deeper recursion for this specific branch
-        saveHistory(tracker.getRun()).catch((e) =>
-          console.error("History Save Error:", e),
-        );
-        return await this._executeChatLoop(
-          messages,
-          tracker,
-          saveHistory,
-          signal,
-          turnFailureCount > 0 ? consecutiveErrorCount + 1 : 0,
-          depth,
-          currentAccumulatedContent,
-        );
-      }
 
       if (decree.heroicVow) {
         tracker.emitEvent({
           type: "reasoning",
           runId: tracker.getRun().runId,
-          text: `🗡️ HEROIC VOW: "${decree.heroicVow}". Spirit Pressure surging!`,
+          text: `🗡️ VOW: "${decree.heroicVow}"`,
           elapsedMs: tracker.elapsedMs(),
         });
-        this.state.spiritPressure = Math.min(
-          100,
-          this.state.spiritPressure + 20,
-        );
       }
-
-      if (decree.sacrificeTriggered) {
-        tracker.emitEvent({
-          type: "reasoning",
-          runId: tracker.getRun().runId,
-          text: "🕯️ HEROIC SACRIFICE! Resetting soul for a final, absolute strike.",
-          elapsedMs: tracker.elapsedMs(),
-        });
-        this.state.spiritPressure = 50;
-        decree.confidence = 3.0;
-      }
-
-      // Check if we should suggest self-healing
-      this.suggestSelfHealing(tracker, messages);
 
       saveHistory(tracker.getRun()).catch((e) =>
         console.error("History Save Error:", e),
@@ -626,21 +595,9 @@ export class MarieEngine {
     ];
     if (safeTools.includes(toolName)) return true;
 
-    const pressure = this.state.spiritPressure;
-    const streak = this.state.victoryStreak;
-
-    // Founder's Mandate: High pressure and good streak allows auto-approval of writes
-    if (pressure > 70 && streak > 5) return true;
-
-    // UNIVERSAL SOVEREIGNTY: Awakened + streak > 10 allows all tool operations
-    if (this.state.isAwakened && streak > 10) return true;
-
-    // SPIRIT BURST MANDATE: Absolute conviction auto-approves all non-destructive content modifications
-    if (this.state.isSpiritBurstActive && streak > 3) {
-      const destructiveTools = ["delete_file", "run_command"];
-      if (!destructiveTools.includes(toolName)) return true;
-    }
-
+    // SPIRIT PRESSURE & KARMA NEUTERED:
+    // We no longer auto-approve based on pressure/streak to prevent "crashes" or unintended loops.
+    // The visual feedback remains, but the functional override is disabled.
     return false;
   }
 
@@ -677,6 +634,10 @@ export class MarieEngine {
   }
 
   private suggestSelfHealing(tracker: MarieProgressTracker, messages: any[]) {
+    // SPIRIT PRESSURE & KARMA NEUTERED:
+    // We calculate the values for UI visuals but DO NOT inject mandatory recovery protocols.
+    // This prevents the "crash" loop the user described.
+
     const pressure = this.state.spiritPressure;
     const hotspots = Object.entries(this.state.errorHotspots).filter(
       ([_, count]) => count >= 2,
@@ -689,25 +650,8 @@ export class MarieEngine {
           ? "Low spirit pressure (instability detected)"
           : `Repeated failures in: ${hotspotFiles}`;
 
-      tracker.emitEvent({
-        type: "reasoning",
-        runId: tracker.getRun().runId,
-        text: `🧬 HIGH-CONVICTION RECOVERY: ${reason}. Marie mandates a systemic audit.`,
-        elapsedMs: tracker.elapsedMs(),
-      });
-
-      // Inject a mandatory ritual instruction that overrides normal strategy
-      messages.push({
-        role: "user",
-        content: `🚨 **MANDATORY RECOVERY PROTOCOL**: Codebase stability has dropped below safety thresholds. 
-Reason: ${reason}
-
-You MUST now execute one of the following recovery tools before continuing your task:
-1. \`self_heal\`: Perform an autonomous systemic audit and auto-repair.
-2. \`resolve_lint_errors\`: Triage and fix persistent lint/build regressions.
-
-Do not attempt to continue the previous objective until the garden has been restored to harmony.`,
-      });
+      // Log only - do not force the user/agent into a recovery loop
+      console.log(`[MarieEngine] Suggestion: ${reason}. (Auto-recovery disabled for stability)`);
     }
   }
 
