@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { ConfigService } from "../../infrastructure/config/ConfigService.js";
 import { resolvePath } from "./PathResolver.js";
 import { DecorationService } from "../ui/DecorationService.js";
@@ -294,7 +295,7 @@ export async function searchFiles(
       if (signal?.aborted) return;
       if (results.length >= MAX_SEARCH_MATCHES) return;
 
-      const fullUri = vscode.Uri.joinPath(dirUri, name);
+      const fullUri = vscode.Uri.file(path.join(dirUri.fsPath, name));
 
       if (type === vscode.FileType.Directory) {
         if (excludedDirs.has(name)) continue;
@@ -425,7 +426,7 @@ export async function listFiles(
     const entries = await vscode.workspace.fs.readDirectory(uri);
     const results = await Promise.all(
       entries.map(async ([name, type]) => {
-        const fullUri = vscode.Uri.joinPath(uri, name);
+        const fullUri = vscode.Uri.file(path.join(uri.fsPath, name));
         let size = 0;
         if (type === vscode.FileType.File) {
           try {
