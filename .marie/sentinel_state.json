@@ -1,9 +1,29 @@
 {
-  "lastEntropy": 862,
+  "lastEntropy": 962,
   "history": [
     {
       "date": "2026-02-16T06:14:39.879Z",
       "entropy": 862
+    },
+    {
+      "date": "2026-02-16T06:27:25.543Z",
+      "entropy": 876
+    },
+    {
+      "date": "2026-02-16T06:54:03.282Z",
+      "entropy": 946
+    },
+    {
+      "date": "2026-02-16T07:06:41.936Z",
+      "entropy": 959
+    },
+    {
+      "date": "2026-02-16T07:08:22.266Z",
+      "entropy": 959
+    },
+    {
+      "date": "2026-02-16T07:09:07.134Z",
+      "entropy": 962
     }
   ],
   "fileHashes": {
@@ -38,21 +58,21 @@
     "src/domain/DomainEntity.ts": 1771014446139.935,
     "src/extension.ts": 1771028632303.5667,
     "src/infrastructure/BaseAdapter.ts": 1771014446139.9622,
-    "src/monolith/adapters/CliMarieAdapter.ts": 1771014446139.9712,
+    "src/monolith/adapters/CliMarieAdapter.ts": 1771224643657.5483,
     "src/monolith/adapters/VscodeMarieAdapter.ts": 1771221383958.9404,
-    "src/monolith/cli/CliFileSystemPort.ts": 1771222292674.5613,
-    "src/monolith/cli/MarieToolDefinitionsCLI.ts": 1771017304584.01,
-    "src/monolith/cli/index.ts": 1771221886512.5066,
-    "src/monolith/cli/services/JoyAutomationServiceCLI.ts": 1771014446140.1216,
+    "src/monolith/cli/CliFileSystemPort.ts": 1771225246812.4443,
+    "src/monolith/cli/MarieToolDefinitionsCLI.ts": 1771225175770.9956,
+    "src/monolith/cli/index.ts": 1771223205375.529,
+    "src/monolith/cli/services/JoyAutomationServiceCLI.ts": 1771224497720.6045,
     "src/monolith/cli/services/JoyServiceCLI.ts": 1771221340781.289,
     "src/monolith/cli/storage.ts": 1771014446140.1208,
     "src/monolith/domain/joy/JoyTools.ts": 1771014446140.1392,
     "src/monolith/domain/joy/RitualService.ts": 1771014446140.1125,
-    "src/monolith/domain/marie/MarieTypes.ts": 1771222310964.2644,
+    "src/monolith/domain/marie/MarieTypes.ts": 1771223187735.561,
     "src/monolith/infrastructure/ai/agents/MarieAscendant.ts": 1771198716481.223,
     "src/monolith/infrastructure/ai/context/ContextArchiveService.ts": 1771014446140.1611,
     "src/monolith/infrastructure/ai/context/ContextManager.ts": 1771014446140.1746,
-    "src/monolith/infrastructure/ai/core/FileSystemPort.ts": 1771222272479.5933,
+    "src/monolith/infrastructure/ai/core/FileSystemPort.ts": 1771223095618.0156,
     "src/monolith/infrastructure/ai/core/GhostPort.ts": 1771014446140.211,
     "src/monolith/infrastructure/ai/core/MarieAscensionTypes.ts": 1771017351279.5393,
     "src/monolith/infrastructure/ai/core/MarieEngine.ts": 1771221839242.181,
@@ -65,10 +85,10 @@
     "src/monolith/infrastructure/ai/core/MarieSession.ts": 1771014446140.2698,
     "src/monolith/infrastructure/ai/core/MarieStabilityMonitor.ts": 1771014446140.2688,
     "src/monolith/infrastructure/ai/core/MarieToolMender.ts": 1771014446140.2732,
-    "src/monolith/infrastructure/ai/core/MarieToolProcessor.ts": 1771222312976.68,
+    "src/monolith/infrastructure/ai/core/MarieToolProcessor.ts": 1771224350911.7407,
     "src/monolith/infrastructure/ai/core/ReasoningBudget.ts": 1771014446140.2932,
     "src/monolith/infrastructure/ai/core/SessionLogService.ts": 1771221836016.7107,
-    "src/monolith/infrastructure/ai/core/VscodeFileSystemPort.ts": 1771222290665.619,
+    "src/monolith/infrastructure/ai/core/VscodeFileSystemPort.ts": 1771223151199.147,
     "src/monolith/infrastructure/ai/providers/AIProvider.ts": 1771193190424.087,
     "src/monolith/infrastructure/ai/providers/AnthropicProvider.ts": 1771193045973.4385,
     "src/monolith/infrastructure/ai/providers/CerebrasProvider.ts": 1771193047961.1729,
@@ -76,10 +96,10 @@
     "src/monolith/infrastructure/ai/providers/OpenRouterStreamParser.ts": 1771016529251.04,
     "src/monolith/infrastructure/config/ConfigService.ts": 1771196726196.1511,
     "src/monolith/infrastructure/services/MarieMemoryStore.ts": 1771014446140.3777,
-    "src/monolith/infrastructure/tools/MarieToolDefinitions.ts": 1771196724239.9688,
+    "src/monolith/infrastructure/tools/MarieToolDefinitions.ts": 1771223822148.3933,
     "src/monolith/infrastructure/tools/PureStreamParser.ts": 1771014446140.3833,
-    "src/monolith/infrastructure/tools/SharedToolDefinitions.ts": 1771222321543.6384,
-    "src/monolith/infrastructure/tools/ToolRegistry.ts": 1771014446140.3904,
+    "src/monolith/infrastructure/tools/SharedToolDefinitions.ts": 1771225285887.8904,
+    "src/monolith/infrastructure/tools/ToolRegistry.ts": 1771225355222.82,
     "src/monolith/infrastructure/tools/ToolUtils.ts": 1771014446140.4006,
     "src/monolith/plumbing/analysis/CodeHealthService.ts": 1771014446140.4688,
     "src/monolith/plumbing/analysis/ComplexityService.ts": 1771014446140.4236,
@@ -91,7 +111,7 @@
     "src/monolith/plumbing/analysis/QualityGuardrailService.ts": 1771020210526.1052,
     "src/monolith/plumbing/analysis/SurgicalMender.ts": 1771018314869.7688,
     "src/monolith/plumbing/analysis/TestService.ts": 1771018143746.9634,
-    "src/monolith/plumbing/filesystem/FileService.ts": 1771222280146.028,
+    "src/monolith/plumbing/filesystem/FileService.ts": 1771223651523.0225,
     "src/monolith/plumbing/filesystem/PathResolver.ts": 1771200195980.4736,
     "src/monolith/plumbing/git/GitService.ts": 1771014446140.479,
     "src/monolith/plumbing/lsp/SymbolService.ts": 1771014446140.4792,
@@ -116,8 +136,8 @@
     "src/monolith/services/MarieGhostService.ts": 1771195878775.7769,
     "src/monolith/services/MarieSCMProvider.ts": 1771014446140.6409,
     "src/monolith/tests/FileAppendVerifyTest.ts": 1771221399313.5469,
-    "src/monolith/tests/StreamingVerifyTest.ts": 1771221858629.3977,
-    "src/monolith/tests/StreamingWriteTest.ts": 1771222466433.807,
+    "src/monolith/tests/StreamingVerifyTest.ts": 1771225590521.8477,
+    "src/monolith/tests/VisualProgressTest.ts": 1771225737908.7693,
     "src/plumbing/BaseTool.ts": 1771014446140.6523,
     "src/prompts.ts": 1771020411539.902,
     "src/test_content_buffer_cap.ts": 1771014446140.6792,

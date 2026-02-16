@@ -30,12 +30,16 @@ export class CliFileSystemPort implements FileSystemPort {
     filePath: string,
     content: string,
     signal?: AbortSignal,
-    onProgress?: (bytes: number) => void,
+    onProgress?: (bytes: number, totalBytes?: number) => void,
   ): Promise<void> {
+    if (process.env.MARIE_DEBUG) {
+      console.log(`[CliFS] writeFile called for ${filePath}, onProgress defined: ${!!onProgress}`);
+    }
     const fullPath = this.resolve(filePath);
     try {
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
       const buffer = Buffer.from(content, "utf-8");
+      const totalBytes = buffer.length;
 
       if (onProgress && buffer.length > 16384) {
         const CHUNK_SIZE = 16384;
@@ -47,14 +51,17 @@ export class CliFileSystemPort implements FileSystemPort {
             const chunk = buffer.subarray(written, written + CHUNK_SIZE);
             await handle.write(chunk);
             written += chunk.length;
-            onProgress(written);
+            if (process.env.MARIE_DEBUG) {
+              console.log(`[CliFS] writeFile chunk: ${written}/${totalBytes}`);
+            }
+            onProgress(written, totalBytes);
           }
         } finally {
           await handle.close();
         }
       } else {
         await fs.writeFile(fullPath, buffer);
-        onProgress?.(buffer.length);
+        onProgress?.(buffer.length, totalBytes);
       }
     } catch (error: any) {
       throw new Error(`Failed to write file ${filePath}: ${error.message}`);
@@ -65,14 +72,36 @@ export class CliFileSystemPort implements FileSystemPort {
     filePath: string,
     content: string,
     signal?: AbortSignal,
-    onProgress?: (bytes: number) => void,
+    onProgress?: (bytes: number, totalBytes?: number) => void,
   ): Promise<void> {
     const fullPath = this.resolve(filePath);
     try {
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
       const buffer = Buffer.from(content, "utf-8");
-      await fs.appendFile(fullPath, buffer);
-      onProgress?.(buffer.length);
+      const totalBytes = buffer.length;
+
+      if (onProgress && buffer.length > 16384) {
+        const CHUNK_SIZE = 16384;
+        let written = 0;
+        const handle = await fs.open(fullPath, "a");
+        try {
+          while (written < buffer.length) {
+            if (signal?.aborted) throw new Error("Aborted");
+            const chunk = buffer.subarray(written, written + CHUNK_SIZE);
+            await handle.write(chunk);
+            written += chunk.length;
+            if (process.env.MARIE_DEBUG) {
+              console.log(`[CliFS] appendFile chunk: ${written}/${totalBytes}`);
+            }
+            onProgress(written, totalBytes);
+          }
+        } finally {
+          await handle.close();
+        }
+      } else {
+        await fs.appendFile(fullPath, buffer);
+        onProgress?.(buffer.length, totalBytes);
+      }
     } catch (error: any) {
       throw new Error(`Failed to append to file ${filePath}: ${error.message}`);
     }

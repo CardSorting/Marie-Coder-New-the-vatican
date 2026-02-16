@@ -24,7 +24,7 @@ export class VscodeFileSystemPort implements FileSystemPort {
     path: string,
     content: string,
     signal?: AbortSignal,
-    onProgress?: (bytes: number) => void,
+    onProgress?: (bytes: number, totalBytes?: number) => void,
   ): Promise<void> {
     return writeFile(path, content, signal, undefined, onProgress);
   }

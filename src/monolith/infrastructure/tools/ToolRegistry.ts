@@ -24,12 +24,19 @@ export class ToolRegistry {
   private cachedRegisteredTools: RegisteredTool[] | null = null;
 
   register(tool: ToolDefinition) {
+    if (process.env.MARIE_DEBUG) {
+      console.log(`[ToolRegistry] Registering tool: ${tool.name}`);
+    }
     this.tools.set(tool.name, tool);
     this.cachedRegisteredTools = null; // Invalidate cache
   }
 
   getTool(name: string): ToolDefinition | undefined {
-    return this.tools.get(name);
+    const tool = this.tools.get(name);
+    if (process.env.MARIE_DEBUG) {
+      console.log(`[ToolRegistry] Getting tool: ${name}, found: ${!!tool}`);
+    }
+    return tool;
   }
 
   getTools(): RegisteredTool[] {

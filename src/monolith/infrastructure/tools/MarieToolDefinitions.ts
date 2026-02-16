@@ -46,8 +46,12 @@ export function registerMarieTools(
 ) {
   registerSharedToolDefinitions(registry, {
     resolvePath: (p: string) => p,
-    writeFile: async (p, content, signal) =>
-      await writeFile(p, content, signal),
+    writeFile: async (p, content, signal, onProgress) =>
+      await writeFile(p, content, signal, undefined, onProgress),
+    appendFile: async (p, content, signal, onProgress) => {
+      const mod = await import("../../plumbing/filesystem/FileService.js");
+      return await mod.appendToFile(p, content, signal, onProgress);
+    },
     readFile: async (p, start, end, signal) => {
       const mod = await import("../../plumbing/filesystem/FileService.js");
       return await mod.readFile(p, start, end, signal);

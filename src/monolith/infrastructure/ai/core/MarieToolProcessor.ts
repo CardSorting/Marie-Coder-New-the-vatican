@@ -142,6 +142,20 @@ export class MarieToolProcessor {
         toolCall.input?.targetFile ||
         toolCall.input?.file ||
         toolCall.input?.filePath;
+
+      // UI FEEDBACK: Set active file path for editor visualization
+      if (execFile && typeof execFile === "string") {
+        run.activeFilePath = execFile;
+        this.tracker.emitEvent({
+          type: "stage",
+          runId: run.runId,
+          stage: "editing",
+          label: `Editing ${path.basename(execFile)}...`,
+          elapsedMs: this.tracker.elapsedMs()
+        });
+        this.tracker.emitProgressUpdate();
+      }
+
       if (tool.isDestructive) {
         if (execFile && typeof execFile === "string") {
           impactedFiles.push(execFile);
@@ -166,6 +180,7 @@ export class MarieToolProcessor {
               runId: this.tracker.getRun().runId,
               path: update.path,
               bytesWritten: update.bytesWritten,
+              totalBytes: update.totalBytes,
               elapsedMs: this.tracker.elapsedMs()
             });
           } else {
@@ -222,6 +237,7 @@ export class MarieToolProcessor {
       });
 
       run.activeToolName = undefined;
+      run.activeFilePath = undefined; // Clear active file
       run.lastToolName = toolCall.name;
       this.tracker.emitProgressUpdate();
 

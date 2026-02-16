@@ -1,4 +1,4 @@
-import * as fs from "fs/promises";
+import * as fsPromises from "fs/promises";
 import * as path from "path";
 import { ToolRegistry } from "../infrastructure/tools/ToolRegistry.js";
 import {
@@ -13,6 +13,7 @@ import { cherishFile, generateJoyDashboard } from "../domain/joy/JoyTools.js";
 import { checkCodeHealth } from "../plumbing/analysis/CodeHealthService.js";
 import { JoyAutomationServiceCLI } from "../cli/services/JoyAutomationServiceCLI.js";
 import { LintService } from "../plumbing/analysis/LintService.js";
+import { FileSystemPort } from "../infrastructure/ai/core/FileSystemPort.js";
 
 const execAsync = promisify(exec);
 
@@ -21,7 +22,7 @@ async function readFile(
   startLine?: number,
   endLine?: number,
 ): Promise<string> {
-  const content = await fs.readFile(filePath, "utf-8");
+  const content = await fsPromises.readFile(filePath, "utf-8");
   const lines = content.split("\n");
 
   if (startLine && endLine) {
@@ -34,17 +35,17 @@ async function writeFile(filePath: string, content: string): Promise<void> {
   if (process.env.MARIE_DEBUG) {
     console.log(`[CLI Debug] Writing to file: ${filePath}`);
   }
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, content, "utf-8");
+  await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
+  await fsPromises.writeFile(filePath, content, "utf-8");
 }
 
 async function deleteFile(filePath: string): Promise<void> {
-  await fs.unlink(filePath);
+  await fsPromises.unlink(filePath);
 }
 
 async function listFiles(dirPath: string): Promise<string> {
   try {
-    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    const entries = await fsPromises.readdir(dirPath, { withFileTypes: true });
     const files = entries.map((e) => {
       const icon = e.isDirectory() ? "📁" : "📄";
       return `${icon} ${e.name}${e.isDirectory() ? "/" : ""}`;
@@ -110,7 +111,7 @@ async function getFolderTree(
     if (depth > maxDepth) return "";
 
     try {
-      const entries = await fs.readdir(currentPath, { withFileTypes: true });
+      const entries = await fsPromises.readdir(currentPath, { withFileTypes: true });
       const visible = entries.filter(
         (e) => !e.name.startsWith(".") && !e.name.includes("node_modules"),
       );
@@ -149,13 +150,19 @@ export function registerMarieToolsCLI(
   registry: ToolRegistry,
   _automationService: RuntimeAutomationPort,
   workingDir: string,
+  fsPort: FileSystemPort,
 ) {
+  const automation = _automationService as JoyAutomationServiceCLI;
+
   registerSharedToolDefinitions(
     registry,
     {
       resolvePath: (p: string) =>
         path.isAbsolute(p) ? p : path.join(workingDir, p),
-      writeFile: async (p, content) => await writeFile(p, content),
+      writeFile: async (p, content, signal, onProgress) =>
+        await fsPort.writeFile(p, content, signal, onProgress),
+      appendFile: async (p, content, signal, onProgress) =>
+        await fsPort.appendFile(p, content, signal, onProgress),
       readFile: async (p, start, end) => await readFile(p, start, end),
       listDir: async (p) => await listFiles(p),
       grepSearch: async (q, p) => await searchFiles(q, p),
@@ -173,12 +180,12 @@ export function registerMarieToolsCLI(
         if (process.env.MARIE_DEBUG) {
           console.log(`[CLI Debug] Replacing in file: ${p}`);
         }
-        const content = await fs.readFile(p, "utf-8");
+        const content = await fsPromises.readFile(p, "utf-8");
         if (!content.includes(s)) {
           return `Error: Search text not found in file`;
         }
         const newContent = content.split(s).join(r);
-        await fs.writeFile(p, newContent, "utf-8");
+        await fsPromises.writeFile(p, newContent, "utf-8");
         return `Replaced ${content.split(s).length - 1} occurrence(s) in ${p}`;
       },
     },
@@ -312,8 +319,6 @@ export function registerMarieToolsCLI(
       return `Progress updated in CLI.`;
     },
   });
-
-  const automation = _automationService as JoyAutomationServiceCLI;
 
   registry.register({
     name: "augment_roadmap",

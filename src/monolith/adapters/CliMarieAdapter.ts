@@ -67,21 +67,23 @@ export class MarieCLI extends RuntimeAdapterBase<RuntimeAutomationPort> {
 
   constructor(workingDir: string = process.cwd()) {
     const joyService = new JoyServiceCLI();
+    const fs = new CliFileSystemPort(workingDir);
     const automationService = new JoyAutomationServiceCLI(
       workingDir,
       joyService,
+      fs,
     );
 
     const runtime = new MarieRuntime<JoyAutomationServiceCLI>({
       config: new CliConfigPort(),
       sessionStore: new CliSessionStorePort(),
       toolRegistrar: (registry, automation) =>
-        registerMarieToolsCLI(registry, automation, workingDir),
+        registerMarieToolsCLI(registry, automation, workingDir, fs),
       providerFactory: createDefaultProvider,
       automationService,
       onProgressEvent: (event) => joyService.emitRunProgress(event as any),
       shouldBypassApprovals: () => true,
-      fs: new CliFileSystemPort(workingDir),
+      fs,
     });
 
     super(runtime);

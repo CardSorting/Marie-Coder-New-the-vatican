@@ -1,5 +1,5 @@
-import { MarieResponse } from "./src/monolith/infrastructure/ai/MarieResponse";
-import { MarieToolProcessor } from "./src/monolith/infrastructure/ai/MarieToolProcessor";
+import { MarieResponse } from "./src/monolith/infrastructure/ai/core/MarieResponse.js";
+import { MarieToolProcessor } from "./src/monolith/infrastructure/ai/core/MarieToolProcessor.js";
 
 // Simplified Tool Registry Mock
 const mockToolRegistry = {
@@ -47,11 +47,20 @@ async function testPhase4() {
     if (reasoning !== "I should analyze the file first.") throw new Error("Reasoning extraction failed");
 
     // 2. Test MarieToolProcessor validation
-    // Correctly call constructor with 3 arguments
+    // Correctly call constructor with required arguments
     const processor = new MarieToolProcessor(
         mockToolRegistry,
         mockTracker,
-        async () => true // approvalRequester
+        async () => true, // approvalRequester
+        {
+            spiritPressure: 100,
+            toolHistory: [],
+            techniqueExecutions: [],
+            mood: "CAUTIOUS",
+            errorHotspots: {},
+            totalErrorCount: 0,
+            victoryStreak: 0
+        } as any
     );
 
     // Test valid input (validate is private, using any cast to access)

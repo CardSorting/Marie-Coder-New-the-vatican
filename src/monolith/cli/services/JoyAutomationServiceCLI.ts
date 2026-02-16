@@ -14,6 +14,7 @@ import {
   generateTidyChecklist,
   executeRestoration,
 } from "../../domain/joy/JoyTools.js";
+import { FileSystemPort } from "../../infrastructure/ai/core/FileSystemPort.js";
 
 export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
   private currentRun: RunTelemetry | undefined;
@@ -21,6 +22,7 @@ export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
   constructor(
     private readonly workingDir: string,
     private readonly joyService: JoyServiceCLI,
+    public readonly fs: FileSystemPort,
   ) {}
 
   private async ensureWorkingDir(): Promise<void> {

@@ -297,6 +297,7 @@ export interface ProgressUpdate {
   activeFilePath?: string;
   // FOR GRANULAR FILE STREAMING
   bytesWritten?: number;
+  totalBytes?: number;
   path?: string;
   currentPass?: number;
   totalPasses?: number;

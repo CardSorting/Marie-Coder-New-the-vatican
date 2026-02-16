@@ -1,9 +1,14 @@
 import { getStringArg, getOptionalStringArg } from "./ToolUtils.js";
 import { ToolRegistry } from "./ToolRegistry.js";
 
+if (process.env.MARIE_DEBUG) {
+  console.log("[SharedTools] SharedToolDefinitions.ts loaded");
+}
+
 export interface SharedToolRuntime {
   resolvePath(path: string): string;
-  writeFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number) => void): Promise<void>;
+  writeFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number, totalBytes?: number) => void): Promise<void>;
+  appendFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number, totalBytes?: number) => void): Promise<void>;
   readFile(
     path: string,
     startLine?: number,
@@ -63,10 +68,56 @@ export function registerSharedToolDefinitions(
         throw new Error("Missing required argument: content (or fileContent)");
 
       const resolvedPath = runtime.resolvePath(p);
-      await runtime.writeFile(resolvedPath, content, signal, (bytesWritten) => {
-        _onProgress?.({ path: resolvedPath, bytesWritten });
+      if (process.env.MARIE_DEBUG) {
+        console.log(`[SharedTools] write_to_file calling runtime.writeFile for ${resolvedPath}`);
+      }
+      await runtime.writeFile(resolvedPath, content, signal, (bytesWritten, totalBytes) => {
+        if (process.env.MARIE_DEBUG) {
+          console.log(`[SharedTools] write_to_file progress: ${bytesWritten}/${totalBytes}`);
+        }
+        _onProgress?.({ path: resolvedPath, bytesWritten, totalBytes });
       });
       return `File successfully updated: ${resolvedPath}`;
+    },
+  });
+
+  registry.register({
+    name: "append_to_file",
+    description: "Append content to a file.",
+    isDestructive: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "Path to the file" },
+        targetFile: { type: "string", description: "Alias for path" },
+        content: { type: "string", description: "The content to append" },
+      },
+      required: ["content"],
+    },
+    execute: async (args, _onProgress, signal) => {
+      const p =
+        getOptionalStringArg(args, "path") ||
+        getOptionalStringArg(args, "targetFile");
+      if (!p)
+        throw new Error("Missing required argument: path (or targetFile)");
+
+      const content =
+        getOptionalStringArg(args, "content") ||
+        getOptionalStringArg(args, "fileContent");
+      if (content === undefined)
+        throw new Error("Missing required argument: content (or fileContent)");
+
+      const resolvedPath = runtime.resolvePath(p);
+      if (process.env.MARIE_DEBUG) {
+        console.log(`[SharedTools] append_to_file calling runtime.appendFile for ${resolvedPath}`);
+      }
+      await runtime.appendFile(resolvedPath, content, signal, (bytesWritten, totalBytes) => {
+        if (process.env.MARIE_DEBUG) {
+          console.log(`[SharedTools] append_to_file progress: ${bytesWritten}/${totalBytes}`);
+        }
+        _onProgress?.({ path: resolvedPath, bytesWritten, totalBytes });
+      });
+      return `File successfully updated (appended): ${resolvedPath}`;
     },
   });
 

@@ -110,7 +110,7 @@ export async function writeFile(
   content: string,
   signal?: AbortSignal,
   expectedMtime?: number,
-  onProgress?: (bytes: number) => void,
+  onProgress?: (bytes: number, totalBytes?: number) => void,
 ): Promise<void> {
   if (signal?.aborted)
     throw new Error(`AbortError: Write to ${filePath} aborted.`);
@@ -172,8 +172,9 @@ export async function writeFile(
     );
 
     const encoded = textEncoder.encode(content);
+    const totalBytes = encoded.length;
     // CHUNKED WRITE for progress reporting if onProgress is provided
-    if (onProgress && encoded.length > 16384) {
+    if (onProgress && totalBytes > 16384) {
       const CHUNK_SIZE = 16384; // 16KB chunks
       let written = 0;
       // We still use vscode.workspace.fs.writeFile as it doesn't support streams natively in a generic way,
@@ -186,7 +187,7 @@ export async function writeFile(
             const chunk = encoded.slice(written, written + CHUNK_SIZE);
             await handle.write(chunk);
             written += chunk.length;
-            onProgress(written);
+            onProgress(written, totalBytes);
           }
         } finally {
           await handle.close();
@@ -194,11 +195,11 @@ export async function writeFile(
       } else {
         // Fallback for non-file schemes: single write + progress at end
         await vscode.workspace.fs.writeFile(tmpUri, encoded);
-        onProgress(encoded.length);
+        onProgress(encoded.length, totalBytes);
       }
     } else {
       await vscode.workspace.fs.writeFile(tmpUri, encoded);
-      onProgress?.(encoded.length);
+      onProgress?.(encoded.length, totalBytes);
     }
 
     if (signal?.aborted) {
@@ -248,7 +249,7 @@ export async function appendToFile(
   filePath: string,
   content: string,
   signal?: AbortSignal,
-  onProgress?: (bytes: number) => void,
+  onProgress?: (bytes: number, totalBytes?: number) => void,
 ): Promise<void> {
   if (signal?.aborted)
     throw new Error(`AbortError: Append to ${filePath} aborted.`);
@@ -257,11 +258,30 @@ export async function appendToFile(
 
   await lock.acquireWrite();
   try {
+    const buffer = Buffer.from(content, "utf-8");
+    const totalBytes = buffer.length;
+
     if (uri.scheme === "file") {
-      // Direct Node fs append
-      const buffer = Buffer.from(content, "utf-8");
-      await fs.promises.appendFile(uri.fsPath, buffer);
-      onProgress?.(buffer.length);
+      // Direct Node fs append with chunked progress if large
+      if (onProgress && buffer.length > 16384) {
+        const CHUNK_SIZE = 16384;
+        let written = 0;
+        const handle = await fs.promises.open(uri.fsPath, "a");
+        try {
+          while (written < buffer.length) {
+            if (signal?.aborted) throw new Error("Aborted");
+            const chunk = buffer.subarray(written, written + CHUNK_SIZE);
+            await handle.write(chunk);
+            written += chunk.length;
+            onProgress(written, totalBytes);
+          }
+        } finally {
+          await handle.close();
+        }
+      } else {
+        await fs.promises.appendFile(uri.fsPath, buffer);
+        onProgress?.(buffer.length, totalBytes);
+      }
     } else {
       // Fallback to reading and overwriting (less efficient)
       let currentContent = "";
@@ -270,7 +290,7 @@ export async function appendToFile(
       } catch (e) {
         /* proceed with empty */
       }
-      await writeFile(filePath, currentContent + content, signal);
+      await writeFile(filePath, currentContent + content, signal, undefined, onProgress);
     }
   } catch (error) {
     throw new Error(`Failed to append to file ${filePath}: ${error}`);

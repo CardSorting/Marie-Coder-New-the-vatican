@@ -295,6 +295,20 @@ class MarieTerminal {
           } else if (event.type === "stage") {
             this.currentAction = ` ${event.stage}`;
             this.renderMarieResponse();
+          } else if (event.type === "file_stream_delta") {
+            if (event.totalBytes) {
+              const pct = Math.round((event.bytesWritten / event.totalBytes) * 100);
+              const barWidth = 10;
+              const completed = Math.round((barWidth * pct) / 100);
+              const bar = "=".repeat(completed) + ">" + " ".repeat(barWidth - completed);
+              const fileName = event.path.split("/").pop();
+              this.currentAction = ` Writing ${fileName} [${bar}] ${pct}%`;
+            } else {
+              const kb = (event.bytesWritten / 1024).toFixed(1);
+              const fileName = event.path.split("/").pop();
+              this.currentAction = ` Writing ${fileName} ${kb}KB`;
+            }
+            this.renderMarieResponse();
           }
         },
       });
