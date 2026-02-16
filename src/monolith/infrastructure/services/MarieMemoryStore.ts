@@ -175,11 +175,22 @@ export class MarieMemoryStore {
     "agent_performance.json",
   );
 
+  private static performancePersistencePromise: Promise<void> =
+    Promise.resolve();
+
   /**
    * Save agent performance data for cross-session persistence
    */
   static async syncAgentPerformance(data: AgentPerformanceData): Promise<void> {
+    // ATOMIC INTEGRITY: Serialize performance persistence
+    const previous = this.performancePersistencePromise;
+    let resolveLock: () => void;
+    this.performancePersistencePromise = new Promise((resolve) => {
+      resolveLock = resolve;
+    });
+
     try {
+      await previous;
       const dir = path.dirname(this.agentPerformancePath);
       await fs.promises.mkdir(dir, { recursive: true });
       await fs.promises.writeFile(
@@ -188,6 +199,8 @@ export class MarieMemoryStore {
       );
     } catch (e) {
       console.error("[MarieMemoryStore] Failed to save agent performance:", e);
+    } finally {
+      resolveLock!();
     }
   }
 

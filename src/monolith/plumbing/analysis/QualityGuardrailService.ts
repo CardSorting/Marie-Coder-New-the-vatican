@@ -1,7 +1,6 @@
 import { LintService, LintError } from "./LintService.js";
 import { TestService, TriageReport } from "./TestService.js";
 import { ComplexityService, ComplexityMetrics } from "./ComplexityService.js";
-import { checkCodeHealth, HealthReport } from "./CodeHealthService.js";
 import { SurgicalMender } from "./SurgicalMender.js";
 import { MarieSentinelService } from "./MarieSentinelService.js";
 import * as path from "node:path";
@@ -40,47 +39,10 @@ export class QualityGuardrailService {
     let autoFixed = false;
     let surgicalMends = 0;
 
-    // 1. 🛡️ SENTINEL V3.0 ARCHITECTURAL AUDIT
-    const sentinelReport = await MarieSentinelService.audit(cwd, filePath);
-
-    if (sentinelReport.zoneViolations.length > 0) {
-      violations.push(...sentinelReport.zoneViolations);
-      passed = false;
-    }
-    if (sentinelReport.circularDependencies.length > 0) {
-      violations.push(...sentinelReport.circularDependencies);
-      passed = false;
-    }
-    if (sentinelReport.leakyAbstractions.length > 0) {
-      violations.push(...sentinelReport.leakyAbstractions);
-      passed = false;
-    }
-    if (sentinelReport.duplication.length > 0) {
-      violations.push(...sentinelReport.duplication);
-      passed = false; // Duplication is a hard rejection in the Domain
-    }
-
-    // The Ratchet Protocol: Entropy must not rise
-    if (sentinelReport.entropyDelta > 0) {
-      violations.push(
-        `RATCHET LOCK: Entropy increased by +${sentinelReport.entropyDelta}. Changes must maintain or lower entropy.`,
-      );
-      passed = false;
-    }
-
-    if (
-      sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))
-    ) {
-      violations.push(
-        `TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`,
-      );
-      passed = false;
-    }
-
-    // 2. TYPE SOVEREIGNTY (Surgical Enforcement)
+    // 1. TYPE SOVEREIGNTY (Surgical Enforcement) - Do this first as it modifies the file
     surgicalMends += await SurgicalMender.enforceTypeSovereignty(filePath);
 
-    // 3. LINTING & SURGICAL MENDING
+    // 2. LINTING & SURGICAL MENDING - May also modify the file
     let lintErrors = await LintService.runLintOnFile(cwd, filePath);
 
     if (lintErrors.length > 0) {
@@ -105,8 +67,53 @@ export class QualityGuardrailService {
       );
     }
 
-    // 4. SUB-ATOMIC COMPLEXITY
-    const complexity = await ComplexityService.analyze(filePath);
+    // 3. PARALLEL ANALYTICAL AUDIT
+    // Run expensive analytical checks in parallel once modifications are complete
+    const [sentinelReport, complexity, testReport, content] = await Promise.all(
+      [
+        MarieSentinelService.audit(cwd, filePath),
+        ComplexityService.analyze(filePath),
+        TestService.runTargetedTests(cwd, filePath),
+        fs.readFile(filePath, "utf-8"),
+      ],
+    );
+
+    // Sentinel Violations
+    if (sentinelReport.zoneViolations.length > 0) {
+      violations.push(...sentinelReport.zoneViolations);
+      passed = false;
+    }
+    if (sentinelReport.circularDependencies.length > 0) {
+      violations.push(...sentinelReport.circularDependencies);
+      passed = false;
+    }
+    if (sentinelReport.leakyAbstractions.length > 0) {
+      violations.push(...sentinelReport.leakyAbstractions);
+      passed = false;
+    }
+    if (sentinelReport.duplication.length > 0) {
+      violations.push(...sentinelReport.duplication);
+      passed = false;
+    }
+
+    // Entropy Ratchet
+    if (sentinelReport.entropyDelta > 0) {
+      violations.push(
+        `RATCHET LOCK: Entropy increased by +${sentinelReport.entropyDelta}. Changes must maintain or lower entropy.`,
+      );
+      passed = false;
+    }
+
+    if (
+      sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))
+    ) {
+      violations.push(
+        `TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`,
+      );
+      passed = false;
+    }
+
+    // Complexity Violations
     if (complexity.clutterLevel === "Toxic") {
       passed = false;
       violations.push(
@@ -114,8 +121,7 @@ export class QualityGuardrailService {
       );
     }
 
-    // Hard rejection for 'any' in new code
-    const content = await fs.readFile(filePath, "utf-8");
+    // Type Sovereignty (Any check)
     const anyUsage = (content.match(/:\s*any\b|as\s+any\b|<\s*any\s*>/gi) || [])
       .length;
     if (anyUsage > 0) {
@@ -125,8 +131,7 @@ export class QualityGuardrailService {
       );
     }
 
-    // 5. TARGETED TEST REGRESSIONS
-    const testReport = await TestService.runTargetedTests(cwd, filePath);
+    // Test Regression Violations
     if (testReport && !testReport.success) {
       passed = false;
       violations.push(
@@ -140,7 +145,7 @@ export class QualityGuardrailService {
     score -= sentinelReport.circularDependencies.length * 20;
     score -= sentinelReport.leakyAbstractions.length * 10;
     score -= sentinelReport.duplication.length * 10;
-    score -= sentinelReport.entropyDelta > 0 ? 50 : 0; // Heavy penalty for regression
+    score -= sentinelReport.entropyDelta > 0 ? 50 : 0;
     score -= finalCriticalLint.length * 10;
     score -= complexity.cyclomaticComplexity > 10 ? 20 : 0;
     score -= anyUsage * 5;

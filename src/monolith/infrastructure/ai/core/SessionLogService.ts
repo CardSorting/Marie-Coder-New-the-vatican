@@ -4,7 +4,6 @@ import * as os from "os";
 import { MarieStreamEvent } from "../../../domain/marie/MarieTypes.js";
 
 export class SessionLogService {
-  private static instance: SessionLogService;
   private readonly logDir: string;
   private currentLogPath: string | undefined;
   private bytesWritten: number = 0;
@@ -14,16 +13,10 @@ export class SessionLogService {
   private appendQueue: MarieStreamEvent[] = [];
   private isWriting: boolean = false;
 
-  private constructor() {
+  constructor(sessionId: string) {
     this.logDir = path.join(os.homedir(), ".marie", "logs", "sessions");
     this.ensureDir();
-  }
-
-  public static getInstance(): SessionLogService {
-    if (!SessionLogService.instance) {
-      SessionLogService.instance = new SessionLogService();
-    }
-    return SessionLogService.instance;
+    this.initializeSession(sessionId);
   }
 
   private ensureDir(): void {
@@ -38,7 +31,7 @@ export class SessionLogService {
     this.onProgress = callback;
   }
 
-  public initializeSession(sessionId: string): void {
+  private initializeSession(sessionId: string): void {
     this.currentLogPath = path.join(this.logDir, `${sessionId}.jsonl`);
     this.bytesWritten = 0;
     this.eventCount = 0;

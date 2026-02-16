@@ -64,54 +64,54 @@ export class MarieSentinelService {
     // FAST PATH: Check ascension mode
     const isAscension = ConfigService.getAutonomyMode() === "ascension";
 
-    for (const file of allFiles) {
-      const stats = await fs.stat(file);
-      const mtime = stats.mtimeMs;
-      const relativePath = path.relative(workingDir, file);
-      newMtimes[relativePath] = mtime;
+    await Promise.all(
+      allFiles.map(async (file) => {
+        const stats = await fs.stat(file);
+        const mtime = stats.mtimeMs;
+        const relativePath = path.relative(workingDir, file);
+        newMtimes[relativePath] = mtime;
 
-      const hasChanged = lastMtimes[relativePath] !== mtime;
-      const content = await fs.readFile(file, "utf8");
+        const hasChanged = lastMtimes[relativePath] !== mtime;
+        const content = await fs.readFile(file, "utf8");
 
-      // A. Semantic Duplication (Token-based hash to ignore naming/formatting)
-      // FAST PATH: Skip expensive semantic hash in Ascension mode
-      if (!isAscension) {
-        const semanticHash = this.computeSemanticHash(content);
-        if (semanticHashMap.has(semanticHash)) {
-          const original = semanticHashMap.get(semanticHash)!;
-          if (original !== relativePath) {
-            duplication.push(
-              `[Semantic Duplicate] ${relativePath} matches ${original}`,
-            );
+        // A. Semantic Duplication
+        if (!isAscension) {
+          const semanticHash = this.computeSemanticHash(content);
+          if (semanticHashMap.has(semanticHash)) {
+            const original = semanticHashMap.get(semanticHash)!;
+            if (original !== relativePath) {
+              duplication.push(
+                `[Semantic Duplicate] ${relativePath} matches ${original}`,
+              );
+            }
+          } else {
+            semanticHashMap.set(semanticHash, relativePath);
           }
-        } else {
-          semanticHashMap.set(semanticHash, relativePath);
         }
-      }
 
-      // B. Robust Import Extraction & Resolution
-      const rawImports = this.extractImports(content);
-      const resolvedImports = await Promise.all(
-        rawImports.map((i) => this.resolveImportDeep(i, file, workingDir)),
-      );
-
-      const validImports = resolvedImports.filter(Boolean) as string[];
-      dependencyGraph.set(relativePath, validImports);
-
-      // C. Target Analysis
-      // INCREMENTAL SENTINEL: Skip expensive analysis if file hasn't changed
-      if (targetFiles.includes(file) && hasChanged) {
-        await this.analyzeFile(
-          file,
-          workingDir,
-          content,
-          validImports,
-          zoneViolations,
-          leakyAbstractions,
-          toxicFiles,
+        // B. Robust Import Extraction & Resolution
+        const rawImports = this.extractImports(content);
+        const resolvedImports = await Promise.all(
+          rawImports.map((i) => this.resolveImportDeep(i, file, workingDir)),
         );
-      }
-    }
+
+        const validImports = resolvedImports.filter(Boolean) as string[];
+        dependencyGraph.set(relativePath, validImports);
+
+        // C. Target Analysis
+        if (targetFiles.includes(file) && hasChanged) {
+          await this.analyzeFile(
+            file,
+            workingDir,
+            content,
+            validImports,
+            zoneViolations,
+            leakyAbstractions,
+            toxicFiles,
+          );
+        }
+      }),
+    );
 
     // 2. Cycle Detection (Global)
     // FAST PATH: Skip expensive cycle detection in Ascension mode

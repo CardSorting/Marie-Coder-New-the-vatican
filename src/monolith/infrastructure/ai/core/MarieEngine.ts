@@ -12,10 +12,10 @@ import { MarieToolMender } from "./MarieToolMender.js";
 import { MariePulseService } from "./MariePulseService.js";
 import { MarieStabilityMonitor } from "./MarieStabilityMonitor.js";
 import { ReasoningBudget } from "./ReasoningBudget.js";
-import { ConfigService } from "../../config/ConfigService.js";
 import { FileSystemPort } from "./FileSystemPort.js";
 import { GhostPort } from "./GhostPort.js";
 import { SessionLogService } from "./SessionLogService.js";
+import { MarieSemaphore } from "./MarieSemaphore.js";
 
 export function getPromptProfileForDepth(
   depth: number,
@@ -28,6 +28,11 @@ export function getPromptProfileForDepth(
  */
 export class MarieEngine {
   private static readonly CONTENT_BUFFER_MAX_BYTES = 1024 * 1024;
+  private static readonly GLOBAL_CONCURRENCY_LIMIT = 5;
+  private static readonly globalSemaphore = new MarieSemaphore(
+    MarieEngine.GLOBAL_CONCURRENCY_LIMIT,
+  );
+
   private ascendant: MarieAscendant;
   private state: AscensionState;
   private lockManager: MarieLockManager;
@@ -37,8 +42,9 @@ export class MarieEngine {
   private toolCallCounter: number = 0;
   private contentBuffer: string = "";
   private lastContentEmit: number = 0;
-  private static activeTurn: Promise<void> | null = null;
+  private activeTurn: Promise<void> | null = null;
   private disposed: boolean = false;
+  private logService: SessionLogService | undefined;
 
   constructor(
     private provider: AIProvider,
@@ -95,30 +101,16 @@ export class MarieEngine {
       `[MarieEngine] chatLoop started at depth ${depth}. Accumulated content length: ${accumulatedContent.length}`,
     );
 
-    // TURN COLLISION GUARD: Wait for any existing turn to finish
+    // TURN COLLISION GUARD (Instance): Wait for any existing turn in this instance to finish
     if (this.activeTurn) {
       console.warn(
-        "[MarieEngine] TURN COLLISION DETECTED. Waiting for previous turn to finalize...",
+        "[MarieEngine] INSTANCE RE-ENTRY DETECTED. Waiting for previous turn to finalize...",
       );
-
-      tracker.emitEvent({
-        type: "reasoning",
-        runId: tracker.getRun().runId,
-        text: "⏳ TURN COLLISION: Another AI turn is active. Queuing reasoning loop...",
-        elapsedMs: tracker.elapsedMs(),
-      });
-
-      const pulse = this.ensurePulseService(tracker);
-      const watchdog = pulse.startTurnWatchdog(() => {
-        this.activeTurn = null;
-      });
-
-      try {
-        await this.activeTurn;
-      } finally {
-        if (watchdog) clearTimeout(watchdog);
-      }
+      await this.activeTurn;
     }
+
+    // GLOBAL SEMAPHORE: Acquire slot before proceeding
+    await MarieEngine.globalSemaphore.acquire();
 
     let resolveTurn: () => void = () => {};
     this.activeTurn = new Promise<void>((resolve) => {
@@ -140,6 +132,7 @@ export class MarieEngine {
       );
       return result;
     } finally {
+      MarieEngine.globalSemaphore.release();
       resolveTurn();
       this.activeTurn = null;
     }
@@ -157,10 +150,13 @@ export class MarieEngine {
     const pulse = this.ensurePulseService(tracker);
 
     // Initialize incremental logging
-    const logService = SessionLogService.getInstance();
     const originatingSessionId =
       (tracker.getRun() as any).originatingSessionId || "default";
-    logService.initializeSession(originatingSessionId);
+
+    if (!this.logService) {
+      this.logService = new SessionLogService(originatingSessionId);
+    }
+    const logService = this.logService;
 
     logService.setProgressCallback((totalBytes, eventCount) => {
       tracker.emitEvent({
