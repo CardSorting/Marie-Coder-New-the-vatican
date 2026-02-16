@@ -31,7 +31,10 @@ export class QualityGuardrailService {
   /**
    * Evaluates a modified file against production-level quality standards with surgical precision.
    */
-  public static async evaluate(cwd: string, filePath: string): Promise<GuardrailResult> {
+  public static async evaluate(
+    cwd: string,
+    filePath: string,
+  ): Promise<GuardrailResult> {
     const violations: string[] = [];
     let passed = true;
     let autoFixed = false;
@@ -39,7 +42,7 @@ export class QualityGuardrailService {
 
     // 1. 🛡️ SENTINEL V3.0 ARCHITECTURAL AUDIT
     const sentinelReport = await MarieSentinelService.audit(cwd, filePath);
-    
+
     if (sentinelReport.zoneViolations.length > 0) {
       violations.push(...sentinelReport.zoneViolations);
       passed = false;
@@ -56,15 +59,21 @@ export class QualityGuardrailService {
       violations.push(...sentinelReport.duplication);
       passed = false; // Duplication is a hard rejection in the Domain
     }
-    
+
     // The Ratchet Protocol: Entropy must not rise
     if (sentinelReport.entropyDelta > 0) {
-      violations.push(`RATCHET LOCK: Entropy increased by +${sentinelReport.entropyDelta}. Changes must maintain or lower entropy.`);
+      violations.push(
+        `RATCHET LOCK: Entropy increased by +${sentinelReport.entropyDelta}. Changes must maintain or lower entropy.`,
+      );
       passed = false;
     }
 
-    if (sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))) {
-      violations.push(`TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`);
+    if (
+      sentinelReport.quarantineCandidates.includes(path.relative(cwd, filePath))
+    ) {
+      violations.push(
+        `TOXICITY ALERT: This file is a quarantine candidate. Immediate refactor required.`,
+      );
       passed = false;
     }
 
@@ -73,7 +82,7 @@ export class QualityGuardrailService {
 
     // 3. LINTING & SURGICAL MENDING
     let lintErrors = await LintService.runLintOnFile(cwd, filePath);
-    
+
     if (lintErrors.length > 0) {
       // Step A: Attempt standard fixer (ESLint --fix)
       const fixResult = await LintService.fixFile(cwd, filePath);
@@ -88,32 +97,41 @@ export class QualityGuardrailService {
       }
     }
 
-    const finalCriticalLint = lintErrors.filter(e => e.severity === "error");
+    const finalCriticalLint = lintErrors.filter((e) => e.severity === "error");
     if (finalCriticalLint.length > 0) {
       passed = false;
-      violations.push(`Lint Regression: ${finalCriticalLint.length} persistent error(s) found.`);
+      violations.push(
+        `Lint Regression: ${finalCriticalLint.length} persistent error(s) found.`,
+      );
     }
 
     // 4. SUB-ATOMIC COMPLEXITY
     const complexity = await ComplexityService.analyze(filePath);
     if (complexity.clutterLevel === "Toxic") {
       passed = false;
-      violations.push(`Complexity Alert: Cyclomatic complexity (${complexity.cyclomaticComplexity}) exceeds production safety limits.`);
+      violations.push(
+        `Complexity Alert: Cyclomatic complexity (${complexity.cyclomaticComplexity}) exceeds production safety limits.`,
+      );
     }
 
     // Hard rejection for 'any' in new code
     const content = await fs.readFile(filePath, "utf-8");
-    const anyUsage = (content.match(/:\s*any\b|as\s+any\b|<\s*any\s*>/gi) || []).length;
+    const anyUsage = (content.match(/:\s*any\b|as\s+any\b|<\s*any\s*>/gi) || [])
+      .length;
     if (anyUsage > 0) {
       passed = false;
-      violations.push(`Type Sovereignty Breach: ${anyUsage} instance(s) of 'any' detected. Be more precise.`);
+      violations.push(
+        `Type Sovereignty Breach: ${anyUsage} instance(s) of 'any' detected. Be more precise.`,
+      );
     }
 
     // 5. TARGETED TEST REGRESSIONS
     const testReport = await TestService.runTargetedTests(cwd, filePath);
     if (testReport && !testReport.success) {
       passed = false;
-      violations.push(`Test Regression: ${testReport.failedTests.length} related test(s) failed.`);
+      violations.push(
+        `Test Regression: ${testReport.failedTests.length} related test(s) failed.`,
+      );
     }
 
     // Scoring (0-100)
@@ -142,7 +160,7 @@ export class QualityGuardrailService {
         zoningHealthy: sentinelReport.zoneViolations.length === 0,
         typeSovereignty: anyUsage === 0,
         entropy: sentinelReport.entropyScore,
-      }
+      },
     };
   }
 }

@@ -290,7 +290,13 @@ export async function appendToFile(
       } catch (e) {
         /* proceed with empty */
       }
-      await writeFile(filePath, currentContent + content, signal, undefined, onProgress);
+      await writeFile(
+        filePath,
+        currentContent + content,
+        signal,
+        undefined,
+        onProgress,
+      );
     }
   } catch (error) {
     throw new Error(`Failed to append to file ${filePath}: ${error}`);

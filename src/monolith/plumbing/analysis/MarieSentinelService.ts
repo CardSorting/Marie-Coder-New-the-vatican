@@ -39,7 +39,10 @@ export class MarieSentinelService {
 
   private static readonly STATE_FILE = ".marie/sentinel_state.json";
 
-  public static async audit(workingDir: string, specificFile?: string): Promise<SentinelReport> {
+  public static async audit(
+    workingDir: string,
+    specificFile?: string,
+  ): Promise<SentinelReport> {
     const allFiles = await this.getAllFiles(workingDir);
     const targetFiles = specificFile ? [specificFile] : allFiles;
 
@@ -77,7 +80,9 @@ export class MarieSentinelService {
         if (semanticHashMap.has(semanticHash)) {
           const original = semanticHashMap.get(semanticHash)!;
           if (original !== relativePath) {
-            duplication.push(`[Semantic Duplicate] ${relativePath} matches ${original}`);
+            duplication.push(
+              `[Semantic Duplicate] ${relativePath} matches ${original}`,
+            );
           }
         } else {
           semanticHashMap.set(semanticHash, relativePath);
@@ -87,7 +92,7 @@ export class MarieSentinelService {
       // B. Robust Import Extraction & Resolution
       const rawImports = this.extractImports(content);
       const resolvedImports = await Promise.all(
-        rawImports.map(i => this.resolveImportDeep(i, file, workingDir))
+        rawImports.map((i) => this.resolveImportDeep(i, file, workingDir)),
       );
 
       const validImports = resolvedImports.filter(Boolean) as string[];
@@ -96,7 +101,15 @@ export class MarieSentinelService {
       // C. Target Analysis
       // INCREMENTAL SENTINEL: Skip expensive analysis if file hasn't changed
       if (targetFiles.includes(file) && hasChanged) {
-        await this.analyzeFile(file, workingDir, content, validImports, zoneViolations, leakyAbstractions, toxicFiles);
+        await this.analyzeFile(
+          file,
+          workingDir,
+          content,
+          validImports,
+          zoneViolations,
+          leakyAbstractions,
+          toxicFiles,
+        );
       }
     }
 
@@ -111,19 +124,22 @@ export class MarieSentinelService {
     const lintErrors = await LintService.runLint(workingDir);
 
     const entropyScore =
-      (zoneViolations.length * 8) + // Weighted higher
-      (lintErrors.length * 1) +
-      (circularDependencies.length * 15) + // Structural rot is expensive
-      (toxicFiles.length * 6) +
-      (leakyAbstractions.length * 5) +
-      (duplication.length * 10); // DRY is law
+      zoneViolations.length * 8 + // Weighted higher
+      lintErrors.length * 1 +
+      circularDependencies.length * 15 + // Structural rot is expensive
+      toxicFiles.length * 6 +
+      leakyAbstractions.length * 5 +
+      duplication.length * 10; // DRY is law
 
     const entropyDelta = entropyScore - state.lastEntropy;
 
     await this.saveState(workingDir, {
       lastEntropy: entropyScore,
-      history: [...state.history, { date: new Date().toISOString(), entropy: entropyScore }].slice(-20),
-      fileHashes: newMtimes
+      history: [
+        ...state.history,
+        { date: new Date().toISOString(), entropy: entropyScore },
+      ].slice(-20),
+      fileHashes: newMtimes,
     });
 
     let stability: SentinelReport["stability"] = "Stable";
@@ -140,9 +156,14 @@ export class MarieSentinelService {
       entropyScore,
       entropyDelta,
       stability,
-      hotspots: Array.from(new Set([...zoneViolations.map(v => v.split(" ")[1]), ...toxicFiles])).slice(0, 5),
+      hotspots: Array.from(
+        new Set([...zoneViolations.map((v) => v.split(" ")[1]), ...toxicFiles]),
+      ).slice(0, 5),
       quarantineCandidates: toxicFiles,
-      graphDefinition: this.generateMermaidGraph(dependencyGraph, zoneViolations),
+      graphDefinition: this.generateMermaidGraph(
+        dependencyGraph,
+        zoneViolations,
+      ),
       passed: entropyScore < 20 && entropyDelta <= 0,
     };
 
@@ -156,16 +177,20 @@ export class MarieSentinelService {
    */
   private static computeSemanticHash(content: string): string {
     const tokens = content
-      .replace(/\/\/.*$/gm, '') // Strip line comments
-      .replace(/\/\*[\s\S]*?\*\//g, '') // Strip block comments
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\b(const|let|var)\s+\w+\b/g, 'VAR') // Normalize variable declarations
-      .replace(/\bfunction\s+\w+\b/g, 'FUNC') // Normalize function names
+      .replace(/\/\/.*$/gm, "") // Strip line comments
+      .replace(/\/\*[\s\S]*?\*\//g, "") // Strip block comments
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .replace(/\b(const|let|var)\s+\w+\b/g, "VAR") // Normalize variable declarations
+      .replace(/\bfunction\s+\w+\b/g, "FUNC") // Normalize function names
       .trim();
-    return crypto.createHash('sha256').update(tokens).digest('hex');
+    return crypto.createHash("sha256").update(tokens).digest("hex");
   }
 
-  private static async resolveImportDeep(imp: string, sourceFile: string, workingDir: string): Promise<string | null> {
+  private static async resolveImportDeep(
+    imp: string,
+    sourceFile: string,
+    workingDir: string,
+  ): Promise<string | null> {
     if (!imp.startsWith(".")) return null; // Ignore external for now
 
     const baseDir = path.dirname(sourceFile);
@@ -184,7 +209,9 @@ export class MarieSentinelService {
         if (stats.isFile()) {
           return path.relative(workingDir, p);
         }
-      } catch { continue; }
+      } catch {
+        continue;
+      }
     }
     return null;
   }
@@ -196,7 +223,7 @@ export class MarieSentinelService {
     resolvedImports: string[],
     zoneViolations: string[],
     leakyAbstractions: string[],
-    toxicFiles: string[]
+    toxicFiles: string[],
   ) {
     const relativePath = path.relative(workingDir, file);
     const zone = this.getZone(relativePath);
@@ -208,18 +235,28 @@ export class MarieSentinelService {
       if (!impZone) continue;
 
       if (zone === this.ZONES.DOMAIN && impZone !== this.ZONES.DOMAIN) {
-        zoneViolations.push(`[Purity Breach] ${relativePath} -> ${impPath} (${impZone})`);
+        zoneViolations.push(
+          `[Purity Breach] ${relativePath} -> ${impPath} (${impZone})`,
+        );
       }
-      if (zone === this.ZONES.INFRASTRUCTURE && impZone === this.ZONES.PLUMBING) {
-        zoneViolations.push(`[Architecture Leak] ${relativePath} -> ${impPath} (Infrastructure cannot use Plumbing)`);
+      if (
+        zone === this.ZONES.INFRASTRUCTURE &&
+        impZone === this.ZONES.PLUMBING
+      ) {
+        zoneViolations.push(
+          `[Architecture Leak] ${relativePath} -> ${impPath} (Infrastructure cannot use Plumbing)`,
+        );
       }
     }
 
     // B. Purity Scan (System Types in Domain)
     if (zone === this.ZONES.DOMAIN) {
-      const systemKeywords = /\b(fs|path|os|vscode|express|React|HTMLElement|Buffer|process|window|document)\b/;
+      const systemKeywords =
+        /\b(fs|path|os|vscode|express|React|HTMLElement|Buffer|process|window|document)\b/;
       if (systemKeywords.test(content)) {
-        leakyAbstractions.push(`[System Leak] ${relativePath} references non-domain types.`);
+        leakyAbstractions.push(
+          `[System Leak] ${relativePath} references non-domain types.`,
+        );
       }
     }
 
@@ -231,9 +268,15 @@ export class MarieSentinelService {
   }
 
   private static getZone(filePath: string): string | null {
-    if (filePath.includes("src/domain") || filePath.includes("/domain/")) return this.ZONES.DOMAIN;
-    if (filePath.includes("src/infrastructure") || filePath.includes("/infrastructure/")) return this.ZONES.INFRASTRUCTURE;
-    if (filePath.includes("src/plumbing") || filePath.includes("/plumbing/")) return this.ZONES.PLUMBING;
+    if (filePath.includes("src/domain") || filePath.includes("/domain/"))
+      return this.ZONES.DOMAIN;
+    if (
+      filePath.includes("src/infrastructure") ||
+      filePath.includes("/infrastructure/")
+    )
+      return this.ZONES.INFRASTRUCTURE;
+    if (filePath.includes("src/plumbing") || filePath.includes("/plumbing/"))
+      return this.ZONES.PLUMBING;
     return null;
   }
 
@@ -244,7 +287,8 @@ export class MarieSentinelService {
 
     let match;
     while ((match = importRegex.exec(content)) !== null) imports.push(match[1]);
-    while ((match = requireRegex.exec(content)) !== null) imports.push(match[1]);
+    while ((match = requireRegex.exec(content)) !== null)
+      imports.push(match[1]);
 
     return Array.from(new Set(imports));
   }
@@ -274,17 +318,23 @@ export class MarieSentinelService {
     return cycles;
   }
 
-  private static generateMermaidGraph(graph: Map<string, string[]>, violations: string[]): string {
+  private static generateMermaidGraph(
+    graph: Map<string, string[]>,
+    violations: string[],
+  ): string {
     let mermaid = "graph TD;\n";
     const nodes = Array.from(graph.keys()).slice(0, 40);
-    nodes.forEach(node => {
-      const id = node.replace(/[^a-zA-Z0-9]/g, '_');
+    nodes.forEach((node) => {
+      const id = node.replace(/[^a-zA-Z0-9]/g, "_");
       const name = path.basename(node);
-      graph.get(node)?.forEach(dep => {
-        const depId = dep.replace(/[^a-zA-Z0-9]/g, '_');
-        const isViolated = violations.some(v => v.includes(node) && v.includes(dep));
+      graph.get(node)?.forEach((dep) => {
+        const depId = dep.replace(/[^a-zA-Z0-9]/g, "_");
+        const isViolated = violations.some(
+          (v) => v.includes(node) && v.includes(dep),
+        );
         mermaid += `  ${id}[${name}] --> ${depId}[${path.basename(dep)}];\n`;
-        if (isViolated) mermaid += `  style ${id} fill:#f96,stroke:#333,stroke-width:2px\n`;
+        if (isViolated)
+          mermaid += `  style ${id} fill:#f96,stroke:#333,stroke-width:2px\n`;
       });
     });
     return mermaid;
@@ -292,28 +342,46 @@ export class MarieSentinelService {
 
   private static async loadState(workingDir: string): Promise<SentinelState> {
     try {
-      const content = await fs.readFile(path.join(workingDir, this.STATE_FILE), "utf8");
+      const content = await fs.readFile(
+        path.join(workingDir, this.STATE_FILE),
+        "utf8",
+      );
       return JSON.parse(content);
-    } catch { return { lastEntropy: 0, history: [], fileHashes: {} }; }
+    } catch {
+      return { lastEntropy: 0, history: [], fileHashes: {} };
+    }
   }
 
   private static async saveState(workingDir: string, state: SentinelState) {
     const dir = path.join(workingDir, ".marie");
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(workingDir, this.STATE_FILE), JSON.stringify(state, null, 2));
+    await fs.writeFile(
+      path.join(workingDir, this.STATE_FILE),
+      JSON.stringify(state, null, 2),
+    );
   }
 
   private static async getAllFiles(dir: string): Promise<string[]> {
     const entries = await fs.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(entries.map((entry) => {
-      const res = path.resolve(dir, entry.name);
-      if (res.includes("node_modules") || res.includes(".git") || res.includes("dist")) return [];
-      return entry.isDirectory() ? this.getAllFiles(res) : res;
-    }));
-    return files.flat().filter(f => /\.(ts|tsx)$/.test(f as string));
+    const files = await Promise.all(
+      entries.map((entry) => {
+        const res = path.resolve(dir, entry.name);
+        if (
+          res.includes("node_modules") ||
+          res.includes(".git") ||
+          res.includes("dist")
+        )
+          return [];
+        return entry.isDirectory() ? this.getAllFiles(res) : res;
+      }),
+    );
+    return files.flat().filter((f) => /\.(ts|tsx)$/.test(f as string));
   }
 
-  private static async writeToSentinelLog(workingDir: string, report: SentinelReport) {
+  private static async writeToSentinelLog(
+    workingDir: string,
+    report: SentinelReport,
+  ) {
     const logPath = path.join(workingDir, "SENTINEL.md");
     const summary = `
 # 🛡️ Sentinel Report: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
@@ -334,9 +402,18 @@ ${report.graphDefinition}
 \`\`\`
 
 ## 📜 High-Priority Alerts
-${report.zoneViolations.slice(0, 5).map(v => `- ❌ ${v}`).join("\n")}
-${report.circularDependencies.slice(0, 3).map(c => `- 🔄 ${c}`).join("\n")}
-${report.duplication.slice(0, 3).map(d => `- 👯 ${d}`).join("\n")}
+${report.zoneViolations
+  .slice(0, 5)
+  .map((v) => `- ❌ ${v}`)
+  .join("\n")}
+${report.circularDependencies
+  .slice(0, 3)
+  .map((c) => `- 🔄 ${c}`)
+  .join("\n")}
+${report.duplication
+  .slice(0, 3)
+  .map((d) => `- 👯 ${d}`)
+  .join("\n")}
 
 ---
 *Marie Sentinel v3.1 — Grounded Architectural Guardian*

@@ -420,8 +420,8 @@ export class MarieRuntime<
     try {
       const summary = await engine.chatLoop(
         [...messages, { role: "user", content: prompt }],
-        { emitProgressUpdate: () => { }, emitEvent: () => { } } as any,
-        async () => { },
+        { emitProgressUpdate: () => {}, emitEvent: () => {} } as any,
+        async () => {},
       );
 
       if (summary && typeof summary === "string" && summary.length < 60) {

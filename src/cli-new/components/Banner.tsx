@@ -77,7 +77,12 @@ export const CompactBanner: React.FC = () => {
 // Welcome banner with tips
 export const WelcomeBanner: React.FC = () => {
   return (
-    <Box flexDirection="column" alignItems="center" marginTop={0} marginBottom={1}>
+    <Box
+      flexDirection="column"
+      alignItems="center"
+      marginTop={0}
+      marginBottom={1}
+    >
       <Banner />
       <Box flexDirection="column" alignItems="center" marginTop={0}>
         <Text color={marieTheme.colors.secondary}>

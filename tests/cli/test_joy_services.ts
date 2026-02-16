@@ -255,7 +255,11 @@ async function testJoyAutomationServiceConstruction() {
   const joyService = new JoyServiceCLI();
   // Provide mock FS
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   assert.ok(automationService, "JoyAutomationServiceCLI should be created");
 
@@ -268,7 +272,11 @@ async function testSetCurrentRun() {
 
   const joyService = new JoyServiceCLI();
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   // Initially no run
   assert.strictEqual(
@@ -310,7 +318,11 @@ async function testTriggerGenesis() {
 
   const joyService = new JoyServiceCLI();
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   const result = await automationService.triggerGenesis();
 
@@ -329,7 +341,11 @@ async function testSowJoyFeature() {
 
   const joyService = new JoyServiceCLI();
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   const result = await automationService.sowJoyFeature(
     "MyFeature",
@@ -351,7 +367,11 @@ async function testPerformGardenPulse() {
 
   const joyService = new JoyServiceCLI();
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   const result = await automationService.performGardenPulse();
 
@@ -373,7 +393,11 @@ async function testAutoScaffold() {
 
   const joyService = new JoyServiceCLI();
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   // Should not throw (no-op in CLI)
   await automationService.autoScaffold();
@@ -387,7 +411,11 @@ async function testJoyAutomationDispose() {
 
   const joyService = new JoyServiceCLI();
   const mockFs = { type: "cli" } as any;
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs,
+  );
 
   // Should not throw (no-op in CLI)
   automationService.dispose();

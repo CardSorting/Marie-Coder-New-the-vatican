@@ -13,12 +13,16 @@ async function getVscode() {
   }
 }
 
-export async function logGratitude(message: string, rootPath?: string): Promise<void> {
+export async function logGratitude(
+  message: string,
+  rootPath?: string,
+): Promise<void> {
   let workspaceRoot = rootPath;
-  
+
   if (!workspaceRoot) {
     const vscode = await getVscode();
-    workspaceRoot = vscode?.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+    workspaceRoot =
+      vscode?.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
   }
 
   const gratitudePath = path.join(workspaceRoot, "GRATITUDE.md");

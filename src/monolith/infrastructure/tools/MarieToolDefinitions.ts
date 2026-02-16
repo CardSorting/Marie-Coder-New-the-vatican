@@ -87,12 +87,19 @@ export function registerMarieTools(
     input_schema: {
       type: "object",
       properties: {
-        path: { type: "string", description: "Optional path to a specific file to lint" },
-        command: { type: "string", description: "Optional custom lint command" },
+        path: {
+          type: "string",
+          description: "Optional path to a specific file to lint",
+        },
+        command: {
+          type: "string",
+          description: "Optional custom lint command",
+        },
       },
     },
     execute: async (args) => {
-      const workingDir = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+      const workingDir =
+        vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
       const p = args.path as string | undefined;
       const cmd = (args.command as string) || "npm run lint";
 
@@ -126,7 +133,8 @@ export function registerMarieTools(
     isDestructive: true,
     input_schema: { type: "object", properties: {} },
     execute: async () => {
-      const workingDir = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+      const workingDir =
+        vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
       const errors = await LintService.runLint(workingDir);
 
       if (errors.length === 0) {
@@ -134,8 +142,8 @@ export function registerMarieTools(
       }
 
       let result = `# 🧬 Autonomous Recovery Protocol\n\nDetected **${errors.length}** stability alerts in the codebase.\n\n`;
-      const files = Array.from(new Set(errors.map(e => e.file)));
-      result += `**Impacted Files**:\n${files.map(f => `- ${f}`).join("\n")}\n\n`;
+      const files = Array.from(new Set(errors.map((e) => e.file)));
+      result += `**Impacted Files**:\n${files.map((f) => `- ${f}`).join("\n")}\n\n`;
       result += `**Trajectory**: Use 'resolve_lint_errors' to view the full triage report and begin surgical remediation.`;
       return result;
     },

@@ -33,7 +33,7 @@ export class JoyServiceCLI {
   public readonly onRunProgress = this._onRunProgress;
   public readonly onLettingGoRequest = this._onLettingGoRequest;
 
-  constructor() { }
+  constructor() {}
 
   public async addAchievement(
     message: string,

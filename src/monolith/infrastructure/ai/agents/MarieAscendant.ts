@@ -41,7 +41,7 @@ export class MarieAscendant {
     "Every line written serves the architecture.",
   ];
 
-  constructor(private provider: AIProvider) { }
+  constructor(private provider: AIProvider) {}
 
   /**
    * LOCAL EVALUATION — No API call.
@@ -75,7 +75,10 @@ export class MarieAscendant {
     );
 
     const isContinueDirective = this.hasContinueDirective(messages);
-    if (isContinueDirective && (strategy === "EXECUTE" || strategy === "HYPE")) {
+    if (
+      isContinueDirective &&
+      (strategy === "EXECUTE" || strategy === "HYPE")
+    ) {
       confidence = Math.min(3.0, confidence + 0.3);
     }
 

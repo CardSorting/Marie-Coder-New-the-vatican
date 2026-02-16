@@ -22,7 +22,7 @@ class MarieWebviewHost {
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly marieInstance: Marie,
-  ) { }
+  ) {}
 
   public attach(webview: vscode.Webview): void {
     this.webviews.add(webview);

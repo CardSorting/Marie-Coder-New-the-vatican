@@ -68,7 +68,7 @@ export class JoyAutomationService {
       // 🛡️ Marie Sentinel v2 - Serious Architectural Guardian
       const report = await MarieSentinelService.audit(root);
       finalReport += `🛡️ **Sentinel Scan Complete**: ${report.stability} (Entropy: ${report.entropyScore})\n`;
-      
+
       if (report.zoneViolations.length > 0) {
         finalReport += `- ❌ Found ${report.zoneViolations.length} architectural violations.\n`;
       } else {
@@ -78,7 +78,7 @@ export class JoyAutomationService {
       const joyful = await isProjectJoyful(root);
       await ensureJoyZoningFolders(root);
       const scaffolded = await scaffoldZoneAbstractions(root);
-      
+
       const proposals = await proposeReorganization(root);
       const clustering = await proposeClustering(root);
 

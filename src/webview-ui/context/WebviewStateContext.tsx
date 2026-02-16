@@ -284,8 +284,8 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             ...prev,
             availableModels: Array.isArray(message.models)
               ? message.models
-                .map((m: any) => String(m?.id || m?.name || m))
-                .filter(Boolean)
+                  .map((m: any) => String(m?.id || m?.name || m))
+                  .filter(Boolean)
               : prev.availableModels,
           }));
           return;

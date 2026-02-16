@@ -7,8 +7,18 @@ if (process.env.MARIE_DEBUG) {
 
 export interface SharedToolRuntime {
   resolvePath(path: string): string;
-  writeFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number, totalBytes?: number) => void): Promise<void>;
-  appendFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number, totalBytes?: number) => void): Promise<void>;
+  writeFile(
+    path: string,
+    content: string,
+    signal?: AbortSignal,
+    onProgress?: (bytes: number, totalBytes?: number) => void,
+  ): Promise<void>;
+  appendFile(
+    path: string,
+    content: string,
+    signal?: AbortSignal,
+    onProgress?: (bytes: number, totalBytes?: number) => void,
+  ): Promise<void>;
   readFile(
     path: string,
     startLine?: number,
@@ -69,14 +79,23 @@ export function registerSharedToolDefinitions(
 
       const resolvedPath = runtime.resolvePath(p);
       if (process.env.MARIE_DEBUG) {
-        console.log(`[SharedTools] write_to_file calling runtime.writeFile for ${resolvedPath}`);
+        console.log(
+          `[SharedTools] write_to_file calling runtime.writeFile for ${resolvedPath}`,
+        );
       }
-      await runtime.writeFile(resolvedPath, content, signal, (bytesWritten, totalBytes) => {
-        if (process.env.MARIE_DEBUG) {
-          console.log(`[SharedTools] write_to_file progress: ${bytesWritten}/${totalBytes}`);
-        }
-        _onProgress?.({ path: resolvedPath, bytesWritten, totalBytes });
-      });
+      await runtime.writeFile(
+        resolvedPath,
+        content,
+        signal,
+        (bytesWritten, totalBytes) => {
+          if (process.env.MARIE_DEBUG) {
+            console.log(
+              `[SharedTools] write_to_file progress: ${bytesWritten}/${totalBytes}`,
+            );
+          }
+          _onProgress?.({ path: resolvedPath, bytesWritten, totalBytes });
+        },
+      );
       return `File successfully updated: ${resolvedPath}`;
     },
   });
@@ -109,14 +128,23 @@ export function registerSharedToolDefinitions(
 
       const resolvedPath = runtime.resolvePath(p);
       if (process.env.MARIE_DEBUG) {
-        console.log(`[SharedTools] append_to_file calling runtime.appendFile for ${resolvedPath}`);
+        console.log(
+          `[SharedTools] append_to_file calling runtime.appendFile for ${resolvedPath}`,
+        );
       }
-      await runtime.appendFile(resolvedPath, content, signal, (bytesWritten, totalBytes) => {
-        if (process.env.MARIE_DEBUG) {
-          console.log(`[SharedTools] append_to_file progress: ${bytesWritten}/${totalBytes}`);
-        }
-        _onProgress?.({ path: resolvedPath, bytesWritten, totalBytes });
-      });
+      await runtime.appendFile(
+        resolvedPath,
+        content,
+        signal,
+        (bytesWritten, totalBytes) => {
+          if (process.env.MARIE_DEBUG) {
+            console.log(
+              `[SharedTools] append_to_file progress: ${bytesWritten}/${totalBytes}`,
+            );
+          }
+          _onProgress?.({ path: resolvedPath, bytesWritten, totalBytes });
+        },
+      );
       return `File successfully updated (appended): ${resolvedPath}`;
     },
   });

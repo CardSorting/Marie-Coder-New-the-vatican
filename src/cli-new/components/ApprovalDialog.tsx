@@ -53,7 +53,8 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({ request }) => {
           }
         >
           {isDestructive ? marieTheme.icons.warning : marieTheme.icons.info}{" "}
-          Approval Required: <Text color={marieTheme.colors.foreground}>{request.toolName}</Text>
+          Approval Required:{" "}
+          <Text color={marieTheme.colors.foreground}>{request.toolName}</Text>
         </Text>
       </Box>
 

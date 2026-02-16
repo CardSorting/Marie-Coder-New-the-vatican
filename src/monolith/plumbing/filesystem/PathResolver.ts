@@ -22,7 +22,9 @@ export function resolvePath(p: string): vscode.Uri {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (workspaceFolders && workspaceFolders.length > 0) {
     // Use Uri.file + path.join for better compatibility
-    return vscode.Uri.file(path.join(workspaceFolders[0].uri.fsPath, resolvedPath));
+    return vscode.Uri.file(
+      path.join(workspaceFolders[0].uri.fsPath, resolvedPath),
+    );
   }
 
   // Fallback if no workspace is open

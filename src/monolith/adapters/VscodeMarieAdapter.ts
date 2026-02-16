@@ -30,7 +30,7 @@ class VscodeConfigPort implements RuntimeConfigPort {
 }
 
 class VscodeSessionStorePort implements RuntimeSessionStorePort {
-  constructor(private readonly context: vscode.ExtensionContext) { }
+  constructor(private readonly context: vscode.ExtensionContext) {}
 
   async getSessions(): Promise<Record<string, any[]>> {
     return (
@@ -78,7 +78,8 @@ class VscodeSessionStorePort implements RuntimeSessionStorePort {
 
 export class Marie
   extends RuntimeAdapterBase<JoyAutomationService>
-  implements vscode.Disposable {
+  implements vscode.Disposable
+{
   constructor(
     private context: vscode.ExtensionContext,
     public readonly joyService: JoyService,

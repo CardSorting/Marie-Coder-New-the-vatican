@@ -12,17 +12,21 @@ const TEST_DIR = path.join(__dirname, "..", "..", ".marie-tools-test");
 
 class MockFileSystemPort {
   public readonly type = "cli";
-  async readFile() { return ""; }
-  async writeFile(p: string, c: string) { 
-    await fs.promises.mkdir(path.dirname(p), { recursive: true });
-    await fs.promises.writeFile(p, c); 
+  async readFile() {
+    return "";
   }
-  async appendFile() { }
-  async deleteFile(p: string) { await fs.promises.unlink(p); }
-  async backupFile() { }
-  async restoreFile() { }
-  async rollbackAll() { }
-  clearBackups() { }
+  async writeFile(p: string, c: string) {
+    await fs.promises.mkdir(path.dirname(p), { recursive: true });
+    await fs.promises.writeFile(p, c);
+  }
+  async appendFile() {}
+  async deleteFile(p: string) {
+    await fs.promises.unlink(p);
+  }
+  async backupFile() {}
+  async restoreFile() {}
+  async rollbackAll() {}
+  clearBackups() {}
 }
 
 // Helper to setup test environment
@@ -44,7 +48,11 @@ function setupTestEnv() {
 function createRegistry() {
   const joyService = new JoyServiceCLI();
   const mockFs = new MockFileSystemPort();
-  const automationService = new JoyAutomationServiceCLI(TEST_DIR, joyService, mockFs as any);
+  const automationService = new JoyAutomationServiceCLI(
+    TEST_DIR,
+    joyService,
+    mockFs as any,
+  );
   const registry = new ToolRegistry();
   registerMarieToolsCLI(registry, automationService, TEST_DIR, mockFs as any);
   return { registry, joyService, automationService };

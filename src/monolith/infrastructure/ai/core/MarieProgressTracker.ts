@@ -17,7 +17,7 @@ export class MarieProgressTracker {
   constructor(
     private callbacks: MarieCallbacks | undefined,
     private run: RunTelemetry,
-  ) { }
+  ) {}
 
   /**
    * Resets reasoning budget for new engine turn.
@@ -34,9 +34,9 @@ export class MarieProgressTracker {
   public isReasoningBudgetExhausted(): boolean {
     return (
       this.reasoningEventCount >=
-      MarieProgressTracker.MAX_REASONING_EVENTS_PER_TURN ||
+        MarieProgressTracker.MAX_REASONING_EVENTS_PER_TURN ||
       this.reasoningCharCount >=
-      MarieProgressTracker.MAX_REASONING_CHARS_PER_TURN
+        MarieProgressTracker.MAX_REASONING_CHARS_PER_TURN
     );
   }
 

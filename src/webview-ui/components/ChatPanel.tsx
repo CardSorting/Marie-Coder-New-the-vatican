@@ -121,15 +121,23 @@ export function ChatPanel({
                 <summary>
                   <span className="activity-tag">
                     <ToolIcon size={12} style={{ marginRight: "4px" }} />
-                    {stack.length > 1 ? `${stack.length} Activities` : "Activity"}
+                    {stack.length > 1
+                      ? `${stack.length} Activities`
+                      : "Activity"}
                   </span>
                   <span>{summarizeActivity(latest.content)}</span>
-                  {stack.length > 1 && <span className="stack-count">+{stack.length - 1} more</span>}
+                  {stack.length > 1 && (
+                    <span className="stack-count">
+                      +{stack.length - 1} more
+                    </span>
+                  )}
                 </summary>
                 <div className="activity-stack-body">
                   {stack.map((m) => (
                     <div key={m.id} className="stacked-item">
-                      <div className="stacked-meta">{formatTime(m.timestamp)}</div>
+                      <div className="stacked-meta">
+                        {formatTime(m.timestamp)}
+                      </div>
                       <div
                         className="markdown"
                         dangerouslySetInnerHTML={{
@@ -140,21 +148,38 @@ export function ChatPanel({
                   ))}
                 </div>
               </details>
-            </div>
+            </div>,
           );
           currentStack = [];
         };
 
         // Combine permanent messages with active buffers for holistic grouping
-        const allItems: (UiMessage | { role: "assistant", type: "buffer", content: string, tool?: string })[] = [...messages];
+        const allItems: (
+          | UiMessage
+          | {
+              role: "assistant";
+              type: "buffer";
+              content: string;
+              tool?: string;
+            }
+        )[] = [...messages];
         if (toolStreamingBuffer) {
-          allItems.push({ role: "assistant", type: "buffer", content: toolStreamingBuffer, tool: activeToolName });
+          allItems.push({
+            role: "assistant",
+            type: "buffer",
+            content: toolStreamingBuffer,
+            tool: activeToolName,
+          });
         } else if (streamingBuffer) {
-          allItems.push({ role: "assistant", type: "buffer", content: streamingBuffer });
+          allItems.push({
+            role: "assistant",
+            type: "buffer",
+            content: streamingBuffer,
+          });
         }
 
         allItems.forEach((item, index) => {
-          if ('role' in item && item.role === "system" && !('type' in item)) {
+          if ("role" in item && item.role === "system" && !("type" in item)) {
             currentStack.push(item as UiMessage);
           } else {
             flushStack();
@@ -162,19 +187,21 @@ export function ChatPanel({
             const isGrouped =
               prevItem &&
               prevItem.role === item.role &&
-              (!('timestamp' in item) || !('timestamp' in prevItem) || (item.timestamp - prevItem.timestamp < 60000));
+              (!("timestamp" in item) ||
+                !("timestamp" in prevItem) ||
+                item.timestamp - prevItem.timestamp < 60000);
 
             const isLastInGroup =
               index === allItems.length - 1 ||
               allItems[index + 1].role !== item.role;
 
-            const isBuffer = 'type' in item && item.type === "buffer";
+            const isBuffer = "type" in item && item.type === "buffer";
             const roleLabel = item.role === "user" ? "You" : "Marie";
 
             renderedMessages.push(
               <div
                 className={`msg ${item.role} ${isGrouped ? "is-grouped" : ""} ${isLastInGroup ? "is-last" : ""} ${isBuffer ? "is-streaming" : ""}`}
-                key={'id' in item ? item.id : `buffer-${index}`}
+                key={"id" in item ? item.id : `buffer-${index}`}
                 style={{ "--stagger": index % 10 } as any}
               >
                 {!isGrouped && (
@@ -183,14 +210,23 @@ export function ChatPanel({
                       {item.role === "user" ? (
                         <UserIcon size={18} />
                       ) : (
-                        <MascotIcon size={18} className={isBuffer ? "breathing" : ""} />
+                        <MascotIcon
+                          size={18}
+                          className={isBuffer ? "breathing" : ""}
+                        />
                       )}
                     </span>
-                    <span className="msg-time">{isBuffer ? "Processing..." : 'timestamp' in item ? formatTime(item.timestamp) : ""}</span>
+                    <span className="msg-time">
+                      {isBuffer
+                        ? "Processing..."
+                        : "timestamp" in item
+                          ? formatTime(item.timestamp)
+                          : ""}
+                    </span>
                   </div>
                 )}
 
-                {isBuffer && 'tool' in item ? (
+                {isBuffer && "tool" in item ? (
                   <div className="tool-input-wrapper">
                     <div className="tool-header">
                       <ToolIcon size={14} style={{ marginRight: "6px" }} />
@@ -211,7 +247,7 @@ export function ChatPanel({
                     }}
                   />
                 )}
-              </div>
+              </div>,
             );
           }
         });
@@ -243,7 +279,9 @@ export function ChatPanel({
         <div className="activity-inline holographic-scan">
           <LoadingDots size={24} className="premium-aura" />
           <div className="stack" style={{ gap: "4px" }}>
-            <span style={{ fontWeight: 600 }}>{stageHint || "Marie is thinking…"}</span>
+            <span style={{ fontWeight: 600 }}>
+              {stageHint || "Marie is thinking…"}
+            </span>
             {stageSummary && (
               <span className="muted" style={{ fontSize: "0.85em" }}>
                 {stageSummary}

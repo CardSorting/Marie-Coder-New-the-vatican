@@ -96,7 +96,7 @@ export class MarieEngine {
     );
 
     // TURN COLLISION GUARD: Wait for any existing turn to finish
-    if (MarieEngine.activeTurn) {
+    if (this.activeTurn) {
       console.warn(
         "[MarieEngine] TURN COLLISION DETECTED. Waiting for previous turn to finalize...",
       );
@@ -110,18 +110,18 @@ export class MarieEngine {
 
       const pulse = this.ensurePulseService(tracker);
       const watchdog = pulse.startTurnWatchdog(() => {
-        MarieEngine.activeTurn = null;
+        this.activeTurn = null;
       });
 
       try {
-        await MarieEngine.activeTurn;
+        await this.activeTurn;
       } finally {
         if (watchdog) clearTimeout(watchdog);
       }
     }
 
-    let resolveTurn: () => void = () => { };
-    MarieEngine.activeTurn = new Promise<void>((resolve) => {
+    let resolveTurn: () => void = () => {};
+    this.activeTurn = new Promise<void>((resolve) => {
       resolveTurn = resolve;
     });
 
@@ -141,7 +141,7 @@ export class MarieEngine {
       return result;
     } finally {
       resolveTurn();
-      MarieEngine.activeTurn = null;
+      this.activeTurn = null;
     }
   }
 
@@ -158,7 +158,8 @@ export class MarieEngine {
 
     // Initialize incremental logging
     const logService = SessionLogService.getInstance();
-    const originatingSessionId = (tracker.getRun() as any).originatingSessionId || "default";
+    const originatingSessionId =
+      (tracker.getRun() as any).originatingSessionId || "default";
     logService.initializeSession(originatingSessionId);
 
     logService.setProgressCallback((totalBytes, eventCount) => {
@@ -180,7 +181,8 @@ export class MarieEngine {
 
     if (depth > 20) {
       // Graceful Stability Limit Reached
-      const msg = "⚠️ Stability Alert: Maximum reasoning depth (20) reached. Returning current accumulation to prevent infinite loop.";
+      const msg =
+        "⚠️ Stability Alert: Maximum reasoning depth (20) reached. Returning current accumulation to prevent infinite loop.";
       console.warn(msg);
       // Return currently accumulated content so the user sees *something*
       return accumulatedContent + "\n\n" + msg;
@@ -226,7 +228,7 @@ export class MarieEngine {
     // Decay spirit pressure if stale
     if (
       Date.now() -
-      (this.state.techniqueExecutions.slice(-1)[0]?.timestamp || 0) >
+        (this.state.techniqueExecutions.slice(-1)[0]?.timestamp || 0) >
       300000
     ) {
       this.state.spiritPressure = Math.max(30, this.state.spiritPressure - 10);
@@ -353,6 +355,8 @@ export class MarieEngine {
       promptProfile,
     );
 
+    const toolExecutions: Promise<any>[] = [];
+
     try {
       const stream = session.executeLoop(messages, signal);
       for await (const event of stream) {
@@ -413,18 +417,21 @@ export class MarieEngine {
               "delete_file",
             ].includes(tb.name);
 
-            await this.lockManager.acquireLock(
-              target,
-              isWrite,
-              signal,
-              tracker.getRun().runId,
-            );
-            const result = await executeTool({
-              id: tb.id,
-              name: tb.name,
-              input,
-            });
-            toolResultBlocks.push(result);
+            // Execute concurrently
+            const executionPromise = (async () => {
+              await this.lockManager.acquireLock(
+                target,
+                isWrite,
+                signal,
+                tracker.getRun().runId,
+              );
+              return await executeTool({
+                id: tb.id,
+                name: tb.name,
+                input,
+              });
+            })();
+            toolExecutions.push(executionPromise);
           }
         } else if (event.type === "usage") {
           tracker.getRun().usage = event.usage;
@@ -454,14 +461,16 @@ export class MarieEngine {
             "delete_file",
           ].includes(tb.name);
 
-          await this.lockManager.acquireLock(
-            target,
-            isWrite,
-            signal,
-            tracker.getRun().runId,
-          );
-          const result = await executeTool({ id: tb.id, name: tb.name, input });
-          toolResultBlocks.push(result);
+          const executionPromise = (async () => {
+            await this.lockManager.acquireLock(
+              target,
+              isWrite,
+              signal,
+              tracker.getRun().runId,
+            );
+            return await executeTool({ id: tb.id, name: tb.name, input });
+          })();
+          toolExecutions.push(executionPromise);
         }
       }
     }
@@ -475,6 +484,10 @@ export class MarieEngine {
     if (this.contentBuffer.length > 0) {
       this.contentBuffer = "";
     }
+
+    // Await all concurrent tool executions
+    const results = await Promise.all(toolExecutions);
+    toolResultBlocks.push(...results);
 
     await this.lockManager.waitForAll();
 
@@ -674,7 +687,9 @@ export class MarieEngine {
           : `Repeated failures in: ${hotspotFiles}`;
 
       // Log only - do not force the user/agent into a recovery loop
-      console.log(`[MarieEngine] Suggestion: ${reason}. (Auto-recovery disabled for stability)`);
+      console.log(
+        `[MarieEngine] Suggestion: ${reason}. (Auto-recovery disabled for stability)`,
+      );
     }
   }
 

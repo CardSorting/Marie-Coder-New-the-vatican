@@ -209,7 +209,8 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
 
       <Box marginTop={0}>
         <Text color={marieTheme.colors.muted} dimColor italic>
-          Ctrl+C Cancel • Ctrl+S Sessions • Ctrl+N New • /autonomy [balanced|high|ascension] • /config Settings • /help
+          Ctrl+C Cancel • Ctrl+S Sessions • Ctrl+N New • /autonomy
+          [balanced|high|ascension] • /config Settings • /help
         </Text>
       </Box>
     </Box>

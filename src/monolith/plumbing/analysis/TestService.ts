@@ -17,7 +17,10 @@ export class TestService {
   /**
    * Executes a test suite and parses the output into a structured Triage Report.
    */
-  public static async runAndTriage(command: string, cwd: string = process.cwd()): Promise<string> {
+  public static async runAndTriage(
+    command: string,
+    cwd: string = process.cwd(),
+  ): Promise<string> {
     try {
       const { stdout, stderr } = await execAsync(command, { cwd });
       const rawOutput = stdout + stderr;
@@ -57,10 +60,13 @@ export class TestService {
   /**
    * Discovers and runs tests related to a specific file.
    */
-  public static async runTargetedTests(cwd: string, filePath: string): Promise<TriageReport | null> {
+  public static async runTargetedTests(
+    cwd: string,
+    filePath: string,
+  ): Promise<TriageReport | null> {
     const fileName = path.basename(filePath, path.extname(filePath));
     const testPattern = `**/${fileName}*test*`;
-    
+
     // Simple heuristic: look for neighboring test files or in a 'tests' folder
     const possibleTestFiles = [
       path.join(path.dirname(filePath), `${fileName}.test.ts`),
@@ -72,7 +78,10 @@ export class TestService {
     for (const testFile of possibleTestFiles) {
       try {
         await fs.access(testFile);
-        const { stdout, stderr } = await execAsync(`npm test -- "${testFile}"`, { cwd });
+        const { stdout, stderr } = await execAsync(
+          `npm test -- "${testFile}"`,
+          { cwd },
+        );
         return this.parseOutput(stdout + stderr);
       } catch (e: any) {
         if (e.code === "ENOENT") continue;
@@ -92,7 +101,11 @@ export class TestService {
     let currentError = "";
 
     for (const line of lines) {
-      if (line.includes(" ❌ ") || line.includes(" FAIL ") || line.includes("FAILED")) {
+      if (
+        line.includes(" ❌ ") ||
+        line.includes(" FAIL ") ||
+        line.includes("FAILED")
+      ) {
         failedTests.push(line.trim());
       }
 
@@ -110,7 +123,8 @@ export class TestService {
     }
 
     return {
-      success: failedTests.length === 0 && output.toLowerCase().includes("pass"),
+      success:
+        failedTests.length === 0 && output.toLowerCase().includes("pass"),
       totalTests: lines.length,
       failedTests,
       errors,

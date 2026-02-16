@@ -10,7 +10,7 @@ export class CliFileSystemPort implements FileSystemPort {
   public readonly type = "cli";
   private backups = new Map<string, string>();
 
-  constructor(private workingDir: string) { }
+  constructor(private workingDir: string) {}
 
   private resolve(filePath: string): string {
     return path.isAbsolute(filePath)
@@ -33,7 +33,9 @@ export class CliFileSystemPort implements FileSystemPort {
     onProgress?: (bytes: number, totalBytes?: number) => void,
   ): Promise<void> {
     if (process.env.MARIE_DEBUG) {
-      console.log(`[CliFS] writeFile called for ${filePath}, onProgress defined: ${!!onProgress}`);
+      console.log(
+        `[CliFS] writeFile called for ${filePath}, onProgress defined: ${!!onProgress}`,
+      );
     }
     const fullPath = this.resolve(filePath);
     try {

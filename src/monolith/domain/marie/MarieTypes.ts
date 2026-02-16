@@ -51,172 +51,172 @@ export interface StreamIdentity {
 export type MarieStreamEvent =
   | { type: "run_started"; runId: string; startedAt: number }
   | {
-    type: "stage";
-    runId: string;
-    stage: MarieRunStage;
-    label: string;
-    elapsedMs: number;
-  }
+      type: "stage";
+      runId: string;
+      stage: MarieRunStage;
+      label: string;
+      elapsedMs: number;
+    }
   | {
-    type: "step";
-    runId: string;
-    step: number;
-    label: string;
-    elapsedMs: number;
-  }
+      type: "step";
+      runId: string;
+      step: number;
+      label: string;
+      elapsedMs: number;
+    }
   | {
-    type: "reasoning";
-    runId: string;
-    text: string;
-    raw?: boolean;
-    elapsedMs: number;
-  }
+      type: "reasoning";
+      runId: string;
+      text: string;
+      raw?: boolean;
+      elapsedMs: number;
+    }
   | {
-    type: "usage";
-    runId: string;
-    usage: {
-      inputTokens?: number;
-      outputTokens?: number;
-      totalTokens?: number;
-      reasoningTokens?: number;
-    };
-    elapsedMs: number;
-  }
+      type: "usage";
+      runId: string;
+      usage: {
+        inputTokens?: number;
+        outputTokens?: number;
+        totalTokens?: number;
+        reasoningTokens?: number;
+      };
+      elapsedMs: number;
+    }
   | { type: "content_delta"; runId: string; text: string; elapsedMs: number }
   | {
-    type: "tool";
-    runId: string;
-    id?: string;
-    phase: "start" | "complete" | "denied" | "error";
-    name: string;
-    input?: any;
-    diff?: { old: string; new: string };
-    message?: string;
-    heuristicFix?: string;
-    elapsedMs: number;
-  }
+      type: "tool";
+      runId: string;
+      id?: string;
+      phase: "start" | "complete" | "denied" | "error";
+      name: string;
+      input?: any;
+      diff?: { old: string; new: string };
+      message?: string;
+      heuristicFix?: string;
+      elapsedMs: number;
+    }
   | {
-    type: "run_completed";
-    runId: string;
-    elapsedMs: number;
-    steps: number;
-    tools: number;
-    usage?: {
-      inputTokens?: number;
-      outputTokens?: number;
-      totalTokens?: number;
-      reasoningTokens?: number;
-    };
-  }
+      type: "run_completed";
+      runId: string;
+      elapsedMs: number;
+      steps: number;
+      tools: number;
+      usage?: {
+        inputTokens?: number;
+        outputTokens?: number;
+        totalTokens?: number;
+        reasoningTokens?: number;
+      };
+    }
   | {
-    type: "progress_update";
-    runId: string;
-    completionPercent: number;
-    activeObjectiveId?: string;
-    activeToolName?: string;
-    lastToolName?: string;
-    objectives?: ProgressObjective[];
-    achieved?: string[];
-    context?: string;
-    lifecycleStage?: "sprout" | "bloom" | "compost";
-    ritualComplete?: boolean;
-    activeFilePath?: string;
-    currentPass?: number;
-    totalPasses?: number;
-    passFocus?: string;
-    elapsedMs: number;
-    isResuming?: boolean;
-    passHistory?: Array<{
-      pass: number;
-      summary: string;
-      reflection: string;
-    }>;
-    metrics?: { cherishedFiles: string[]; releasedDebtCount: number };
-    heuristicFixes?: string[];
-    ascensionState?: any; // Simplified for broad compatibility
-  }
+      type: "progress_update";
+      runId: string;
+      completionPercent: number;
+      activeObjectiveId?: string;
+      activeToolName?: string;
+      lastToolName?: string;
+      objectives?: ProgressObjective[];
+      achieved?: string[];
+      context?: string;
+      lifecycleStage?: "sprout" | "bloom" | "compost";
+      ritualComplete?: boolean;
+      activeFilePath?: string;
+      currentPass?: number;
+      totalPasses?: number;
+      passFocus?: string;
+      elapsedMs: number;
+      isResuming?: boolean;
+      passHistory?: Array<{
+        pass: number;
+        summary: string;
+        reflection: string;
+      }>;
+      metrics?: { cherishedFiles: string[]; releasedDebtCount: number };
+      heuristicFixes?: string[];
+      ascensionState?: any; // Simplified for broad compatibility
+    }
   | {
-    type: "ascension_heartbeat";
-    runId: string;
-    strategy: string;
-    mood: string;
-    spiritPressure: number;
-    streak: number;
-    errors: number;
-    toolCount: number;
-    elapsedMs: number;
-  }
+      type: "ascension_heartbeat";
+      runId: string;
+      strategy: string;
+      mood: string;
+      spiritPressure: number;
+      streak: number;
+      errors: number;
+      toolCount: number;
+      elapsedMs: number;
+    }
   | {
-    type: "checkpoint";
-    runId: string;
-    status: "awaiting_approval" | "approved" | "denied";
-    toolName: string;
-    summary: { what: string; why: string; impact: string };
-    elapsedMs: number;
-  }
+      type: "checkpoint";
+      runId: string;
+      status: "awaiting_approval" | "approved" | "denied";
+      toolName: string;
+      summary: { what: string; why: string; impact: string };
+      elapsedMs: number;
+    }
   | {
-    type: "tool_delta";
-    runId: string;
-    name: string;
-    inputDelta: string;
-    elapsedMs: number;
-  }
+      type: "tool_delta";
+      runId: string;
+      name: string;
+      inputDelta: string;
+      elapsedMs: number;
+    }
   | {
-    type: "file_stream_delta";
-    runId: string;
-    path: string;
-    bytesWritten: number;
-    totalBytes?: number;
-    elapsedMs: number;
-  }
+      type: "file_stream_delta";
+      runId: string;
+      path: string;
+      bytesWritten: number;
+      totalBytes?: number;
+      elapsedMs: number;
+    }
   | {
-    type: "session_persistence_update";
-    runId: string;
-    sessionId: string;
-    totalBytes: number;
-    elapsedMs: number;
-  }
+      type: "session_persistence_update";
+      runId: string;
+      sessionId: string;
+      totalBytes: number;
+      elapsedMs: number;
+    }
   | {
-    type: "pass_transition";
-    runId: string;
-    currentPass: number;
-    totalPasses: number;
-    passFocus: string;
-    passHistory?: Array<{
-      pass: number;
-      summary: string;
-      reflection: string;
-    }>;
-    elapsedMs: number;
-  }
+      type: "pass_transition";
+      runId: string;
+      currentPass: number;
+      totalPasses: number;
+      passFocus: string;
+      passHistory?: Array<{
+        pass: number;
+        summary: string;
+        reflection: string;
+      }>;
+      elapsedMs: number;
+    }
   | {
-    type: "agent_stream_lifecycle";
-    runId: string;
-    streamIdentity: StreamIdentity;
-    status:
-    | "spawned"
-    | "running"
-    | "completed"
-    | "cancelled"
-    | "failed"
-    | "timed_out";
-    reason?: string;
-    elapsedMs: number;
-  }
+      type: "agent_stream_lifecycle";
+      runId: string;
+      streamIdentity: StreamIdentity;
+      status:
+        | "spawned"
+        | "running"
+        | "completed"
+        | "cancelled"
+        | "failed"
+        | "timed_out";
+      reason?: string;
+      elapsedMs: number;
+    }
   | {
-    type: "agent_envelope";
-    runId: string;
-    streamIdentity: StreamIdentity;
-    envelope: {
-      decision: string;
-      confidence: number;
-      evidenceRefs?: string[];
-      recommendedActions?: string[];
-      blockingConditions?: string[];
-      summary?: string;
-    };
-    elapsedMs: number;
-  }
+      type: "agent_envelope";
+      runId: string;
+      streamIdentity: StreamIdentity;
+      envelope: {
+        decision: string;
+        confidence: number;
+        evidenceRefs?: string[];
+        recommendedActions?: string[];
+        blockingConditions?: string[];
+        summary?: string;
+      };
+      elapsedMs: number;
+    }
   | { type: "run_error"; runId: string; elapsedMs: number; message: string };
 
 export interface RunTelemetry {

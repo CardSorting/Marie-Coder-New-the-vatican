@@ -47,7 +47,10 @@ export class JoyService implements vscode.Disposable {
     // Listen to run progress for persistence updates
     context.subscriptions.push(
       this.onRunProgress((e) => {
-        if (e.type === "session_persistence_update" && e.totalBytes !== undefined) {
+        if (
+          e.type === "session_persistence_update" &&
+          e.totalBytes !== undefined
+        ) {
           const kb = (e.totalBytes / 1024).toFixed(1);
           this.persistenceStatusBarItem.text = `$(sync~spin) ${kb} KB`;
           this.persistenceStatusBarItem.tooltip = `Marie Session Persistence: ${kb} KB written to log.`;

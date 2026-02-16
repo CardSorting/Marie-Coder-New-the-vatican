@@ -113,7 +113,11 @@ export class StreamTagDetector {
         (lastMatch[0].length - potentialTag.length);
 
       // Check if this is a definite tag (ends with > or ] or is a known tag)
-      if (potentialTag.endsWith(">") || potentialTag.endsWith("]") || this.tags.includes(potentialTag)) {
+      if (
+        potentialTag.endsWith(">") ||
+        potentialTag.endsWith("]") ||
+        this.tags.includes(potentialTag)
+      ) {
         const content = this.buffer.substring(0, matchIndex);
         this.buffer = this.buffer.substring(matchIndex + potentialTag.length);
         console.log(`[Marie] Dynamic tag detected: ${potentialTag}`);

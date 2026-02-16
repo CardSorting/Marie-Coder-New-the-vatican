@@ -111,7 +111,9 @@ async function getFolderTree(
     if (depth > maxDepth) return "";
 
     try {
-      const entries = await fsPromises.readdir(currentPath, { withFileTypes: true });
+      const entries = await fsPromises.readdir(currentPath, {
+        withFileTypes: true,
+      });
       const visible = entries.filter(
         (e) => !e.name.startsWith(".") && !e.name.includes("node_modules"),
       );
@@ -469,7 +471,8 @@ export function registerMarieToolsCLI(
       properties: {
         command: {
           type: "string",
-          description: "Optional custom lint command (defaults to npm run lint)",
+          description:
+            "Optional custom lint command (defaults to npm run lint)",
         },
       },
     },
