@@ -1,16 +1,27 @@
-import * as vscode from "vscode";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { ConfigService } from "../../infrastructure/config/ConfigService.js";
 
-export async function logGratitude(message: string): Promise<void> {
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (!workspaceFolders) return;
+/**
+ * Lazy-load vscode to avoid crashes in CLI mode.
+ */
+async function getVscode() {
+  try {
+    return await import("vscode");
+  } catch {
+    return null;
+  }
+}
 
-  const gratitudePath = path.join(
-    workspaceFolders[0].uri.fsPath,
-    "GRATITUDE.md",
-  );
+export async function logGratitude(message: string, rootPath?: string): Promise<void> {
+  let workspaceRoot = rootPath;
+  
+  if (!workspaceRoot) {
+    const vscode = await getVscode();
+    workspaceRoot = vscode?.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+  }
+
+  const gratitudePath = path.join(workspaceRoot, "GRATITUDE.md");
   const date = new Date().toISOString().split("T")[0];
   const entry = `- **${date}**: ${message}\n`;
 
@@ -118,6 +129,11 @@ export async function cherishFile(filePath: string): Promise<string> {
 }
 
 export async function foldCode(filePath: string): Promise<string> {
+  const vscode = await getVscode();
+  if (!vscode || !vscode.workspace) {
+    return `Mental folding successful for '${path.basename(filePath)}'. (Full formatting requires VS Code environment)`;
+  }
+
   const uri = vscode.Uri.file(filePath);
   try {
     const doc = await vscode.workspace.openTextDocument(uri);
@@ -637,18 +653,22 @@ async function getAllFiles(
   async function scan(directory: string) {
     if (signal?.aborted || results.length >= MAX_FILES) return;
 
-    const entries = await fs.readdir(directory, { withFileTypes: true });
-    for (const entry of entries) {
-      if (signal?.aborted || results.length >= MAX_FILES) return;
+    try {
+      const entries = await fs.readdir(directory, { withFileTypes: true });
+      for (const entry of entries) {
+        if (signal?.aborted || results.length >= MAX_FILES) return;
 
-      const fullPath = path.join(directory, entry.name);
-      if (entry.isDirectory()) {
-        if (!excludedDirs.has(entry.name)) {
-          await scan(fullPath);
+        const fullPath = path.join(directory, entry.name);
+        if (entry.isDirectory()) {
+          if (!excludedDirs.has(entry.name)) {
+            await scan(fullPath);
+          }
+        } else {
+          results.push(fullPath);
         }
-      } else {
-        results.push(fullPath);
       }
+    } catch (e) {
+      // Ignore errors for unreadable directories
     }
   }
 

@@ -54,6 +54,7 @@ class MockFileSystemPort implements FileSystemPort {
     return "";
   }
   async writeFile() {}
+  async appendFile() {}
   async deleteFile() {}
   async backupFile() {}
   async restoreFile() {}
@@ -77,6 +78,8 @@ async function testCliEnvironment() {
   const run = {
     runId: "test_cli",
     startedAt: Date.now(),
+    steps: 0,
+    tools: 0,
     objectives: [
       { id: "understand_request", label: "Understand", status: "in_progress" },
       { id: "execute_plan", label: "Execute", status: "pending" },
@@ -152,8 +155,8 @@ async function testCliEnvironment() {
     "Objective should transition to execute_plan",
   );
   assert.ok(
-    events.some((e) => e.type === "tool_delta"),
-    "Should have emitted tool_delta",
+    events.some((e) => e.type === "tool"),
+    "Should have emitted tool event",
   );
 
   console.log("✅ CLI Strategy Flow Passed!");
@@ -179,6 +182,8 @@ async function testSequentialTools() {
   const run = {
     runId: "test_seq",
     startedAt: Date.now(),
+    steps: 0,
+    tools: 0,
     objectives: [
       { id: "understand_request", label: "Understand", status: "in_progress" },
       { id: "execute_plan", label: "Execute", status: "pending" },
@@ -260,6 +265,8 @@ async function testToolError() {
   const run = {
     runId: "test_error",
     startedAt: Date.now(),
+    steps: 0,
+    tools: 0,
     objectives: [
       { id: "understand_request", label: "Understand", status: "in_progress" },
       { id: "execute_plan", label: "Execute", status: "pending" },

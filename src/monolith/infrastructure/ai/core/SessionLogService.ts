@@ -10,6 +10,9 @@ export class SessionLogService {
     private bytesWritten: number = 0;
     private eventCount: number = 0;
     private onProgress: ((bytes: number, eventCount: number) => void) | undefined;
+    
+    private appendQueue: MarieStreamEvent[] = [];
+    private isWriting: boolean = false;
 
     private constructor() {
         this.logDir = path.join(os.homedir(), ".marie", "logs", "sessions");
@@ -43,16 +46,38 @@ export class SessionLogService {
 
     public async appendEvent(event: MarieStreamEvent): Promise<void> {
         if (!this.currentLogPath) return;
-        try {
-            const line = JSON.stringify(event) + "\n";
-            const buffer = Buffer.from(line, "utf-8");
-            await fs.promises.appendFile(this.currentLogPath, buffer);
+        
+        // Prevent infinite recursion if the persistence update itself is being logged
+        if (event.type === "session_persistence_update") return;
 
-            this.bytesWritten += buffer.length;
-            this.eventCount++;
-            this.onProgress?.(this.bytesWritten, this.eventCount);
+        this.appendQueue.push(event);
+        void this.processQueue();
+    }
+
+    private async processQueue(): Promise<void> {
+        if (this.isWriting || this.appendQueue.length === 0 || !this.currentLogPath) return;
+
+        this.isWriting = true;
+        try {
+            while (this.appendQueue.length > 0) {
+                const batch = this.appendQueue.splice(0, this.appendQueue.length);
+                const content = batch.map(e => JSON.stringify(e)).join("\n") + "\n";
+                const buffer = Buffer.from(content, "utf-8");
+                
+                await fs.promises.appendFile(this.currentLogPath, buffer);
+
+                this.bytesWritten += buffer.length;
+                this.eventCount += batch.length;
+                this.onProgress?.(this.bytesWritten, this.eventCount);
+            }
         } catch (e) {
-            console.error(`[SessionLogService] Failed to append event: ${e}`);
+            console.error(`[SessionLogService] Failed to append events: ${e}`);
+        } finally {
+            this.isWriting = false;
+            // Check if more events arrived during the write
+            if (this.appendQueue.length > 0) {
+                void this.processQueue();
+            }
         }
     }
 
