@@ -24,16 +24,18 @@ export class VscodeFileSystemPort implements FileSystemPort {
     path: string,
     content: string,
     signal?: AbortSignal,
+    onProgress?: (bytes: number) => void,
   ): Promise<void> {
-    return writeFile(path, content, signal);
+    return writeFile(path, content, signal, undefined, onProgress);
   }
 
   async appendFile(
     path: string,
     content: string,
     signal?: AbortSignal,
+    onProgress?: (bytes: number) => void,
   ): Promise<void> {
-    return appendToFile(path, content, signal);
+    return appendToFile(path, content, signal, onProgress);
   }
 
   async deleteFile(path: string): Promise<void> {

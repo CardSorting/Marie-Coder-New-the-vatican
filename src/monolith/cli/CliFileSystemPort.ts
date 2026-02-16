@@ -29,12 +29,33 @@ export class CliFileSystemPort implements FileSystemPort {
   async writeFile(
     filePath: string,
     content: string,
-    _signal?: AbortSignal,
+    signal?: AbortSignal,
+    onProgress?: (bytes: number) => void,
   ): Promise<void> {
     const fullPath = this.resolve(filePath);
     try {
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
-      await fs.writeFile(fullPath, content, "utf-8");
+      const buffer = Buffer.from(content, "utf-8");
+
+      if (onProgress && buffer.length > 16384) {
+        const CHUNK_SIZE = 16384;
+        let written = 0;
+        const handle = await fs.open(fullPath, "w");
+        try {
+          while (written < buffer.length) {
+            if (signal?.aborted) throw new Error("Aborted");
+            const chunk = buffer.subarray(written, written + CHUNK_SIZE);
+            await handle.write(chunk);
+            written += chunk.length;
+            onProgress(written);
+          }
+        } finally {
+          await handle.close();
+        }
+      } else {
+        await fs.writeFile(fullPath, buffer);
+        onProgress?.(buffer.length);
+      }
     } catch (error: any) {
       throw new Error(`Failed to write file ${filePath}: ${error.message}`);
     }
@@ -43,12 +64,15 @@ export class CliFileSystemPort implements FileSystemPort {
   async appendFile(
     filePath: string,
     content: string,
-    _signal?: AbortSignal,
+    signal?: AbortSignal,
+    onProgress?: (bytes: number) => void,
   ): Promise<void> {
     const fullPath = this.resolve(filePath);
     try {
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
-      await fs.appendFile(fullPath, content, "utf-8");
+      const buffer = Buffer.from(content, "utf-8");
+      await fs.appendFile(fullPath, buffer);
+      onProgress?.(buffer.length);
     } catch (error: any) {
       throw new Error(`Failed to append to file ${filePath}: ${error.message}`);
     }

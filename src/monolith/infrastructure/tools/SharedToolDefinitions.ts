@@ -3,7 +3,7 @@ import { ToolRegistry } from "./ToolRegistry.js";
 
 export interface SharedToolRuntime {
   resolvePath(path: string): string;
-  writeFile(path: string, content: string, signal?: AbortSignal): Promise<void>;
+  writeFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number) => void): Promise<void>;
   readFile(
     path: string,
     startLine?: number,
@@ -63,7 +63,9 @@ export function registerSharedToolDefinitions(
         throw new Error("Missing required argument: content (or fileContent)");
 
       const resolvedPath = runtime.resolvePath(p);
-      await runtime.writeFile(resolvedPath, content, signal);
+      await runtime.writeFile(resolvedPath, content, signal, (bytesWritten) => {
+        _onProgress?.({ path: resolvedPath, bytesWritten });
+      });
       return `File successfully updated: ${resolvedPath}`;
     },
   });
@@ -285,6 +287,7 @@ export function registerSharedToolDefinitions(
         const p = runtime.resolvePath(pathRaw);
         const chunks = args.replacementChunks as any[];
         let result = "";
+        let totalBytesWritten = 0;
         for (const chunk of chunks) {
           const r = await runtime.replaceInFile!(
             p,
@@ -292,6 +295,9 @@ export function registerSharedToolDefinitions(
             chunk.replacementContent,
             signal,
           );
+          // Approximate progress for multi-replace by using length of replacement
+          totalBytesWritten += chunk.replacementContent.length;
+          onProgress?.({ path: p, bytesWritten: totalBytesWritten });
           result += r + "\n";
         }
         return result;

@@ -52,7 +52,7 @@ export class MarieToolProcessor {
     ) => Promise<boolean>,
     private state: AscensionState,
     private fs?: FileSystemPort,
-  ) {}
+  ) { }
 
   public async process(
     toolCall: { id: string; name: string; input: any; repaired?: boolean },
@@ -159,7 +159,19 @@ export class MarieToolProcessor {
       }
 
       let result = await withRetry(
-        () => tool.execute(input, undefined, signal),
+        () => tool.execute(input, (update) => {
+          if (update.bytesWritten !== undefined && update.path) {
+            this.tracker.emitEvent({
+              type: "file_stream_delta",
+              runId: this.tracker.getRun().runId,
+              path: update.path,
+              bytesWritten: update.bytesWritten,
+              elapsedMs: this.tracker.elapsedMs()
+            });
+          } else {
+            this.applyUpdate(update, toolCall.name);
+          }
+        }, signal),
         MarieToolProcessor.RETRY_CONFIG,
         `Tool: ${toolCall.name}`,
         signal,
@@ -648,7 +660,7 @@ export class MarieToolProcessor {
 
     try {
       const { QualityGuardrailService } = await import("../../../plumbing/analysis/QualityGuardrailService.js");
-      
+
       this.tracker.emitProgressUpdate("Initiating Sub-Atomic Integrity Audit... 🛡️");
       const result = await QualityGuardrailService.evaluate(workingDir, filePath);
 
@@ -673,7 +685,7 @@ export class MarieToolProcessor {
         summary += `**Quality Score**: ${result.score}/100\n`;
         summary += result.violations.map(v => `- ❌ ${v}`).join("\n");
         summary += `\n\n**Action Required**: You must resolve these precision regressions. Use 'resolve_lint_errors' for location-specific data. Type sovereignty is absolute. 🚩`;
-        
+
         return summary;
       }
 
@@ -682,7 +694,7 @@ export class MarieToolProcessor {
       }
     } catch (e) {
       console.warn("[Singularity] Sub-Atomic Guardrails failed", e);
-      
+
       // Fallback to basic VS Code diagnostics if service fails
       if (vscode) {
         const diagnostics = vscode.languages.getDiagnostics(vscode.Uri.file(filePath));

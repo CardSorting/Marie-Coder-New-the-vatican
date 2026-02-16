@@ -110,6 +110,7 @@ export async function writeFile(
   content: string,
   signal?: AbortSignal,
   expectedMtime?: number,
+  onProgress?: (bytes: number) => void,
 ): Promise<void> {
   if (signal?.aborted)
     throw new Error(`AbortError: Write to ${filePath} aborted.`);
@@ -169,7 +170,36 @@ export async function writeFile(
     console.log(
       `[FileService] Performing ATOMIC write to ${filePath} via ${tmpUri.fsPath}`,
     );
-    await vscode.workspace.fs.writeFile(tmpUri, textEncoder.encode(content));
+
+    const encoded = textEncoder.encode(content);
+    // CHUNKED WRITE for progress reporting if onProgress is provided
+    if (onProgress && encoded.length > 16384) {
+      const CHUNK_SIZE = 16384; // 16KB chunks
+      let written = 0;
+      // We still use vscode.workspace.fs.writeFile as it doesn't support streams natively in a generic way,
+      // but we "fake" it by emitting progress if it's large, or we can use Node fs if scheme is file.
+      if (uri.scheme === "file") {
+        const handle = await fs.promises.open(tmpUri.fsPath, "w");
+        try {
+          while (written < encoded.length) {
+            if (signal?.aborted) throw new Error("Aborted");
+            const chunk = encoded.slice(written, written + CHUNK_SIZE);
+            await handle.write(chunk);
+            written += chunk.length;
+            onProgress(written);
+          }
+        } finally {
+          await handle.close();
+        }
+      } else {
+        // Fallback for non-file schemes: single write + progress at end
+        await vscode.workspace.fs.writeFile(tmpUri, encoded);
+        onProgress(encoded.length);
+      }
+    } else {
+      await vscode.workspace.fs.writeFile(tmpUri, encoded);
+      onProgress?.(encoded.length);
+    }
 
     if (signal?.aborted) {
       try {

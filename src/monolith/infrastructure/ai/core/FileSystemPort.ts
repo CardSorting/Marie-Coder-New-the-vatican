@@ -5,8 +5,8 @@
  */
 export interface FileSystemPort {
   readFile(path: string, signal?: AbortSignal): Promise<string>;
-  writeFile(path: string, content: string, signal?: AbortSignal): Promise<void>;
-  appendFile(path: string, content: string, signal?: AbortSignal): Promise<void>;
+  writeFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number) => void): Promise<void>;
+  appendFile(path: string, content: string, signal?: AbortSignal, onProgress?: (bytes: number) => void): Promise<void>;
   deleteFile(path: string): Promise<void>;
   backupFile(path: string): Promise<void>;
   restoreFile(path: string): Promise<void>;

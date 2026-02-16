@@ -295,6 +295,9 @@ export interface ProgressUpdate {
   lifecycleStage?: "sprout" | "bloom" | "compost";
   ritualComplete?: boolean;
   activeFilePath?: string;
+  // FOR GRANULAR FILE STREAMING
+  bytesWritten?: number;
+  path?: string;
   currentPass?: number;
   totalPasses?: number;
   passFocus?: string;
