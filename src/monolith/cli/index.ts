@@ -29,6 +29,7 @@ class MarieTerminal {
   private isStreaming = false;
   private persistenceKB = "0.0";
   private persistenceRawBytes = 0;
+  private currentAction = "";
 
   constructor() {
     this.marie = new MarieCLI(process.cwd());
@@ -288,6 +289,12 @@ class MarieTerminal {
             this.persistenceKB = (event.totalBytes / 1024).toFixed(1);
             this.persistenceRawBytes = event.totalBytes;
             this.renderMarieResponse();
+          } else if (event.type === "tool") {
+            this.currentAction = ` Tool: ${event.name}`;
+            this.renderMarieResponse();
+          } else if (event.type === "stage") {
+            this.currentAction = ` ${event.stage}`;
+            this.renderMarieResponse();
           }
         },
       });
@@ -315,7 +322,7 @@ class MarieTerminal {
       spinners[Math.floor(this.persistenceRawBytes / 128) % spinners.length];
     const status =
       this.persistenceRawBytes > 0
-        ? ` ${ANSI.gray}⟦${ANSI.blue}${spinner} ${this.persistenceKB} KB${ANSI.gray}⟧${ANSI.reset}`
+        ? ` ${ANSI.gray}⟦${ANSI.blue}${spinner}${this.currentAction} ${this.persistenceKB} KB${ANSI.gray}⟧${ANSI.reset}`
         : "";
 
     process.stdout.write(

@@ -161,7 +161,7 @@ export class MarieEngine {
     const originatingSessionId = (tracker.getRun() as any).originatingSessionId || "default";
     logService.initializeSession(originatingSessionId);
 
-    logService.setProgressCallback((totalBytes) => {
+    logService.setProgressCallback((totalBytes, eventCount) => {
       tracker.emitEvent({
         type: "session_persistence_update",
         runId: tracker.getRun().runId,
@@ -170,6 +170,13 @@ export class MarieEngine {
         elapsedMs: tracker.elapsedMs(),
       });
     });
+
+    // Override tracker emit to persist every event
+    const originalEmit = tracker.emitEvent.bind(tracker);
+    tracker.emitEvent = (event) => {
+      void logService.appendEvent(event);
+      originalEmit(event);
+    };
 
     if (depth > 20) {
       // Graceful Stability Limit Reached
@@ -367,9 +374,6 @@ export class MarieEngine {
         if (event.type === "content_delta") {
           turnContent += event.text;
           this.contentBuffer += event.text;
-
-          // Incremental persistence to disk
-          void logService.append(event.text);
 
           if (this.contentBuffer.length >= MarieEngine.CONTENT_BUFFER_MAX_BYTES)
             break;
