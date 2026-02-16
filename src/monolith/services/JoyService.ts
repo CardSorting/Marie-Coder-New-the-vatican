@@ -9,6 +9,7 @@ import { proposeClustering, isProjectJoyful } from "../domain/joy/JoyTools.js";
 
 export class JoyService implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
+  private persistenceStatusBarItem: vscode.StatusBarItem;
   private readonly _onJoyScoreChange = new vscode.EventEmitter<{
     score: number;
     status: string;
@@ -16,11 +17,13 @@ export class JoyService implements vscode.Disposable {
   }>();
   public readonly onJoyScoreChange = this._onJoyScoreChange.event;
   private readonly _onRunProgress = new vscode.EventEmitter<{
-    runId?: string;
-    activeToolName?: string;
-    lastToolName?: string;
     activeObjectiveId?: string;
     context?: string;
+    sessionId?: string;
+    totalBytes?: number;
+    bytesWritten?: number;
+    path?: string;
+    type?: string;
   }>();
   public readonly onRunProgress = this._onRunProgress.event;
   private intention: string | null = null;
@@ -34,7 +37,26 @@ export class JoyService implements vscode.Disposable {
       vscode.StatusBarAlignment.Right,
       100,
     );
+    this.persistenceStatusBarItem = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Right,
+      101, // Slightly to the left of Joy Score
+    );
     context.subscriptions.push(this.statusBarItem);
+    context.subscriptions.push(this.persistenceStatusBarItem);
+
+    // Listen to run progress for persistence updates
+    context.subscriptions.push(
+      this.onRunProgress((e) => {
+        if (e.type === "session_persistence_update" && e.totalBytes !== undefined) {
+          const kb = (e.totalBytes / 1024).toFixed(1);
+          this.persistenceStatusBarItem.text = `$(sync~spin) ${kb} KB`;
+          this.persistenceStatusBarItem.tooltip = `Marie Session Persistence: ${kb} KB written to log.`;
+          this.persistenceStatusBarItem.show();
+        } else if (e.type === "run_completed" || e.type === "run_error") {
+          this.persistenceStatusBarItem.hide();
+        }
+      }),
+    );
 
     this.intention =
       context.workspaceState.get<string>("marie.intention") || null;
@@ -242,6 +264,11 @@ export class JoyService implements vscode.Disposable {
       fileName.endsWith(".jsx")
     );
   }
+
+  public fireRunProgress(progress: any) {
+    this._onRunProgress.fire(progress);
+  }
+
   public dispose() {
     this.statusBarItem.dispose();
     this._onJoyScoreChange.dispose();

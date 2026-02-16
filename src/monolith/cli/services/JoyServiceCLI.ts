@@ -6,11 +6,16 @@ export interface JoyScoreEvent {
 }
 
 export interface RunProgressEvent {
+  type?: string;
   runId?: string;
   activeToolName?: string;
   lastToolName?: string;
   activeObjectiveId?: string;
   context?: string;
+  sessionId?: string;
+  totalBytes?: number;
+  bytesWritten?: number;
+  path?: string;
 }
 
 export interface LettingGoRequest {
@@ -28,7 +33,7 @@ export class JoyServiceCLI {
   public readonly onRunProgress = this._onRunProgress;
   public readonly onLettingGoRequest = this._onLettingGoRequest;
 
-  constructor() {}
+  constructor() { }
 
   public async addAchievement(
     message: string,

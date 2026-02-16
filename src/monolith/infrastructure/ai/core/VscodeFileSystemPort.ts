@@ -6,6 +6,7 @@ import {
   rollbackAll,
   readFile,
   writeFile,
+  appendToFile,
   deleteFile,
 } from "../../../plumbing/filesystem/FileService.js";
 
@@ -25,6 +26,14 @@ export class VscodeFileSystemPort implements FileSystemPort {
     signal?: AbortSignal,
   ): Promise<void> {
     return writeFile(path, content, signal);
+  }
+
+  async appendFile(
+    path: string,
+    content: string,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return appendToFile(path, content, signal);
   }
 
   async deleteFile(path: string): Promise<void> {

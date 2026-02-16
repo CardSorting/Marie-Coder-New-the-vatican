@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 import { ConfigService } from "../../infrastructure/config/ConfigService.js";
 import { resolvePath } from "./PathResolver.js";
 import { DecorationService } from "../ui/DecorationService.js";
@@ -204,6 +205,45 @@ export async function writeFile(
   } catch (error) {
     console.error(`[FileService] Error during atomic write: ${error}`);
     throw new Error(`Failed to write file ${filePath}: ${error}`);
+  } finally {
+    lock.releaseWrite();
+  }
+}
+
+/**
+ * Appends content to a file.
+ * Uses Node fs directly for speed and streaming capability if scheme is file.
+ */
+export async function appendToFile(
+  filePath: string,
+  content: string,
+  signal?: AbortSignal,
+  onProgress?: (bytes: number) => void,
+): Promise<void> {
+  if (signal?.aborted)
+    throw new Error(`AbortError: Append to ${filePath} aborted.`);
+  const uri = resolvePath(filePath);
+  const lock = getLock(uri.fsPath);
+
+  await lock.acquireWrite();
+  try {
+    if (uri.scheme === "file") {
+      // Direct Node fs append
+      const buffer = Buffer.from(content, "utf-8");
+      await fs.promises.appendFile(uri.fsPath, buffer);
+      onProgress?.(buffer.length);
+    } else {
+      // Fallback to reading and overwriting (less efficient)
+      let currentContent = "";
+      try {
+        currentContent = await readFile(filePath);
+      } catch (e) {
+        /* proceed with empty */
+      }
+      await writeFile(filePath, currentContent + content, signal);
+    }
+  } catch (error) {
+    throw new Error(`Failed to append to file ${filePath}: ${error}`);
   } finally {
     lock.releaseWrite();
   }

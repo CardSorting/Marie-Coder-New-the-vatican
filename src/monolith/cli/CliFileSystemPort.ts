@@ -10,7 +10,7 @@ export class CliFileSystemPort implements FileSystemPort {
   public readonly type = "cli";
   private backups = new Map<string, string>();
 
-  constructor(private workingDir: string) {}
+  constructor(private workingDir: string) { }
 
   private resolve(filePath: string): string {
     return path.isAbsolute(filePath)
@@ -37,6 +37,20 @@ export class CliFileSystemPort implements FileSystemPort {
       await fs.writeFile(fullPath, content, "utf-8");
     } catch (error: any) {
       throw new Error(`Failed to write file ${filePath}: ${error.message}`);
+    }
+  }
+
+  async appendFile(
+    filePath: string,
+    content: string,
+    _signal?: AbortSignal,
+  ): Promise<void> {
+    const fullPath = this.resolve(filePath);
+    try {
+      await fs.mkdir(path.dirname(fullPath), { recursive: true });
+      await fs.appendFile(fullPath, content, "utf-8");
+    } catch (error: any) {
+      throw new Error(`Failed to append to file ${filePath}: ${error.message}`);
     }
   }
 

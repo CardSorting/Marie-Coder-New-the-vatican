@@ -30,7 +30,7 @@ class VscodeConfigPort implements RuntimeConfigPort {
 }
 
 class VscodeSessionStorePort implements RuntimeSessionStorePort {
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) { }
 
   async getSessions(): Promise<Record<string, any[]>> {
     return (
@@ -78,8 +78,7 @@ class VscodeSessionStorePort implements RuntimeSessionStorePort {
 
 export class Marie
   extends RuntimeAdapterBase<JoyAutomationService>
-  implements vscode.Disposable
-{
+  implements vscode.Disposable {
   constructor(
     private context: vscode.ExtensionContext,
     public readonly joyService: JoyService,
@@ -95,7 +94,7 @@ export class Marie
       toolRegistrar: registerMarieTools,
       providerFactory: createDefaultProvider,
       automationService,
-      onProgressEvent: (event) => this.joyService.onRunProgress(event as any),
+      onProgressEvent: (event) => this.joyService.fireRunProgress(event),
       shouldBypassApprovals: () =>
         ConfigService.getAutonomyMode() !== "balanced",
       fs: new VscodeFileSystemPort(),

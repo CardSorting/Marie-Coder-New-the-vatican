@@ -286,7 +286,11 @@ export class MarieRuntime<
           callbacks?.onToolDelta?.(delta, run.runId, originatingSessionId),
         onEvent: (event) => {
           (event as any).originatingSessionId = originatingSessionId;
-          if (event.type === "progress_update") {
+          if (
+            event.type === "progress_update" ||
+            event.type === "session_persistence_update" ||
+            event.type === "file_stream_delta"
+          ) {
             this.options.onProgressEvent?.(event);
           }
           callbacks?.onEvent?.(event);
@@ -416,8 +420,8 @@ export class MarieRuntime<
     try {
       const summary = await engine.chatLoop(
         [...messages, { role: "user", content: prompt }],
-        { emitProgressUpdate: () => {}, emitEvent: () => {} } as any,
-        async () => {},
+        { emitProgressUpdate: () => { }, emitEvent: () => { } } as any,
+        async () => { },
       );
 
       if (summary && typeof summary === "string" && summary.length < 60) {

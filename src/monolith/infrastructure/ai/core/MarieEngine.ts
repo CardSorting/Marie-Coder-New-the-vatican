@@ -15,6 +15,7 @@ import { ReasoningBudget } from "./ReasoningBudget.js";
 import { ConfigService } from "../../config/ConfigService.js";
 import { FileSystemPort } from "./FileSystemPort.js";
 import { GhostPort } from "./GhostPort.js";
+import { SessionLogService } from "./SessionLogService.js";
 
 export function getPromptProfileForDepth(
   depth: number,
@@ -154,6 +155,21 @@ export class MarieEngine {
     accumulatedContent: string = "",
   ): Promise<string> {
     const pulse = this.ensurePulseService(tracker);
+
+    // Initialize incremental logging
+    const logService = SessionLogService.getInstance();
+    const originatingSessionId = (tracker.getRun() as any).originatingSessionId || "default";
+    logService.initializeSession(originatingSessionId);
+
+    logService.setProgressCallback((totalBytes) => {
+      tracker.emitEvent({
+        type: "session_persistence_update",
+        runId: tracker.getRun().runId,
+        sessionId: originatingSessionId,
+        totalBytes,
+        elapsedMs: tracker.elapsedMs(),
+      });
+    });
 
     if (depth > 20) {
       // Graceful Stability Limit Reached
@@ -351,6 +367,9 @@ export class MarieEngine {
         if (event.type === "content_delta") {
           turnContent += event.text;
           this.contentBuffer += event.text;
+
+          // Incremental persistence to disk
+          void logService.append(event.text);
 
           if (this.contentBuffer.length >= MarieEngine.CONTENT_BUFFER_MAX_BYTES)
             break;

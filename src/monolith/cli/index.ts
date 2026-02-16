@@ -27,6 +27,8 @@ class MarieTerminal {
   private isRunning = false;
   private currentStream = "";
   private isStreaming = false;
+  private persistenceKB = "0.0";
+  private persistenceRawBytes = 0;
 
   constructor() {
     this.marie = new MarieCLI(process.cwd());
@@ -274,14 +276,20 @@ class MarieTerminal {
       const response = await this.marie.handleMessage(message, {
         onStream: (chunk) => {
           this.currentStream += chunk;
-          process.stdout.write(chunk);
+          this.renderMarieResponse();
         },
         onTool: (tool) => {
           console.log();
           console.log(`${ANSI.gray}▸ ${tool.name}${ANSI.reset}`);
           process.stdout.write(`${ANSI.cyan}Marie:${ANSI.reset} `);
         },
-        onEvent: () => {},
+        onEvent: (event) => {
+          if (event.type === "session_persistence_update") {
+            this.persistenceKB = (event.totalBytes / 1024).toFixed(1);
+            this.persistenceRawBytes = event.totalBytes;
+            this.renderMarieResponse();
+          }
+        },
       });
 
       if (!this.currentStream && response) {
@@ -299,6 +307,20 @@ class MarieTerminal {
       console.log();
       this.showPrompt();
     }
+  }
+
+  private renderMarieResponse() {
+    const spinners = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+    const spinner =
+      spinners[Math.floor(this.persistenceRawBytes / 128) % spinners.length];
+    const status =
+      this.persistenceRawBytes > 0
+        ? ` ${ANSI.gray}⟦${ANSI.blue}${spinner} ${this.persistenceKB} KB${ANSI.gray}⟧${ANSI.reset}`
+        : "";
+
+    process.stdout.write(
+      `\r${ANSI.clearLine}${ANSI.cyan}Marie:${ANSI.reset} ${this.currentStream}${status}`,
+    );
   }
 
   private shutdown() {
