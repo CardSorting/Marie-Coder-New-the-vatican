@@ -1,7 +1,7 @@
 {
   "name": "@noorm/marie-cli",
   "displayName": "MarieCoder",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "icon": "assets/icon.png",
   "description": "A sentient AI pair programmer for your terminal",
   "publisher": "DreamBeesAI",
