@@ -21,6 +21,7 @@ interface AppProps {
 
 export const App: React.FC<AppProps> = ({ workingDir }) => {
   const { exit } = useApp();
+  const { stdout } = useStdout();
   const [viewMode, setViewMode] = useState<ViewMode>("chat");
   const [showSetup, setShowSetup] = useState(false);
 
@@ -186,8 +187,6 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
       />
     );
   }
-
-  const { stdout } = useStdout();
 
   return (
     <Box flexDirection="column" height={stdout?.rows || 24}>

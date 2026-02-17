@@ -251,10 +251,14 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
               ...prev,
               stageSummary: runtimeEvent.text || prev.stageSummary,
             }));
-            
+
             // If it's a decree or a high-value thought, add to logs
-            if (runtimeEvent.text?.includes("Decree") || runtimeEvent.text?.includes("VOW") || runtimeEvent.text?.includes("ZENITH")) {
-               addMessage("system", runtimeEvent.text);
+            if (
+              runtimeEvent.text?.includes("Decree") ||
+              runtimeEvent.text?.includes("VOW") ||
+              runtimeEvent.text?.includes("ZENITH")
+            ) {
+              addMessage("system", runtimeEvent.text);
             }
             return;
           }

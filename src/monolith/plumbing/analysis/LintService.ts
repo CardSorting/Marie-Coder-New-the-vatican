@@ -105,7 +105,7 @@ export class LintService {
     let currentFile = "";
     for (const line of lines) {
       // ESLint stylish file header
-      const fileMatch = line.match(/^(\/[^ ]+|\w:[\/][^ ]+)$/);
+      const fileMatch = line.match(/^(\/[^ ]+|\w:[/][^ ]+)$/);
       if (fileMatch) {
         currentFile = fileMatch[1];
         continue;

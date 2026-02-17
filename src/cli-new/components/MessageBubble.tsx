@@ -264,9 +264,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           >
             <Box>
               <Text color={marieTheme.colors.warning}>
-                {marieTheme.icons.tool} {streamingToolName || "Executing Technique..."}
+                {marieTheme.icons.tool}{" "}
+                {streamingToolName || "Executing Technique..."}
               </Text>
-              <Text color={marieTheme.colors.muted}> {marieTheme.icons.spinner}</Text>
+              <Text color={marieTheme.colors.muted}>
+                {" "}
+                {marieTheme.icons.spinner}
+              </Text>
             </Box>
             <Text color={marieTheme.colors.muted}>
               {streamingToolBuffer.slice(-200)}

@@ -144,7 +144,8 @@ export function useMarie(options: UseMarieOptions) {
         onToolDelta: (delta: any) => {
           setStreamingState((prev) => ({
             ...prev,
-            toolStreamingBuffer: (prev.toolStreamingBuffer || "") + (delta.inputDelta || ""),
+            toolStreamingBuffer:
+              (prev.toolStreamingBuffer || "") + (delta.inputDelta || ""),
             activeToolName: delta.name || prev.activeToolName,
           }));
         },
@@ -165,7 +166,8 @@ export function useMarie(options: UseMarieOptions) {
           } else if (event.type === "tool_delta") {
             setStreamingState((prev) => ({
               ...prev,
-              toolStreamingBuffer: (prev.toolStreamingBuffer || "") + (event.inputDelta || ""),
+              toolStreamingBuffer:
+                (prev.toolStreamingBuffer || "") + (event.inputDelta || ""),
               activeToolName: event.name || prev.activeToolName,
             }));
           } else if (event.type === "reasoning") {

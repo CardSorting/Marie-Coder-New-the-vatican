@@ -1,0 +1,705 @@
+
+> @noorm/marie-cli@0.1.14 lint
+> eslint src tests
+
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/components/App.tsx
+   37:5   warning  'createSession' is assigned a value but never used                                                                                                                                           @typescript-eslint/no-unused-vars
+   38:5   warning  'loadSession' is assigned a value but never used                                                                                                                                             @typescript-eslint/no-unused-vars
+  190:22  error    React Hook "useStdout" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/components/ChatArea.tsx
+  46:9  warning  'availableHeight' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/components/InputArea.tsx
+  65:3   warning  'suggestions' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  70:11  warning  'exit' is assigned a value but never used                                               @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/components/MessageBubble.tsx
+  58:10  warning  'truncateContent' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/components/SessionSwitcher.tsx
+  24:3   warning  'onDelete' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  25:3   warning  'onRename' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  26:3   warning  'onTogglePin' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  29:16  warning  'setMode' is assigned a value but never used                                   @typescript-eslint/no-unused-vars
+  30:27  warning  'setSessionToDelete' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/hooks/useMarie.ts
+   18:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  295:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  316:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/cli-new/types/cli.ts
+   1:10  warning  'RunTelemetry' is defined but never used  @typescript-eslint/no-unused-vars
+  98:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/extension.ts
+   63:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  342:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  350:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  504:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/adapters/CliMarieAdapter.ts
+   1:10  warning  'MarieCallbacks' is defined but never used  @typescript-eslint/no-unused-vars
+  32:47  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  36:47  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  84:71  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/adapters/VscodeMarieAdapter.ts
+   2:10  warning  'MarieCallbacks' is defined but never used  @typescript-eslint/no-unused-vars
+  35:47  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  37:54  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  43:47  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/cli/CliFileSystemPort.ts
+   24:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/cli/MarieToolDefinitionsCLI.ts
+   34:16  warning  'writeFile' is defined but never used     @typescript-eslint/no-unused-vars
+   54:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  245:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  273:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  295:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  320:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  356:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  358:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/cli/services/JoyAutomationServiceCLI.ts
+  87:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/cli/storage.ts
+   83:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/domain/joy/JoyTools.ts
+   34:12  warning  'e' is defined but never used                @typescript-eslint/no-unused-vars
+  144:11  warning  'editor' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  155:15  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  674:14  warning  'e' is defined but never used                @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/domain/joy/RitualService.ts
+  1:13  warning  'path' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/domain/marie/MarieTypes.ts
+   92:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  261:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  273:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/agents/MarieAscendant.ts
+   51:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  207:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/context/ContextArchiveService.ts
+  58:14  warning  'e' is defined but never used    @typescript-eslint/no-unused-vars
+  87:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/context/ContextManager.ts
+   22:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   44:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   48:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieEngine.ts
+   52:54  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   88:15  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   90:31  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  142:15  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  144:31  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  154:28  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  161:49  warning  'eventCount' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  260:35  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  261:46  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  262:29  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  269:42  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  354:35  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  360:9   warning  'lastTokenTime' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+  441:17  warning  'index' is assigned a value but never used                                    @typescript-eslint/no-unused-vars
+  619:47  warning  'input' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  619:54  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  638:5   warning  'toolName' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  639:5   warning  'cache' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  639:24  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  640:6   warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  668:30  warning  'tracker' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  668:61  warning  'messages' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  668:71  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieEventDispatcher.ts
+   52:37  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+   52:42  warning  'run' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   52:47  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+   79:34  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+   79:44  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+  123:34  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+  123:39  warning  'run' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  123:44  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+  171:30  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieLockManager.ts
+    4:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    5:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   44:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieProgressTracker.ts
+   60:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  207:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  221:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  222:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  227:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  233:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  234:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  239:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieResponse.ts
+    8:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   11:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   33:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   70:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   78:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieSanitizer.ts
+  16:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieSession.ts
+   23:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   24:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   37:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   70:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  162:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  165:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  231:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  234:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  236:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieStabilityMonitor.ts
+  33:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieToolMender.ts
+  34:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/core/MarieToolProcessor.ts
+   24:10  warning  'RitualService' is defined but never used                                     @typescript-eslint/no-unused-vars
+   27:10  warning  'MarieGhostService' is defined but never used                                 @typescript-eslint/no-unused-vars
+   32:3   warning  'restoreFile' is defined but never used                                       @typescript-eslint/no-unused-vars
+   50:14  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   58:50  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   61:19  warning  'start_line' is assigned a value but never used                               @typescript-eslint/no-unused-vars
+   61:31  warning  'end_line' is assigned a value but never used                                 @typescript-eslint/no-unused-vars
+   61:66  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  445:41  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  487:11  warning  'normalized' is assigned a value but never used                               @typescript-eslint/no-unused-vars
+  503:54  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  504:11  warning  'run' is assigned a value but never used                                      @typescript-eslint/no-unused-vars
+  523:31  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  589:52  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  641:5   warning  'toolResult' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/providers/AIProvider.ts
+  40:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/providers/CerebrasProvider.ts
+   28:38  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   35:49  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   76:36  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   92:36  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  145:35  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  172:21  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  197:37  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  197:45  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  202:15  warning  'content' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  202:49  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  209:23  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  210:20  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  215:15  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  234:32  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  234:40  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/ai/providers/OpenRouterProvider.ts
+   93:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:16  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  292:24  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  326:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  336:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  341:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  435:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  455:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  459:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/config/ConfigService.ts
+   6:10  warning  'fileURLToPath' is defined but never used  @typescript-eslint/no-unused-vars
+  49:34  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  50:41  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/services/MarieMemoryStore.ts
+  28:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/tools/MarieToolDefinitions.ts
+    14:3   warning  'generateTidyChecklist' is defined but never used                             @typescript-eslint/no-unused-vars
+    24:3   warning  'getFileHistory' is defined but never used                                    @typescript-eslint/no-unused-vars
+    36:3   warning  'ProgressUpdate' is defined but never used                                    @typescript-eslint/no-unused-vars
+    39:10  warning  'RitualService' is defined but never used                                     @typescript-eslint/no-unused-vars
+   166:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   166:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   224:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   224:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   245:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   245:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   269:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   269:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   275:45  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   292:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   292:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   320:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   320:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   342:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   342:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   359:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   359:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   392:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   392:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   404:14  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   407:25  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   408:22  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+   445:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   445:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   487:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   487:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   512:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   512:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   583:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   583:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   643:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   643:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   674:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   674:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   715:20  warning  'e' is defined but never used                                                 @typescript-eslint/no-unused-vars
+   747:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   747:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   812:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   812:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   857:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   857:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   999:18  warning  'e' is defined but never used                                                 @typescript-eslint/no-unused-vars
+  1024:17  warning  'workspaceEdit' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+  1073:23  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1098:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1098:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1133:16  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1172:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1172:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1218:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1218:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1264:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1264:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1305:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1305:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1317:28  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1357:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1357:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1385:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1385:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1497:70  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1503:13  warning  'currentLayerIndex' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+  1518:60  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1589:12  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1615:14  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1618:17  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1623:20  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1733:31  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1735:12  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1833:27  warning  'onProgress' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1833:39  warning  'signal' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1849:23  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  1902:12  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/infrastructure/tools/SharedToolDefinitions.ts
+  367:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/analysis/DependencyService.ts
+   1:13  warning  'vscode' is defined but never used                                       @typescript-eslint/no-unused-vars
+  55:5   warning  'fileA' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  56:5   warning  'fileB' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/analysis/DiscoveryService.ts
+  1:13  warning  'vscode' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/analysis/LintService.ts
+    4:13  warning  'fs' is defined but never used               @typescript-eslint/no-unused-vars
+   27:15  warning  'stdout' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   27:23  warning  'stderr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   29:17  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+   52:17  warning  'stdout' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   52:25  warning  'stderr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   57:19  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+   87:19  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  108:51  error    Unnecessary escape character: \/             no-useless-escape
+  123:52  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  138:50  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  153:54  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/analysis/QualityGuardrailService.ts
+  1:23  warning  'LintError' is defined but never used          @typescript-eslint/no-unused-vars
+  2:23  warning  'TriageReport' is defined but never used       @typescript-eslint/no-unused-vars
+  3:29  warning  'ComplexityMetrics' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/analysis/TestService.ts
+  45:21  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  68:11  warning  'testPattern' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  86:19  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/filesystem/FileService.ts
+   81:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  208:16  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  290:16  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  386:14  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  419:18  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  559:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/git/GitService.ts
+  74:12  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/terminal/TerminalService.ts
+    7:7   warning  'execAsync' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   34:44  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   75:23  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  127:18  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  136:20  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  139:22  warning  'e2' is defined but never used                  @typescript-eslint/no-unused-vars
+  187:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  207:16  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/utils/JsonUtils.ts
+    7:10  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   17:42  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   93:15  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  101:46  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  122:13  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  145:39  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  196:14  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  237:18  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  282:44  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  308:28  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  343:11  warning  'lastBrace' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  387:14  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  394:44  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/utils/RetryUtils.ts
+  113:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/plumbing/utils/StringUtils.ts
+  72:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/runtime/MarieRuntime.ts
+   27:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   77:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  288:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  307:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  371:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  423:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  461:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/runtime/types.ts
+  21:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/services/HealthService.ts
+  15:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  24:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  31:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/services/JoyAutomationService.ts
+    2:13  warning  'path' is defined but never used                   @typescript-eslint/no-unused-vars
+    6:3   warning  'synthesizeZoneManuals' is defined but never used  @typescript-eslint/no-unused-vars
+   12:3   warning  'generateJoyDashboard' is defined but never used   @typescript-eslint/no-unused-vars
+   13:3   warning  'generateTidyChecklist' is defined but never used  @typescript-eslint/no-unused-vars
+   80:13  warning  'scaffolded' is assigned a value but never used    @typescript-eslint/no-unused-vars
+   83:13  warning  'clustering' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  109:17  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/services/JoyService.ts
+    4:3   warning  'HealthReport' is defined but never used  @typescript-eslint/no-unused-vars
+  186:14  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  248:16  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  271:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/tests/StreamingVerifyTest.ts
+  34:15  warning  'p' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  34:18  warning  'sig' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  35:18  warning  'q' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  35:21  warning  'p' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  35:24  warning  'sig' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  39:24  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+  69:10  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/monolith/tests/VisualProgressTest.ts
+   3:13  warning  'os' is defined but never used                                         @typescript-eslint/no-unused-vars
+  28:15  warning  'p' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  28:18  warning  'sig' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  29:18  warning  'q' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  29:21  warning  'p' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  29:24  warning  'sig' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  33:20  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+  80:10  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/test_content_buffer_cap.ts
+  22:9  warning  'tracker' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/test_retry_utils.ts
+    9:16  warning  'sleep' is defined but never used         @typescript-eslint/no-unused-vars
+   33:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   61:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   84:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  107:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  107:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  127:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  153:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/webview-ui/components/ChatPanel.tsx
+  199:19  warning  'roleLabel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  205:55  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/webview-ui/components/HeaderBar.tsx
+  56:9  warning  The 'closeConfig' function makes the dependencies of useEffect Hook (at line 91) change on every render. To fix this, wrap the definition of 'closeConfig' in its own useCallback() Hook   react-hooks/exhaustive-deps
+  69:9  warning  The 'commitModel' function makes the dependencies of useEffect Hook (at line 107) change on every render. To fix this, wrap the definition of 'commitModel' in its own useCallback() Hook  react-hooks/exhaustive-deps
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/webview-ui/components/SessionList.tsx
+  6:3  warning  'MascotIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/src/webview-ui/context/WebviewStateContext.tsx
+  304:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_joy_services.ts
+    4:3   warning  'JoyScoreEvent' is defined but never used  @typescript-eslint/no-unused-vars
+  117:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  159:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  197:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  257:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  274:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  320:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  343:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  369:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  395:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  413:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_marie_cli.ts
+  104:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_marie_lock_manager.ts
+    9:7   warning  'read1Done' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   10:7   warning  'read2Done' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   78:3   warning  'writeStarted' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  122:23  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  158:21  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  167:22  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_marie_progress_tracker.ts
+   61:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_marie_state_machine.ts
+   21:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   21:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   22:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   34:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   62:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_production_guardrails.ts
+  27:17  error  Parsing error: Unterminated string literal
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_self_healing_logic.ts
+   4:13  warning  'vscode' is defined but never used        @typescript-eslint/no-unused-vars
+   9:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_singularity_autonomy.ts
+  29:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  71:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_storage.ts
+    7:7   warning  '__dirname' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   58:26  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   75:30  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   91:37  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  120:35  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  219:40  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_strategy_engine.ts
+   15:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   28:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   30:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  193:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  276:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_tool_definitions.ts
+  54:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/cli/test_zenith_autonomy.ts
+  12:12  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  17:10  warning  'ContextArchiveService' is defined but never used  @typescript-eslint/no-unused-vars
+  23:9   warning  'joyService' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  23:45  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  25:11  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  36:10  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  39:40  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  39:51  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  57:14  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  74:14  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  77:30  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  78:9   warning  'anchorEvent' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  79:9   warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/extension/suite/automation_service.test.ts
+  18:15  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  19:18  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  19:31  warning  'value' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  19:38  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  22:15  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  23:18  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  23:31  warning  'value' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  23:38  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  26:10  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/extension/suite/engine_logic.test.ts
+  29:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/extension/suite/joy_service.test.ts
+  17:15  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  18:18  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  18:31  warning  'value' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  18:38  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  21:15  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  22:18  warning  'key' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  22:31  warning  'value' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  22:38  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+  24:10  warning  Unexpected any. Specify a different type                                 @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/extension/suite/runtime.test.ts
+   2:13  warning  'vscode' is defined but never used        @typescript-eslint/no-unused-vars
+   7:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/mocks/MockAIProvider.ts
+   9:26  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  10:29  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  14:33  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  18:49  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  48:12  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  63:5   warning  'signal' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/test_neural_dispatch.ts
+   1:13  warning  'assert' is defined but never used                                      @typescript-eslint/no-unused-vars
+  12:13  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  14:14  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  43:52  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  47:18  warning  'text' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  54:18  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  67:41  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  68:28  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  75:51  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  78:18  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+
+/Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/tests/test_omni_merge.ts
+   12:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   14:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 538 problems (3 errors, 535 warnings)
+

@@ -61,7 +61,9 @@ export const Header: React.FC<HeaderProps> = ({
               {formatModelName(model)}
             </Text>
             <Text color={marieTheme.colors.muted}>
-              {autonomyMode === "ascension" ? "ASC" : autonomyMode.toUpperCase()}
+              {autonomyMode === "ascension"
+                ? "ASC"
+                : autonomyMode.toUpperCase()}
             </Text>
           </Box>
         </Box>
@@ -69,7 +71,10 @@ export const Header: React.FC<HeaderProps> = ({
         {currentThought && isLoading && (
           <Box marginTop={0}>
             <Text color={marieTheme.colors.info} italic dimColor>
-              💭 {currentThought.length > 80 ? currentThought.substring(0, 77) + "..." : currentThought}
+              💭{" "}
+              {currentThought.length > 80
+                ? currentThought.substring(0, 77) + "..."
+                : currentThought}
             </Text>
           </Box>
         )}
