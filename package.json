@@ -1,7 +1,7 @@
 {
   "name": "@noorm/marie-cli",
   "displayName": "Marie CLI",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "A sentient AI pair programmer for your terminal",
   "publisher": "cardsorting",
   "author": "CardSorting <https://github.com/CardSorting>",

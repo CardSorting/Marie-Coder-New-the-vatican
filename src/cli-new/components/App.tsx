@@ -31,6 +31,7 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
     streamingState,
     pendingApproval,
     runElapsedMs,
+    currentThought,
     sendMessage,
     stopGeneration,
     createSession,
@@ -197,6 +198,7 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
         isLoading={isLoading}
         elapsedMs={runElapsedMs}
         autonomyMode={autonomyMode}
+        currentThought={currentThought}
       />
 
       {pendingApproval && <ApprovalDialog request={pendingApproval} />}

@@ -174,6 +174,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     );
   }
 
+  const streamingToolName = message.activeToolName;
+  const streamingToolBuffer = message.toolStreamingBuffer;
+  const activeFilePath = message.activeFilePath;
+
   return (
     <Box
       flexDirection="column"
@@ -192,6 +196,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <Text color={marieTheme.colors.muted}>
               {" "}
               {marieTheme.icons.spinner}
+            </Text>
+          )}
+          {activeFilePath && (
+            <Text color={marieTheme.colors.info} dimColor>
+              {" "}
+              {marieTheme.icons.file} {activeFilePath}
             </Text>
           )}
         </Box>
@@ -240,7 +250,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           ));
         })}
 
-        {isStreaming && <Text color={marieTheme.colors.primary}>▊</Text>}
+        {isStreaming && !streamingToolBuffer && (
+          <Text color={marieTheme.colors.primary}>▊</Text>
+        )}
+
+        {isStreaming && streamingToolBuffer && (
+          <Box
+            flexDirection="column"
+            marginY={1}
+            paddingX={1}
+            borderStyle="single"
+            borderColor={marieTheme.colors.warning}
+          >
+            <Box>
+              <Text color={marieTheme.colors.warning}>
+                {marieTheme.icons.tool} {streamingToolName || "Executing Technique..."}
+              </Text>
+              <Text color={marieTheme.colors.muted}> {marieTheme.icons.spinner}</Text>
+            </Box>
+            <Text color={marieTheme.colors.muted}>
+              {streamingToolBuffer.slice(-200)}
+            </Text>
+          </Box>
+        )}
       </Box>
 
       {message.toolCalls &&

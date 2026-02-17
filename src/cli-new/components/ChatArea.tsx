@@ -74,6 +74,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
       {streamingState.isActive &&
         (streamingState.content ||
+          streamingState.toolStreamingBuffer ||
           (streamingState.toolCalls &&
             streamingState.toolCalls.length > 0)) && (
           <MessageBubble
@@ -84,6 +85,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               timestamp: stableTimestamp,
               isStreaming: true,
               toolCalls: streamingState.toolCalls,
+              toolStreamingBuffer: streamingState.toolStreamingBuffer,
+              activeToolName: streamingState.activeToolName,
+              activeFilePath: streamingState.activeFilePath,
             }}
             isStreaming={true}
           />

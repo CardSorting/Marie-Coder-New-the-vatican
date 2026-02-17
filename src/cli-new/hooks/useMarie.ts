@@ -17,6 +17,7 @@ export function useMarie(options: UseMarieOptions) {
   });
   const [currentRun, setCurrentRun] = useState<any>(null);
   const [runElapsedMs, setRunElapsedMs] = useState(0);
+  const [currentThought, setCurrentThought] = useState<string>("");
   const currentToolCallsRef = useRef<ToolCall[]>([]);
 
   const upsertToolCall = useCallback((nextTool: ToolCall) => {
@@ -112,6 +113,7 @@ export function useMarie(options: UseMarieOptions) {
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
       currentToolCallsRef.current = [];
+      setCurrentThought("");
       setStreamingState({ isActive: true, content: "", toolCalls: [] });
 
       const callbacks: MarieCallbacks = {
@@ -131,6 +133,7 @@ export function useMarie(options: UseMarieOptions) {
           setStreamingState((prev) => ({
             ...prev,
             toolCall,
+            toolStreamingBuffer: "", // Clear buffer when a formal tool call starts
             toolCalls: [
               ...(prev.toolCalls || []).filter((t) => t.id !== toolCall.id),
               toolCall,
@@ -139,17 +142,34 @@ export function useMarie(options: UseMarieOptions) {
           upsertToolCall(toolCall);
         },
         onToolDelta: (delta: any) => {
-          // Handle tool execution updates
+          setStreamingState((prev) => ({
+            ...prev,
+            toolStreamingBuffer: (prev.toolStreamingBuffer || "") + (delta.inputDelta || ""),
+            activeToolName: delta.name || prev.activeToolName,
+          }));
         },
         onEvent: (event: any) => {
           if (event.type === "run_started") {
             setCurrentRun(event);
             setRunElapsedMs(0);
-          } else if (
-            event.type === "progress_update" &&
-            typeof event.elapsedMs === "number"
-          ) {
-            setRunElapsedMs(event.elapsedMs);
+          } else if (event.type === "progress_update") {
+            if (typeof event.elapsedMs === "number") {
+              setRunElapsedMs(event.elapsedMs);
+            }
+            if (event.activeFilePath) {
+              setStreamingState((prev) => ({
+                ...prev,
+                activeFilePath: event.activeFilePath,
+              }));
+            }
+          } else if (event.type === "tool_delta") {
+            setStreamingState((prev) => ({
+              ...prev,
+              toolStreamingBuffer: (prev.toolStreamingBuffer || "") + (event.inputDelta || ""),
+              activeToolName: event.name || prev.activeToolName,
+            }));
+          } else if (event.type === "reasoning") {
+            setCurrentThought(event.text || "");
           } else if (event.type === "tool") {
             const phase = event.phase as
               | ToolCall["status"]
@@ -243,6 +263,7 @@ export function useMarie(options: UseMarieOptions) {
         currentToolCallsRef.current = [];
         setCurrentRun(null);
         setRunElapsedMs(0);
+        setCurrentThought("");
       }
     },
     [isLoading, upsertToolCall],
@@ -255,6 +276,7 @@ export function useMarie(options: UseMarieOptions) {
     currentToolCallsRef.current = [];
     setCurrentRun(null);
     setRunElapsedMs(0);
+    setCurrentThought("");
   }, []);
 
   const createSession = useCallback(async () => {
@@ -291,6 +313,7 @@ export function useMarie(options: UseMarieOptions) {
     currentRun,
     pendingApproval: null as any, // TODO: Implement approval state if needed
     runElapsedMs,
+    currentThought,
     sendMessage,
     stopGeneration,
     createSession,

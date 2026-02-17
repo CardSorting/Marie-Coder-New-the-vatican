@@ -245,6 +245,19 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             );
             return;
           }
+          if (runtimeEvent?.type === "reasoning") {
+            // Push important reasoning as system messages for opportunistic feedback
+            setState((prev) => ({
+              ...prev,
+              stageSummary: runtimeEvent.text || prev.stageSummary,
+            }));
+            
+            // If it's a decree or a high-value thought, add to logs
+            if (runtimeEvent.text?.includes("Decree") || runtimeEvent.text?.includes("VOW") || runtimeEvent.text?.includes("ZENITH")) {
+               addMessage("system", runtimeEvent.text);
+            }
+            return;
+          }
 
           return;
         }

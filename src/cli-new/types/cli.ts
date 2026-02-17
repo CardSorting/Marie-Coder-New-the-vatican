@@ -7,6 +7,9 @@ export interface Message {
   timestamp: number;
   isStreaming?: boolean;
   toolCalls?: ToolCall[];
+  toolStreamingBuffer?: string;
+  activeToolName?: string;
+  activeFilePath?: string;
 }
 
 export interface ToolCall {
@@ -46,6 +49,9 @@ export interface StreamingState {
   content: string;
   toolCall?: ToolCall;
   toolCalls?: ToolCall[];
+  toolStreamingBuffer?: string;
+  activeToolName?: string;
+  activeFilePath?: string;
 }
 
 export interface Theme {

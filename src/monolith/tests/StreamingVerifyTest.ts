@@ -15,9 +15,8 @@ async function verifyStreaming() {
   );
   fs.mkdirSync(workingDir, { recursive: true });
 
-  const logService = SessionLogService.getInstance();
   const sessionId = `test_streaming_${Date.now()}`;
-  logService.initializeSession(sessionId);
+  const logService = new SessionLogService(sessionId);
 
   console.log(
     `Starting streaming & persistence verification for session: ${sessionId}`,

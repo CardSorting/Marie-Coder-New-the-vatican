@@ -10,6 +10,7 @@ interface HeaderProps {
   isLoading: boolean;
   elapsedMs?: number;
   autonomyMode?: "balanced" | "high" | "ascension";
+  currentThought?: string;
 }
 
 function formatElapsed(ms: number): string {
@@ -26,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   isLoading,
   elapsedMs = 0,
   autonomyMode = "ascension",
+  currentThought = "",
 }) => {
   const formatModelName = (m: string) => {
     if (m.includes("claude")) return "Claude";
@@ -41,26 +43,36 @@ export const Header: React.FC<HeaderProps> = ({
       paddingX={1}
       marginBottom={0}
     >
-      <Box justifyContent="space-between">
-        <Box>
-          <Text color={marieTheme.colors.primary} bold>
-            {marieTheme.icons.assistant} Marie
-          </Text>
-          <Text color={marieTheme.colors.muted}> v0.2.0</Text>
-        </Box>
-        <Box gap={2}>
-          {isLoading && (
-            <Text color={marieTheme.colors.warning}>
-              {marieTheme.icons.spinner} {formatElapsed(elapsedMs)}
+      <Box flexDirection="column">
+        <Box justifyContent="space-between">
+          <Box>
+            <Text color={marieTheme.colors.primary} bold>
+              {marieTheme.icons.assistant} Marie
             </Text>
-          )}
-          <Text color={marieTheme.colors.secondary}>
-            {formatModelName(model)}
-          </Text>
-          <Text color={marieTheme.colors.muted}>
-            {autonomyMode === "ascension" ? "ASC" : autonomyMode.toUpperCase()}
-          </Text>
+            <Text color={marieTheme.colors.muted}> v0.2.0</Text>
+          </Box>
+          <Box gap={2}>
+            {isLoading && (
+              <Text color={marieTheme.colors.warning}>
+                {marieTheme.icons.spinner} {formatElapsed(elapsedMs)}
+              </Text>
+            )}
+            <Text color={marieTheme.colors.secondary}>
+              {formatModelName(model)}
+            </Text>
+            <Text color={marieTheme.colors.muted}>
+              {autonomyMode === "ascension" ? "ASC" : autonomyMode.toUpperCase()}
+            </Text>
+          </Box>
         </Box>
+
+        {currentThought && isLoading && (
+          <Box marginTop={0}>
+            <Text color={marieTheme.colors.info} italic dimColor>
+              💭 {currentThought.length > 80 ? currentThought.substring(0, 77) + "..." : currentThought}
+            </Text>
+          </Box>
+        )}
       </Box>
 
       <Box justifyContent="space-between" marginTop={0}>
