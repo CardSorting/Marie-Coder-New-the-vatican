@@ -3,6 +3,7 @@ import { MarieEngine } from "../infrastructure/ai/core/MarieEngine.js";
 import { MarieProgressTracker } from "../infrastructure/ai/core/MarieProgressTracker.js";
 import { MarieResponse } from "../infrastructure/ai/core/MarieResponse.js";
 import { StringUtils } from "../plumbing/utils/StringUtils.js";
+import { MarieMutex } from "../plumbing/utils/MutexUtils.js";
 import {
   ApprovalRequest,
   MarieCallbacks,
@@ -23,6 +24,12 @@ interface PendingApproval {
   timestamp: number;
 }
 
+export type MarieRuntimeState = {
+  messages: any[];
+  currentSessionId: string;
+  sequenceNumber: number;
+};
+
 export class MarieRuntime<
   TAutomation extends RuntimeAutomationPort,
 > implements RuntimeMessageHandler {
@@ -31,12 +38,16 @@ export class MarieRuntime<
   private toolRegistry: ToolRegistry;
   private currentSessionId: string = "default";
   private messages: any[] = [];
+  private sequenceNumber: number = 0;
   private abortController: AbortController | null = null;
   private currentRun: RunTelemetry | undefined;
   private readonly initPromise: Promise<void>;
   private pendingApprovals = new Map<string, PendingApproval>();
-  private processingLock: Promise<any> = Promise.resolve();
-  private persistenceLock: Promise<any> = Promise.resolve();
+  
+  private readonly processingMutex = new MarieMutex("ProcessingLock");
+  private readonly persistenceMutex = new MarieMutex("PersistenceLock");
+
+  private onStateChangedCallbacks: ((state: MarieRuntimeState) => void)[] = [];
 
   constructor(private readonly options: RuntimeOptions<TAutomation>) {
 
@@ -82,12 +93,34 @@ export class MarieRuntime<
     this.messages = historyMap[this.currentSessionId] || [];
   }
 
+  public onStateChanged(callback: (state: MarieRuntimeState) => void): () => void {
+    this.onStateChangedCallbacks.push(callback);
+    return () => {
+      this.onStateChangedCallbacks = this.onStateChangedCallbacks.filter(c => c !== callback);
+    };
+  }
+
+  private emitStateChanged(): void {
+    const state: MarieRuntimeState = {
+      messages: [...this.messages],
+      currentSessionId: this.currentSessionId,
+      sequenceNumber: ++this.sequenceNumber,
+    };
+    for (const callback of this.onStateChangedCallbacks) {
+      try {
+        callback(state);
+      } catch (e) {
+        console.error("[MarieRuntime] Error in state change callback", e);
+      }
+    }
+  }
+
   private async saveHistory(
     telemetry?: any,
     specificSessionId?: string,
     runStartTime?: number,
   ): Promise<void> {
-    const unlock = await this.acquirePersistenceLock();
+    const unlock = await this.persistenceMutex.acquire();
     try {
       if (this.messages.length > 50) {
         this.messages = this.messages.slice(this.messages.length - 50);
@@ -152,6 +185,10 @@ export class MarieRuntime<
           telemetry === null ? undefined : telemetry,
         );
       }
+      
+      if (sid === this.currentSessionId) {
+        this.emitStateChanged();
+      }
     } finally {
       unlock();
     }
@@ -215,7 +252,7 @@ export class MarieRuntime<
     let shouldLoadFirst = false;
     let shouldCreateNew = false;
 
-    const unlock = await this.acquirePersistenceLock();
+    const unlock = await this.persistenceMutex.acquire();
     try {
       if (this.currentSessionId === id) {
         this.stopGeneration();
@@ -250,7 +287,7 @@ export class MarieRuntime<
   }
 
   public async renameSession(id: string, newTitle: string): Promise<void> {
-    const unlock = await this.acquirePersistenceLock();
+    const unlock = await this.persistenceMutex.acquire();
     try {
       await this.ensureInitialized();
       const sessionMetadata =
@@ -266,7 +303,7 @@ export class MarieRuntime<
   }
 
   public async togglePinSession(id: string): Promise<void> {
-    const unlock = await this.acquirePersistenceLock();
+    const unlock = await this.persistenceMutex.acquire();
     try {
       await this.ensureInitialized();
       const sessionMetadata =
@@ -285,7 +322,7 @@ export class MarieRuntime<
     text: string,
     callbacks?: MarieCallbacks,
   ): Promise<string> {
-    const unlock = await this.acquireProcessingLock();
+    const unlock = await this.processingMutex.acquire();
     try {
       await this.ensureInitialized();
 
@@ -531,30 +568,10 @@ export class MarieRuntime<
     return true;
   }
 
-  private async acquireProcessingLock(): Promise<() => void> {
-    const currentTask = this.processingLock;
-    let resolver: (value: void) => void;
-    this.processingLock = new Promise((resolve) => {
-      resolver = resolve;
-    });
-    await currentTask;
-    return () => resolver(undefined);
-  }
-
-  private async acquirePersistenceLock(): Promise<() => void> {
-    const currentTask = this.persistenceLock;
-    let resolver: (value: void) => void;
-    this.persistenceLock = new Promise((resolve) => {
-      resolver = resolve;
-    });
-    await currentTask;
-    return () => resolver(undefined);
-  }
-
-
   public dispose(): void {
 
     this.stopGeneration();
     this.options.automationService.dispose?.();
   }
 }
+

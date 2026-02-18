@@ -1,6 +1,6 @@
 import { MarieCallbacks, RunTelemetry } from "../domain/marie/MarieTypes.js";
 import { RuntimeAutomationPort, SessionMetadata } from "./types.js";
-import { MarieRuntime } from "./MarieRuntime.js";
+import { MarieRuntime, MarieRuntimeState } from "./MarieRuntime.js";
 
 /**
  * Shared adapter surface for runtime-backed entry points (CLI / VSCode).
@@ -12,6 +12,10 @@ export abstract class RuntimeAdapterBase<
   protected constructor(
     protected readonly runtime: MarieRuntime<TAutomation>,
   ) {}
+
+  public onStateChanged(callback: (state: MarieRuntimeState) => void): () => void {
+    return this.runtime.onStateChanged(callback);
+  }
 
   public async createSession() {
     return this.runtime.createSession();

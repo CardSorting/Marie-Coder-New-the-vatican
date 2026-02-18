@@ -145,6 +145,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WebviewState>(initialState);
 
   const stateRef = useRef(state);
+  const sequenceRef = useRef(0);
 
   useEffect(() => {
     stateRef.current = state;
@@ -164,6 +165,14 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
       switch (message?.type) {
         case "init_state":
+          if (message.state?.sequenceNumber !== undefined) {
+            if (message.state.sequenceNumber < sequenceRef.current) {
+              console.log(`[Webview] Ignoring stale state update: ${message.state.sequenceNumber} < ${sequenceRef.current}`);
+              return;
+            }
+            sequenceRef.current = message.state.sequenceNumber;
+          }
+
           setState((prev) => ({
             ...prev,
             messages: Array.isArray(message.state?.messages)

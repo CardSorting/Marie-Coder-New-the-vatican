@@ -18,11 +18,16 @@ type UiMessage = {
 
 class MarieWebviewHost {
   private webviews = new Set<vscode.Webview>();
+  private stateSubscription: (() => void) | undefined;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly marieInstance: Marie,
-  ) { }
+  ) {
+    this.stateSubscription = this.marieInstance.onStateChanged((state) => {
+      this.pushState(state);
+    });
+  }
 
   public attach(webview: vscode.Webview): void {
     console.log("[MarieHost] Attaching new webview");
@@ -54,17 +59,48 @@ class MarieWebviewHost {
     webview.html = this.getHtml(webview);
     webview.onDidReceiveMessage((message) => this.onMessage(message));
 
-    this.pushInitState().catch(() => undefined);
+    // Refined: push initial state ONLY to this webview immediately after attach
+    this.pushInitState(webview).catch(() => undefined);
   }
 
   public detach(webview: vscode.Webview): void {
     this.webviews.delete(webview);
   }
 
+  public dispose(): void {
+    if (this.stateSubscription) {
+      this.stateSubscription();
+      this.stateSubscription = undefined;
+    }
+  }
+
   private post(message: any): void {
     for (const webview of this.webviews) {
       void webview.postMessage(message);
     }
+  }
+
+  private async pushState(runtimeState: any): Promise<void> {
+    const config = this.getConfigSnapshot();
+    const sessions = await this.marieInstance.listSessions();
+    const uiMessages = runtimeState.messages.map((message: any, index: number) => ({
+      id: `hist_${index}`,
+      role: (message.role || "assistant") as UiMessage["role"],
+      content: this.extractMessageText(message),
+      timestamp: message.timestamp || Date.now(),
+    }));
+
+    this.post({
+      type: "init_state",
+      state: {
+        messages: uiMessages,
+        config: config,
+        currentSessionId: runtimeState.currentSessionId,
+        sessions: sessions,
+        availableModels: await this.marieInstance.getModels(),
+        sequenceNumber: runtimeState.sequenceNumber,
+      },
+    });
   }
 
   private async onMessage(message: any): Promise<void> {
@@ -532,10 +568,14 @@ export function deactivate() {
     mariePanel = undefined;
   }
 
+  if (webviewHost) {
+    webviewHost.dispose();
+    webviewHost = undefined;
+  }
+
   if (marie) {
     marie.dispose();
     marie = undefined;
   }
-  webviewHost = undefined;
   joyService = undefined;
 }
