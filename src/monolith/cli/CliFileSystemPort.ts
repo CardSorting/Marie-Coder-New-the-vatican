@@ -109,7 +109,8 @@ export class CliFileSystemPort implements FileSystemPort {
     }
   }
 
-  async deleteFile(filePath: string): Promise<void> {
+  async deleteFile(filePath: string, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) throw new Error("Aborted");
     try {
       await fs.rm(this.resolve(filePath), { force: true });
     } catch (error: any) {
@@ -117,9 +118,10 @@ export class CliFileSystemPort implements FileSystemPort {
     }
   }
 
-  async backupFile(filePath: string): Promise<void> {
+  async backupFile(filePath: string, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) throw new Error("Aborted");
     try {
-      const content = await this.readFile(filePath);
+      const content = await this.readFile(filePath, signal);
       this.backups.set(filePath, content);
     } catch {
       // If file doesn't exist, we'll store null/empty to represent "delete on rollback"
@@ -127,26 +129,28 @@ export class CliFileSystemPort implements FileSystemPort {
     }
   }
 
-  async restoreFile(filePath: string): Promise<void> {
+  async restoreFile(filePath: string, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) throw new Error("Aborted");
     const content = this.backups.get(filePath);
     if (content === undefined) return;
 
     if (content === "__NON_EXISTENT__") {
       try {
-        await this.deleteFile(filePath);
+        await this.deleteFile(filePath, signal);
       } catch {
         // Ignore errors during restore-delete
       }
     } else {
-      await this.writeFile(filePath, content);
+      await this.writeFile(filePath, content, signal);
     }
     this.backups.delete(filePath);
   }
 
-  async rollbackAll(): Promise<void> {
+  async rollbackAll(signal?: AbortSignal): Promise<void> {
     const paths = Array.from(this.backups.keys());
     for (const p of paths) {
-      await this.restoreFile(p);
+      if (signal?.aborted) throw new Error("Aborted");
+      await this.restoreFile(p, signal);
     }
     this.backups.clear();
   }

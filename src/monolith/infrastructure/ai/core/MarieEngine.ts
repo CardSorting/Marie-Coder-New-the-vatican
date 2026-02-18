@@ -147,6 +147,9 @@ export class MarieEngine {
     depth: number = 0,
     accumulatedContent: string = "",
   ): Promise<string> {
+    if (signal?.aborted) {
+      throw new Error("Execution aborted by user.");
+    }
     const pulse = this.ensurePulseService(tracker);
 
     // Initialize incremental logging
@@ -326,7 +329,13 @@ export class MarieEngine {
           this.handleFailure(tracker, toolCall.name, toolResult, targetFile);
           turnFailureCount++;
         } else {
-          this.handleSuccess(tracker, toolCall.name, durationMs, targetFile);
+          this.handleSuccess(
+            tracker,
+            toolCall.name,
+            durationMs,
+            targetFile,
+            signal,
+          );
         }
 
         this.toolCallCounter++;
@@ -421,11 +430,18 @@ export class MarieEngine {
                 signal,
                 tracker.getRun().runId,
               );
-              return await executeTool({
+              const promise = executeTool({
                 id: tb.id,
                 name: tb.name,
                 input,
               });
+              this.lockManager.registerExecution(
+                target,
+                isWrite,
+                promise,
+                tracker.getRun().runId,
+              );
+              return await promise;
             })();
             toolExecutions.push(executionPromise);
           }
@@ -464,7 +480,14 @@ export class MarieEngine {
               signal,
               tracker.getRun().runId,
             );
-            return await executeTool({ id: tb.id, name: tb.name, input });
+            const promise = executeTool({ id: tb.id, name: tb.name, input });
+            this.lockManager.registerExecution(
+              target,
+              isWrite,
+              promise,
+              tracker.getRun().runId,
+            );
+            return await promise;
           })();
           toolExecutions.push(executionPromise);
         }
@@ -486,6 +509,10 @@ export class MarieEngine {
     toolResultBlocks.push(...results);
 
     await this.lockManager.waitForAll();
+
+    if (signal?.aborted) {
+      throw new Error("Execution aborted by user after tool execution.");
+    }
 
     // Final tool processing if results were returned
     if (totalToolCount > 0) {
@@ -546,6 +573,7 @@ export class MarieEngine {
     toolName: string,
     durationMs: number,
     filePath?: string,
+    signal?: AbortSignal,
   ) {
     this.state.victoryStreak++;
     this.state.totalErrorCount = 0;
@@ -573,7 +601,7 @@ export class MarieEngine {
       if (this.state.recentFiles.length > 10) this.state.recentFiles.shift();
 
       // ZENITH AUTONOMY: Proactive Context Anchoring
-      this.proactiveContextAnchoring(filePath, tracker);
+      this.proactiveContextAnchoring(filePath, tracker, signal);
     }
   }
 
@@ -726,17 +754,20 @@ export class MarieEngine {
   private async proactiveContextAnchoring(
     filePath: string,
     tracker: MarieProgressTracker,
+    signal?: AbortSignal,
   ) {
     // Only anchor critical files
     const isCritical = /Domain|Config|Service|Interface|types/i.test(filePath);
     if (isCritical) {
       try {
+        if (signal?.aborted) return;
         const { ContextArchiveService } =
           await import("../../../infrastructure/ai/context/ContextArchiveService.js");
         const { readFile } =
           await import("../../../plumbing/filesystem/FileService.js");
-        const content = await readFile(filePath);
+        const content = await readFile(filePath, undefined, undefined, signal);
 
+        if (signal?.aborted) return;
         await ContextArchiveService.getInstance().anchor({
           id: `proactive_${filePath.split("/").pop()}`,
           label: `Strategic: ${filePath.split("/").pop()}`,
@@ -744,6 +775,7 @@ export class MarieEngine {
           type: "file_ref",
         });
 
+        if (signal?.aborted) return;
         tracker.emitEvent({
           type: "reasoning",
           runId: tracker.getRun().runId,

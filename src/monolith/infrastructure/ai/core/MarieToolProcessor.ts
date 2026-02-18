@@ -162,14 +162,14 @@ export class MarieToolProcessor {
         if (execFile && typeof execFile === "string") {
           impactedFiles.push(execFile);
           if (this.fs) {
-            await this.fs.backupFile(execFile);
+            await this.fs.backupFile(execFile, signal);
           }
         }
         // Custom handling for multi-file tools
         if (name === "execute_semantic_move" && input.dest) {
           impactedFiles.push(input.dest);
           if (this.fs) {
-            await this.fs.backupFile(input.dest);
+            await this.fs.backupFile(input.dest, signal);
           }
         }
       }
@@ -302,8 +302,9 @@ export class MarieToolProcessor {
           this.runZoningSentinel(
             execFile,
             typeof result === "string" ? result : undefined,
+            signal,
           ),
-          this.runBuildSentinel(execFile),
+          this.runBuildSentinel(execFile, signal),
         ]);
 
         if (zoningAlert) {
@@ -330,9 +331,9 @@ export class MarieToolProcessor {
           `[Marie] Initiating systemic rollback for tool failure: ${name}`,
         );
         if (this.fs) {
-          await this.fs.rollbackAll();
+          await this.fs.rollbackAll(signal);
         } else {
-          await rollbackAll();
+          await rollbackAll(signal);
         }
       } catch (restoreError) {
         console.error(`[Marie] Transactional recovery failed: ${restoreError}`);
@@ -641,13 +642,15 @@ export class MarieToolProcessor {
   private async runZoningSentinel(
     filePath: string,
     toolResult?: string,
+    signal?: AbortSignal,
   ): Promise<string | null> {
     try {
+      if (signal?.aborted) return null;
       const { detectMigrationNeeds } =
         await import("../../../plumbing/analysis/CodeHealthService.js");
       const { readFile } =
         await import("../../../plumbing/filesystem/FileService.js");
-      const content = await readFile(filePath);
+      const content = await readFile(filePath, undefined, undefined, signal);
 
       const { shouldMigrate, targetZone, reason } = detectMigrationNeeds(
         filePath,
@@ -679,12 +682,16 @@ export class MarieToolProcessor {
     }
   }
 
-  private async runBuildSentinel(filePath: string): Promise<string | null> {
+  private async runBuildSentinel(
+    filePath: string,
+    signal?: AbortSignal,
+  ): Promise<string | null> {
     const vscode = getVscode();
     const workingDir =
       vscode?.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
 
     try {
+      if (signal?.aborted) return null;
       const { QualityGuardrailService } =
         await import("../../../plumbing/analysis/QualityGuardrailService.js");
 

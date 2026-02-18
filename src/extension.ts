@@ -297,29 +297,31 @@ class MarieWebviewHost {
     this.post({ type: "models", models: await this.marieInstance.getModels() });
   }
 
-  private async pushInitState(): Promise<void> {
+  private async pushInitState(targetWebview?: vscode.Webview): Promise<void> {
     console.log("[MarieHost] Pushing initial state...");
     const config = this.getConfigSnapshot();
     const messages = this.getUiMessages();
-    const sessions = await this.marieInstance.listSessions(); // Changed from getSessions() to listSessions() to match existing API
+    const sessions = await this.marieInstance.listSessions();
     const currentSessionId = this.marieInstance.getCurrentSessionId();
 
-    console.log("[MarieHost] State ready, posting...", {
-      msgCount: messages.length,
-      sessionCount: sessions.length,
-    });
-
-    this.post({
+    const payload = {
       type: "init_state",
       state: {
         messages: messages,
         config: config,
         currentSessionId: currentSessionId,
         sessions: sessions,
-        availableModels: await this.marieInstance.getModels(), // Consolidate models here
+        availableModels: await this.marieInstance.getModels(),
       },
-    });
+    };
+
+    if (targetWebview) {
+      void targetWebview.postMessage(payload);
+    } else {
+      this.post(payload);
+    }
   }
+
 
   private async pushSessions(): Promise<void> {
     const sessions = await this.marieInstance.listSessions();
@@ -438,7 +440,9 @@ class MarieSidebarProvider implements vscode.WebviewViewProvider {
 
   resolveWebviewView(webviewView: vscode.WebviewView): void | Thenable<void> {
     webviewHost?.attach(webviewView.webview);
+    webviewHost?.["pushInitState"]?.(webviewView.webview);
     webviewView.onDidDispose(() => {
+
       webviewHost?.detach(webviewView.webview);
     });
   }
@@ -458,10 +462,12 @@ function showMarieWebview(
     vscode.ViewColumn.Beside,
     {
       enableScripts: true,
-      retainContextWhenHidden: false,
+      retainContextWhenHidden: true,
     },
   );
   webviewHost?.attach(mariePanel.webview);
+  webviewHost?.["pushInitState"]?.(mariePanel.webview);
+
 
   mariePanel.onDidDispose(
     () => {

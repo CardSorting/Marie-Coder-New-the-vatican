@@ -38,20 +38,20 @@ export class VscodeFileSystemPort implements FileSystemPort {
     return appendToFile(path, content, signal, onProgress);
   }
 
-  async deleteFile(path: string): Promise<void> {
-    return deleteFile(path);
+  async deleteFile(path: string, signal?: AbortSignal): Promise<void> {
+    return deleteFile(path, signal);
   }
 
-  async backupFile(path: string): Promise<void> {
-    return backupFile(path);
+  async backupFile(path: string, signal?: AbortSignal): Promise<void> {
+    return backupFile(path, signal);
   }
 
-  async restoreFile(path: string): Promise<void> {
-    return restoreFile(path);
+  async restoreFile(path: string, signal?: AbortSignal): Promise<void> {
+    return restoreFile(path, signal);
   }
 
-  async rollbackAll(): Promise<void> {
-    return rollbackAll();
+  async rollbackAll(signal?: AbortSignal): Promise<void> {
+    return rollbackAll(signal);
   }
 
   clearBackups(): void {

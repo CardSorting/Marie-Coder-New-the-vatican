@@ -305,7 +305,12 @@ export async function appendToFile(
   }
 }
 
-export async function deleteFile(filePath: string): Promise<void> {
+export async function deleteFile(
+  filePath: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted)
+    throw new Error(`AbortError: Delete of ${filePath} aborted.`);
   const uri = resolvePath(filePath);
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (workspaceFolders && workspaceFolders.length > 0) {
@@ -445,7 +450,10 @@ export async function replaceInFile(
   filePath: string,
   search: string,
   replace: string,
+  signal?: AbortSignal,
 ): Promise<string> {
+  if (signal?.aborted)
+    throw new Error(`AbortError: Replace in ${filePath} aborted.`);
   const uri = resolvePath(filePath);
   const lock = getLock(uri.fsPath);
 
@@ -463,6 +471,8 @@ export async function replaceInFile(
         `Ambiguous replacement: Search term found ${occurrences} times in ${filePath}. Please provide more context (neighboring lines) to ensure surgical precision.`,
       );
     }
+
+    if (signal?.aborted) throw new Error("Aborted");
 
     const index = text.indexOf(search);
     const startPos = doc.positionAt(index);
@@ -522,6 +532,7 @@ export async function listFiles(
     const entries = await vscode.workspace.fs.readDirectory(uri);
     const results = await Promise.all(
       entries.map(async ([name, type]) => {
+        if (signal?.aborted) return "";
         const fullUri = vscode.Uri.file(path.join(uri.fsPath, name));
         let size = 0;
         if (type === vscode.FileType.File) {
@@ -542,7 +553,9 @@ export async function listFiles(
       }),
     );
 
-    return results.join("\n") || "Directory is empty.";
+    if (signal?.aborted) return "Operation aborted.";
+
+    return results.filter(Boolean).join("\n") || "Directory is empty.";
   } catch (error) {
     throw new Error(`Failed to list files in ${dirPath}: ${error}`);
   } finally {
@@ -552,9 +565,12 @@ export async function listFiles(
 /**
  * Capture a file's content in memory before a destructive operation.
  */
-export async function backupFile(filePath: string): Promise<void> {
+export async function backupFile(
+  filePath: string,
+  signal?: AbortSignal,
+): Promise<void> {
   try {
-    const content = await readFile(filePath);
+    const content = await readFile(filePath, undefined, undefined, signal);
     backups.set(filePath, content);
   } catch (e) {
     // If file doesn't exist, we'll store null/empty to represent "delete on rollback"
@@ -565,26 +581,30 @@ export async function backupFile(filePath: string): Promise<void> {
 /**
  * Restore a file from the memory backup.
  */
-export async function restoreFile(filePath: string): Promise<void> {
+export async function restoreFile(
+  filePath: string,
+  signal?: AbortSignal,
+): Promise<void> {
   const content = backups.get(filePath);
   if (content === undefined) return;
 
   if (content === "__NON_EXISTENT__") {
     try {
-      await deleteFile(filePath);
+      await deleteFile(filePath, signal);
     } catch {
       // Ignore errors during restore-delete
     }
   } else {
-    await writeFile(filePath, content);
+    await writeFile(filePath, content, signal);
   }
   backups.delete(filePath);
 }
 
-export async function rollbackAll(): Promise<void> {
+export async function rollbackAll(signal?: AbortSignal): Promise<void> {
   const paths = Array.from(backups.keys());
   for (const p of paths) {
-    await restoreFile(p);
+    if (signal?.aborted) break;
+    await restoreFile(p, signal);
   }
   backups.clear();
 }

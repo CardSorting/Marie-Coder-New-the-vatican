@@ -17,10 +17,10 @@ export interface FileSystemPort {
     signal?: AbortSignal,
     onProgress?: (bytes: number, totalBytes?: number) => void,
   ): Promise<void>;
-  deleteFile(path: string): Promise<void>;
-  backupFile(path: string): Promise<void>;
-  restoreFile(path: string): Promise<void>;
-  rollbackAll(): Promise<void>;
+  deleteFile(path: string, signal?: AbortSignal): Promise<void>;
+  backupFile(path: string, signal?: AbortSignal): Promise<void>;
+  restoreFile(path: string, signal?: AbortSignal): Promise<void>;
+  rollbackAll(signal?: AbortSignal): Promise<void>;
   clearBackups(): void;
   readonly type: string;
 }

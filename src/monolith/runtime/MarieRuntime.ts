@@ -17,6 +17,12 @@ import {
   SessionMetadata,
 } from "./types.js";
 
+interface PendingApproval {
+  resolve: (approved: boolean) => void;
+  toolName: string;
+  timestamp: number;
+}
+
 export class MarieRuntime<
   TAutomation extends RuntimeAutomationPort,
 > implements RuntimeMessageHandler {
@@ -28,9 +34,12 @@ export class MarieRuntime<
   private abortController: AbortController | null = null;
   private currentRun: RunTelemetry | undefined;
   private readonly initPromise: Promise<void>;
-  private pendingApprovals = new Map<string, (approved: boolean) => void>();
+  private pendingApprovals = new Map<string, PendingApproval>();
+  private processingLock: Promise<any> = Promise.resolve();
+  private persistenceLock: Promise<any> = Promise.resolve();
 
   constructor(private readonly options: RuntimeOptions<TAutomation>) {
+
     this.toolRegistry = new ToolRegistry();
     this.options.toolRegistrar(
       this.toolRegistry,
@@ -78,71 +87,78 @@ export class MarieRuntime<
     specificSessionId?: string,
     runStartTime?: number,
   ): Promise<void> {
-    if (this.messages.length > 50) {
-      this.messages = this.messages.slice(this.messages.length - 50);
-    }
-
-    const sid = specificSessionId || this.currentSessionId;
-    const historyMap = await this.options.sessionStore.getSessions();
-
-    const currentSessionMatches = sid === this.currentSessionId;
-    const isSessionStillValid = runStartTime ? true : currentSessionMatches;
-
-    if (sid === this.currentSessionId && isSessionStillValid) {
-      historyMap[sid] = this.messages;
-    } else {
-      if (!historyMap[sid]) {
-        historyMap[sid] = [];
+    const unlock = await this.acquirePersistenceLock();
+    try {
+      if (this.messages.length > 50) {
+        this.messages = this.messages.slice(this.messages.length - 50);
       }
-    }
 
-    await this.options.sessionStore.saveSessions(historyMap);
 
-    const sessionMetadata =
-      await this.options.sessionStore.getSessionMetadata();
-    const index = sessionMetadata.findIndex(
-      (s: SessionMetadata) => s.id === sid,
-    );
+      const sid = specificSessionId || this.currentSessionId;
+      const historyMap = await this.options.sessionStore.getSessions();
 
-    const targetMessages =
-      sid === this.currentSessionId ? this.messages : historyMap[sid];
-    const firstMsg =
-      targetMessages && targetMessages.length > 0
-        ? targetMessages[0].content
-        : "";
-    const title =
-      targetMessages && targetMessages.length > 0
-        ? this.generateSessionTitle(firstMsg)
-        : "New Session";
+      const currentSessionMatches = sid === this.currentSessionId;
+      const isSessionStillValid = runStartTime ? true : currentSessionMatches;
 
-    if (index >= 0) {
-      sessionMetadata[index].lastModified = Date.now();
-      if (sessionMetadata[index].title === "New Session") {
-        sessionMetadata[index].title = title;
+      if (sid === this.currentSessionId && isSessionStillValid) {
+        historyMap[sid] = this.messages;
+      } else {
+        if (!historyMap[sid]) {
+          historyMap[sid] = [];
+        }
       }
-    } else if (sid !== "default") {
-      sessionMetadata.unshift({
-        id: sid,
-        title,
-        lastModified: Date.now(),
-        isPinned: false,
-      });
-    }
 
-    await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+      await this.options.sessionStore.saveSessions(historyMap);
 
-    if (sid === this.currentSessionId) {
-      await this.options.sessionStore.setCurrentSessionId(sid);
-    }
-
-    if (telemetry !== undefined) {
-      await this.options.sessionStore.setLastTelemetry(
-        telemetry === null ? undefined : telemetry,
+      const sessionMetadata =
+        await this.options.sessionStore.getSessionMetadata();
+      const index = sessionMetadata.findIndex(
+        (s: SessionMetadata) => s.id === sid,
       );
+
+      const targetMessages =
+        sid === this.currentSessionId ? this.messages : historyMap[sid];
+      const firstMsg =
+        targetMessages && targetMessages.length > 0
+          ? targetMessages[0].content
+          : "";
+      const title =
+        targetMessages && targetMessages.length > 0
+          ? this.generateSessionTitle(firstMsg)
+          : "New Session";
+
+      if (index >= 0) {
+        sessionMetadata[index].lastModified = Date.now();
+        if (sessionMetadata[index].title === "New Session") {
+          sessionMetadata[index].title = title;
+        }
+      } else if (sid !== "default") {
+        sessionMetadata.unshift({
+          id: sid,
+          title,
+          lastModified: Date.now(),
+          isPinned: false,
+        });
+      }
+
+      await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+
+      if (sid === this.currentSessionId) {
+        await this.options.sessionStore.setCurrentSessionId(sid);
+      }
+
+      if (telemetry !== undefined) {
+        await this.options.sessionStore.setLastTelemetry(
+          telemetry === null ? undefined : telemetry,
+        );
+      }
+    } finally {
+      unlock();
     }
   }
 
   private generateSessionTitle(firstMessage: any): string {
+
     const response = MarieResponse.wrap(firstMessage);
     const text = response.getText();
 
@@ -195,47 +211,73 @@ export class MarieRuntime<
 
   public async deleteSession(id: string): Promise<void> {
     await this.ensureInitialized();
-    if (this.currentSessionId === id) {
-      this.stopGeneration();
+    let firstSessionId: string | undefined;
+    let shouldLoadFirst = false;
+    let shouldCreateNew = false;
+
+    const unlock = await this.acquirePersistenceLock();
+    try {
+      if (this.currentSessionId === id) {
+        this.stopGeneration();
+      }
+
+      const historyMap = await this.options.sessionStore.getSessions();
+      delete historyMap[id];
+      await this.options.sessionStore.saveSessions(historyMap);
+
+      const sessionMetadata =
+        await this.options.sessionStore.getSessionMetadata();
+      const filteredMetadata = sessionMetadata.filter((s) => s.id !== id);
+      await this.options.sessionStore.saveSessionMetadata(filteredMetadata);
+
+      if (this.currentSessionId === id) {
+        if (filteredMetadata.length > 0) {
+          shouldLoadFirst = true;
+          firstSessionId = filteredMetadata[0].id;
+        } else {
+          shouldCreateNew = true;
+        }
+      }
+    } finally {
+      unlock();
     }
 
-    const historyMap = await this.options.sessionStore.getSessions();
-    delete historyMap[id];
-    await this.options.sessionStore.saveSessions(historyMap);
-
-    const sessionMetadata =
-      await this.options.sessionStore.getSessionMetadata();
-    const filteredMetadata = sessionMetadata.filter((s) => s.id !== id);
-    await this.options.sessionStore.saveSessionMetadata(filteredMetadata);
-
-    if (this.currentSessionId === id) {
-      if (filteredMetadata.length > 0) {
-        await this.loadSession(filteredMetadata[0].id);
-      } else {
-        await this.createSession();
-      }
+    if (shouldLoadFirst && firstSessionId) {
+      await this.loadSession(firstSessionId);
+    } else if (shouldCreateNew) {
+      await this.createSession();
     }
   }
 
   public async renameSession(id: string, newTitle: string): Promise<void> {
-    await this.ensureInitialized();
-    const sessionMetadata =
-      await this.options.sessionStore.getSessionMetadata();
-    const index = sessionMetadata.findIndex((s) => s.id === id);
-    if (index >= 0) {
-      sessionMetadata[index].title = newTitle;
-      await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+    const unlock = await this.acquirePersistenceLock();
+    try {
+      await this.ensureInitialized();
+      const sessionMetadata =
+        await this.options.sessionStore.getSessionMetadata();
+      const index = sessionMetadata.findIndex((s) => s.id === id);
+      if (index >= 0) {
+        sessionMetadata[index].title = newTitle;
+        await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+      }
+    } finally {
+      unlock();
     }
   }
 
   public async togglePinSession(id: string): Promise<void> {
-    await this.ensureInitialized();
-    const sessionMetadata =
-      await this.options.sessionStore.getSessionMetadata();
-    const index = sessionMetadata.findIndex((s) => s.id === id);
-    if (index >= 0) {
-      sessionMetadata[index].isPinned = !sessionMetadata[index].isPinned;
-      await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+    const unlock = await this.acquirePersistenceLock();
+    try {
+      await this.ensureInitialized();
+      const sessionMetadata =
+        await this.options.sessionStore.getSessionMetadata();
+      const index = sessionMetadata.findIndex((s) => s.id === id);
+      if (index >= 0) {
+        sessionMetadata[index].isPinned = !sessionMetadata[index].isPinned;
+        await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+      }
+    } finally {
+      unlock();
     }
   }
 
@@ -243,163 +285,174 @@ export class MarieRuntime<
     text: string,
     callbacks?: MarieCallbacks,
   ): Promise<string> {
-    await this.ensureInitialized();
-    this.initializeProvider();
+    const unlock = await this.acquireProcessingLock();
+    try {
+      await this.ensureInitialized();
 
-    if (!this.provider) {
-      return "Please configure your API key for the selected provider.";
-    }
+      this.initializeProvider();
 
-    const lastTelemetry = await this.options.sessionStore.getLastTelemetry();
-    const originatingSessionId = this.currentSessionId;
-    const run: RunTelemetry = {
-      runId: `run_${Date.now()}`,
-      startedAt: Date.now(),
-      steps: 0,
-      tools: 0,
-      objectives: [
-        {
-          id: "understand_request",
-          label: "Understand request",
-          status: "in_progress",
-        },
-        { id: "execute_plan", label: "Execute plan", status: "pending" },
-        { id: "deliver_result", label: "Deliver result", status: "pending" },
-      ],
-      activeObjectiveId: "understand_request",
-      achieved: [],
-      currentPass: lastTelemetry?.currentPass,
-      totalPasses: lastTelemetry?.totalPasses,
-      passFocus: lastTelemetry?.passFocus,
-      isResuming: !!lastTelemetry,
-      originatingSessionId,
-    };
-
-    const tracker = new MarieProgressTracker(
-      {
-        ...callbacks,
-        onStream: (chunk) =>
-          callbacks?.onStream?.(chunk, run.runId, originatingSessionId),
-        onTool: (tool) =>
-          callbacks?.onTool?.(tool, run.runId, originatingSessionId),
-        onToolDelta: (delta) =>
-          callbacks?.onToolDelta?.(delta, run.runId, originatingSessionId),
-        onEvent: (event) => {
-          (event as any).originatingSessionId = originatingSessionId;
-          if (
-            event.type === "progress_update" ||
-            event.type === "session_persistence_update" ||
-            event.type === "file_stream_delta"
-          ) {
-            this.options.onProgressEvent?.(event);
-          }
-          callbacks?.onEvent?.(event);
-        },
-      },
-      run,
-    );
-
-    this.currentRun = run;
-    this.options.automationService.setCurrentRun(run);
-
-    const approvalRequester = async (
-      name: string,
-      input: any,
-      diff?: { old: string; new: string },
-    ): Promise<boolean> => {
-      if (this.options.shouldBypassApprovals?.()) {
-        return true;
+      if (!this.provider) {
+        return "Please configure your API key for the selected provider.";
       }
 
-      const request: ApprovalRequest = {
-        id: `approval_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        toolName: name,
-        toolInput: input,
-        diff,
+      const lastTelemetry = await this.options.sessionStore.getLastTelemetry();
+      const originatingSessionId = this.currentSessionId;
+      const run: RunTelemetry = {
+        runId: `run_${Date.now()}`,
+        startedAt: Date.now(),
+        steps: 0,
+        tools: 0,
+        objectives: [
+          {
+            id: "understand_request",
+            label: "Understand request",
+            status: "in_progress",
+          },
+          { id: "execute_plan", label: "Execute plan", status: "pending" },
+          { id: "deliver_result", label: "Deliver result", status: "pending" },
+        ],
+        activeObjectiveId: "understand_request",
+        achieved: [],
+        currentPass: lastTelemetry?.currentPass,
+        totalPasses: lastTelemetry?.totalPasses,
+        passFocus: lastTelemetry?.passFocus,
+        isResuming: !!lastTelemetry,
+        originatingSessionId,
       };
 
-      const hasHandlers = Boolean(
-        callbacks?.onApprovalRequest || this.options.onApprovalRequest,
-      );
-      if (!hasHandlers) {
-        return true;
-      }
-
-      const approvalPromise = new Promise<boolean>((resolve) => {
-        this.pendingApprovals.set(request.id, resolve);
-      });
-
-      callbacks?.onApprovalRequest?.(request, run.runId, originatingSessionId);
-      if (this.options.onApprovalRequest) {
-        void this.options.onApprovalRequest(request).then((approved) => {
-          this.resolveApproval(request.id, approved);
-        });
-      }
-
-      return approvalPromise;
-    };
-
-    const engine = new MarieEngine(
-      this.provider,
-      this.toolRegistry,
-      approvalRequester,
-      this.createProvider.bind(this),
-      this.options.fs,
-      this.options.ghostPort,
-    );
-
-    tracker.emitEvent({
-      type: "run_started",
-      runId: run.runId,
-      startedAt: run.startedAt,
-    });
-    tracker.emitProgressUpdate("Thinking...");
-
-    this.messages.push({ role: "user", content: text, timestamp: Date.now() });
-    await this.saveHistory();
-
-    if (this.abortController) {
-      this.abortController.abort();
-    }
-    this.abortController = new AbortController();
-    const runStartTime = Date.now();
-
-    try {
-      const response = await engine.chatLoop(
-        this.messages,
-        tracker,
-        (t: any) => this.saveHistory(t, originatingSessionId, runStartTime),
-        this.abortController.signal,
+      const tracker = new MarieProgressTracker(
+        {
+          ...callbacks,
+          onStream: (chunk) =>
+            callbacks?.onStream?.(chunk, run.runId, originatingSessionId),
+          onTool: (tool) =>
+            callbacks?.onTool?.(tool, run.runId, originatingSessionId),
+          onToolDelta: (delta) =>
+            callbacks?.onToolDelta?.(delta, run.runId, originatingSessionId),
+          onEvent: (event) => {
+            (event as any).originatingSessionId = originatingSessionId;
+            if (
+              event.type === "progress_update" ||
+              event.type === "session_persistence_update" ||
+              event.type === "file_stream_delta"
+            ) {
+              this.options.onProgressEvent?.(event);
+            }
+            callbacks?.onEvent?.(event);
+          },
+        },
+        run,
       );
 
-      if (this.messages.length >= 6 && this.messages.length <= 10) {
-        const sessionMetadata =
-          await this.options.sessionStore.getSessionMetadata();
-        const session = sessionMetadata.find(
-          (s) => s.id === this.currentSessionId,
-        );
-        if (
-          session &&
-          (session.title === "New Session" || session.title.length > 50)
-        ) {
-          this.summarizeSession(this.currentSessionId).catch(console.error);
+      this.currentRun = run;
+      this.options.automationService.setCurrentRun(run);
+
+      const approvalRequester = async (
+        name: string,
+        input: any,
+        diff?: { old: string; new: string },
+      ): Promise<boolean> => {
+        if (this.options.shouldBypassApprovals?.()) {
+          return true;
         }
-      }
 
-      return response;
-    } catch (error) {
+        const request: ApprovalRequest = {
+          id: `approval_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          toolName: name,
+          toolInput: input,
+          diff,
+        };
+
+        const hasHandlers = Boolean(
+          callbacks?.onApprovalRequest || this.options.onApprovalRequest,
+        );
+        if (!hasHandlers) {
+          return true;
+        }
+
+        const approvalPromise = new Promise<boolean>((resolve) => {
+          this.pendingApprovals.set(request.id, {
+            resolve,
+            toolName: name,
+            timestamp: Date.now(),
+          });
+        });
+
+        callbacks?.onApprovalRequest?.(request, run.runId, originatingSessionId);
+        if (this.options.onApprovalRequest) {
+          void this.options.onApprovalRequest(request).then((approved) => {
+            this.resolveApproval(request.id, approved);
+          });
+        }
+
+        return approvalPromise;
+      };
+
+      const engine = new MarieEngine(
+        this.provider,
+        this.toolRegistry,
+        approvalRequester,
+        this.createProvider.bind(this),
+        this.options.fs,
+        this.options.ghostPort,
+      );
+
       tracker.emitEvent({
-        type: "run_error",
+        type: "run_started",
         runId: run.runId,
-        elapsedMs: tracker.elapsedMs(),
-        message: String(error),
+        startedAt: run.startedAt,
       });
-      return `Error: ${error}`;
+      tracker.emitProgressUpdate("Thinking...");
+
+      this.messages.push({ role: "user", content: text, timestamp: Date.now() });
+      await this.saveHistory();
+
+      if (this.abortController) {
+        this.abortController.abort();
+      }
+      this.abortController = new AbortController();
+      const runStartTime = Date.now();
+
+      try {
+        const response = await engine.chatLoop(
+          this.messages,
+          tracker,
+          (t: any) => this.saveHistory(t, originatingSessionId, runStartTime),
+          this.abortController.signal,
+        );
+
+        if (this.messages.length >= 6 && this.messages.length <= 10) {
+          const sessionMetadata =
+            await this.options.sessionStore.getSessionMetadata();
+          const session = sessionMetadata.find(
+            (s) => s.id === this.currentSessionId,
+          );
+          if (
+            session &&
+            (session.title === "New Session" || session.title.length > 50)
+          ) {
+            this.summarizeSession(this.currentSessionId).catch(console.error);
+          }
+        }
+
+        return response;
+      } catch (error) {
+        tracker.emitEvent({
+          type: "run_error",
+          runId: run.runId,
+          elapsedMs: tracker.elapsedMs(),
+          message: String(error),
+        });
+        return `Error: ${error}`;
+      }
     } finally {
       this.abortController = null;
       this.currentRun = undefined;
+      unlock();
     }
   }
+
+
 
   private async summarizeSession(id: string): Promise<void> {
     this.initializeProvider();
@@ -420,8 +473,8 @@ export class MarieRuntime<
     try {
       const summary = await engine.chatLoop(
         [...messages, { role: "user", content: prompt }],
-        { emitProgressUpdate: () => {}, emitEvent: () => {} } as any,
-        async () => {},
+        { emitProgressUpdate: () => { }, emitEvent: () => { } } as any,
+        async () => { },
       );
 
       if (summary && typeof summary === "string" && summary.length < 60) {
@@ -471,14 +524,36 @@ export class MarieRuntime<
   }
 
   public resolveApproval(requestId: string, approved: boolean): boolean {
-    const resolver = this.pendingApprovals.get(requestId);
-    if (!resolver) return false;
+    const entry = this.pendingApprovals.get(requestId);
+    if (!entry) return false;
     this.pendingApprovals.delete(requestId);
-    resolver(approved);
+    entry.resolve(approved);
     return true;
   }
 
+  private async acquireProcessingLock(): Promise<() => void> {
+    const currentTask = this.processingLock;
+    let resolver: (value: void) => void;
+    this.processingLock = new Promise((resolve) => {
+      resolver = resolve;
+    });
+    await currentTask;
+    return () => resolver(undefined);
+  }
+
+  private async acquirePersistenceLock(): Promise<() => void> {
+    const currentTask = this.persistenceLock;
+    let resolver: (value: void) => void;
+    this.persistenceLock = new Promise((resolve) => {
+      resolver = resolve;
+    });
+    await currentTask;
+    return () => resolver(undefined);
+  }
+
+
   public dispose(): void {
+
     this.stopGeneration();
     this.options.automationService.dispose?.();
   }
