@@ -6,12 +6,13 @@ import { Composer } from "./components/Composer.js";
 import { HeaderBar } from "./components/HeaderBar.js";
 import { SessionList } from "./components/SessionList.js";
 import { useWebviewState } from "./context/WebviewStateContext.js";
+import { ErrorBoundary } from "./components/ErrorBoundary.js";
+
 
 function AppContent() {
   const { state, actions } = useWebviewState();
-  console.log("[Webview] Render AppContent", { msgCount: state.messages.length });
-  console.log("[Webview] Render AppContent (Provider State)", { hasConfig: !!state.config, hasSessions: !!state.sessions, hasMessages: state.messages.length });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
 
   const handleLoadSession = useCallback(
     (id: string) => {
@@ -124,7 +125,10 @@ function AppContent() {
 export default function App() {
   return (
     <Providers>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </Providers>
   );
 }
+

@@ -3,6 +3,8 @@ import { promisify } from "node:util";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
 
+import { getWorkspaceRoot } from "../utils/EnvironmentUtils.js";
+
 const execAsync = promisify(exec);
 
 export interface TriageReport {
@@ -19,10 +21,11 @@ export class TestService {
    */
   public static async runAndTriage(
     command: string,
-    cwd: string = process.cwd(),
+    cwd: string = getWorkspaceRoot(),
   ): Promise<string> {
     try {
       const { stdout, stderr } = await execAsync(command, { cwd });
+
       const rawOutput = stdout + stderr;
       const report = this.parseOutput(rawOutput);
 

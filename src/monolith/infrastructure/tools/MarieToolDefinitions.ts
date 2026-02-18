@@ -39,6 +39,7 @@ import { JoyAutomationService } from "../../services/JoyAutomationService.js";
 import { RitualService, JoyZone } from "../../domain/joy/RitualService.js";
 import { ContextArchiveService } from "../ai/context/ContextArchiveService.js";
 import { LintService } from "../../plumbing/analysis/LintService.js";
+import { getWorkspaceRoot } from "../../plumbing/utils/EnvironmentUtils.js";
 
 export function registerMarieTools(
   registry: ToolRegistry,
@@ -64,12 +65,12 @@ export function registerMarieTools(
       const mod = await import("../../plumbing/filesystem/FileService.js");
       return await mod.searchFiles(
         q,
-        p || vscode.workspace.workspaceFolders?.[0].uri.fsPath || "",
+        p || getWorkspaceRoot(),
         signal,
       );
     },
     getGitContext: async () => {
-      const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+      const root = getWorkspaceRoot();
       if (!root) return "No workspace detected.";
       const [status, staged, unstaged] = await Promise.all([
         gitStatus(root),
@@ -79,6 +80,7 @@ export function registerMarieTools(
       return `# Git Context\n\n## Status\n\`\`\`\n${status}\n\`\`\`\n\n## Staged Changes\n\`\`\`\n${staged}\n\`\`\`\n\n## Unstaged Changes\n\`\`\`\n${unstaged}\n\`\`\``;
     },
   });
+
 
   registry.register({
     name: "resolve_lint_errors",
@@ -98,10 +100,10 @@ export function registerMarieTools(
       },
     },
     execute: async (args) => {
-      const workingDir =
-        vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+      const workingDir = getWorkspaceRoot();
       const p = args.path as string | undefined;
       const cmd = (args.command as string) || "npm run lint";
+
 
       const errors = p
         ? await LintService.runLintOnFile(workingDir, p)
@@ -133,9 +135,9 @@ export function registerMarieTools(
     isDestructive: true,
     input_schema: { type: "object", properties: {} },
     execute: async () => {
-      const workingDir =
-        vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+      const workingDir = getWorkspaceRoot();
       const errors = await LintService.runLint(workingDir);
+
 
       if (errors.length === 0) {
         return "Marie's systemic audit found no regressions. Stability is absolute. ✨";
@@ -320,7 +322,7 @@ export function registerMarieTools(
     execute: async (args, onProgress, signal) => {
       const p = getStringArg(args, "path");
       const mod = await import("../../plumbing/git/GitService.js");
-      return await mod.getFileHistory(process.cwd(), p);
+      return await mod.getFileHistory(getWorkspaceRoot(), p);
     },
   });
 
@@ -414,10 +416,11 @@ export function registerMarieTools(
         const health = await checkCodeHealth(file);
         if (health.zoningHealth.isBackflowPresent) {
           violations.push(
-            `**${path.relative(process.cwd(), file)}**: ${health.zoningHealth.illegalImports.join(", ")}`,
+            `**${path.relative(getWorkspaceRoot(), file)}**: ${health.zoningHealth.illegalImports.join(", ")}`,
           );
         }
       }
+
 
       if (violations.length === 0)
         return `No architectural violations detected in ${files.length} file(s). The structure is pure. ✨`;
@@ -430,6 +433,7 @@ export function registerMarieTools(
       return result;
     },
   });
+
 
   registry.register({
     name: "extract_component_api",
@@ -539,9 +543,10 @@ export function registerMarieTools(
       "Generate a project-wide health report. Use this to identify 'Clutter Hotspots' and prioritize refactoring efforts.",
     input_schema: { type: "object", properties: {} },
     execute: async () => {
-      const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      const root = getWorkspaceRoot();
       if (!root) return "No workspace folder found.";
       const joyMap = await JoyMapService.generate(root);
+
       const run = automationService.getCurrentRun();
 
       let result = `# 🌟 Workspace Joy Map\n\n`;
@@ -616,8 +621,9 @@ export function registerMarieTools(
           const errors = diags.filter(
             (d) => d.severity === vscode.DiagnosticSeverity.Error,
           );
-          result += `- \`${path.relative(process.cwd(), file)}\`: ${errors.length > 0 ? `❌ ${errors.length} Error(s)` : `✅ Clean`}\n`;
+          result += `- \`${path.relative(getWorkspaceRoot(), file)}\`: ${errors.length > 0 ? `❌ ${errors.length} Error(s)` : `✅ Clean`}\n`;
         }
+
 
         return result;
       } catch (error) {
@@ -643,7 +649,8 @@ export function registerMarieTools(
     execute: async (args, onProgress, signal) => {
       const p = getStringArg(args, "path");
       const mod = await import("../../plumbing/git/GitService.js");
-      const history = await mod.getFileHistory(process.cwd(), p);
+      const history = await mod.getFileHistory(getWorkspaceRoot(), p);
+
 
       let result = `# 📜 Evolution Chronicle: ${path.basename(p)}\n\n`;
       result += `## Recent Trajectory\n`;
@@ -702,9 +709,10 @@ export function registerMarieTools(
       if (uniqueFiles.length > 0) {
         result += `## ⚠️ Potentially Broken Dependents (${uniqueFiles.length})\n`;
         for (const f of uniqueFiles) {
-          const relativePath = path.relative(process.cwd(), f);
+          const relativePath = path.relative(getWorkspaceRoot(), f);
           const fileLocations = locations.filter((l) => l.uri.fsPath === f);
           result += `- \`${relativePath}\`: Found ${fileLocations.length} reference(s)\n`;
+
 
           // Added: Sample context from the first reference in each file
           try {

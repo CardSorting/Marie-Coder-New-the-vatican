@@ -127,6 +127,7 @@ class MarieWebviewHost {
         }
         return;
       case "get_models":
+        // Models are now part of init_state, but we keep this for manual refreshes
         this.post({
           type: "models",
           models: await this.marieInstance.getModels(),
@@ -314,7 +315,8 @@ class MarieWebviewHost {
         messages: messages,
         config: config,
         currentSessionId: currentSessionId,
-        sessions: sessions, // Include sessions in init_state to avoid separate message
+        sessions: sessions,
+        availableModels: await this.marieInstance.getModels(), // Consolidate models here
       },
     });
   }

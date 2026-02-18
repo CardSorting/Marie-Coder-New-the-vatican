@@ -143,11 +143,7 @@ function newMessage(role: UiMessage["role"], content: string): UiMessage {
 
 export function WebviewStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WebviewState>(initialState);
-  console.log("[Webview] Render Provider", {
-    hasConfig: !!state.config,
-    hasSessions: !!state.sessions,
-    hasMessages: (state.messages || []).length,
-  });
+
   const stateRef = useRef(state);
 
   useEffect(() => {
@@ -164,7 +160,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       const message = event.data;
-      console.log("[Webview] Received message:", message?.type);
+
 
       switch (message?.type) {
         case "init_state":
@@ -177,6 +173,9 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             sessions: Array.isArray(message.state?.sessions)
               ? message.state.sessions
               : prev.sessions,
+            availableModels: Array.isArray(message.state?.availableModels)
+              ? message.state.availableModels
+              : prev.availableModels,
             currentSessionId:
               message.state?.currentSessionId || prev.currentSessionId,
             streamingBuffer: "",
@@ -184,6 +183,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             activeToolName: "",
             pendingApproval: null,
           }));
+
 
           return;
 
@@ -342,10 +342,9 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("message", onMessage);
     vscode.postMessage({ type: "ready" });
-    vscode.postMessage({ type: "list_sessions" });
-    vscode.postMessage({ type: "get_models" });
 
     return () => {
+
       window.removeEventListener("message", onMessage);
     };
   }, [addMessage]);

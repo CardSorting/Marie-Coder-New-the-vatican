@@ -42,3 +42,22 @@ export const nodeRequire = (() => {
         throw new Error(`Execution Environment Error: Cannot require "${id}". Environment is incompatible with module resolution.`);
     };
 })();
+
+/**
+ * Safely resolves the workspace root directory.
+ * In VS Code, it uses the first workspace folder.
+ * In CLI or tests, it defaults to the current working directory.
+ */
+export function getWorkspaceRoot(): string {
+    if (isVsCodeExtension()) {
+        try {
+            const vscode = nodeRequire("vscode") as typeof import("vscode");
+            const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            if (root) return root;
+        } catch {
+            // Fallback
+        }
+    }
+    return process.cwd();
+}
+
