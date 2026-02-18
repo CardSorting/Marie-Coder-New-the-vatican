@@ -4,9 +4,17 @@ import { marieTheme } from "../styles/theme.js";
 
 interface BannerProps {
   show?: boolean;
+  version?: string;
+  latestVersion?: string;
+  isUpdateAvailable?: boolean;
 }
 
-export const Banner: React.FC<BannerProps> = ({ show = true }) => {
+export const Banner: React.FC<BannerProps> = ({
+  show = true,
+  version = "v0.1.16",
+  latestVersion,
+  isUpdateAvailable = false,
+}) => {
   const { stdout } = useStdout();
   const width = stdout?.columns || 80;
 
@@ -14,7 +22,7 @@ export const Banner: React.FC<BannerProps> = ({ show = true }) => {
 
   // If screen is too small, use compact banner
   if (width < 65) {
-    return <CompactBanner />;
+    return <CompactBanner version={version} isUpdateAvailable={isUpdateAvailable} />;
   }
 
   return (
@@ -49,23 +57,37 @@ export const Banner: React.FC<BannerProps> = ({ show = true }) => {
             {"✦ AI Coding Assistant ✦ "}
           </Text>
           <Text color={marieTheme.colors.muted}>
-            {"v0.2.0 · Ready to help"}
+            {`${version} · Ready to help`}
           </Text>
         </Box>
+        {isUpdateAvailable && latestVersion && (
+          <Box marginTop={1} paddingX={1} borderStyle="round" borderColor="yellow">
+            <Text color="yellow">
+              {`Update Available: ${latestVersion}! Run `}
+              <Text bold color="white">
+                {"npm install -g @noorm/marie-cli"}
+              </Text>
+              <Text color="yellow">{" to update."}</Text>
+            </Text>
+          </Box>
+        )}
       </Box>
     </Box>
   );
 };
 
 // Alternative compact banner for smaller screens
-export const CompactBanner: React.FC = () => {
+export const CompactBanner: React.FC<{ version?: string; isUpdateAvailable?: boolean }> = ({
+  version = "v0.1.16",
+  isUpdateAvailable = false,
+}) => {
   return (
     <Box flexDirection="column" alignItems="center" marginY={0}>
       <Text color={marieTheme.colors.primary} bold>
         {"╔══════════════════════════════════════════╗"}
       </Text>
       <Text color={marieTheme.colors.primary} bold>
-        {"║  🌸  Marie  ·  AI Coding Assistant  🌸  ║"}
+        {`║  🌸  Marie  ·  ${version}${isUpdateAvailable ? " (Update Available!)" : ""}  🌸  ║`}
       </Text>
       <Text color={marieTheme.colors.primary} bold>
         {"╚══════════════════════════════════════════╝"}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Box, useApp, useInput, Text, useStdout } from "ink";
 import { Header } from "./Header.js";
 import { ChatArea } from "./ChatArea.js";
@@ -9,6 +9,7 @@ import { ApprovalDialog } from "./ApprovalDialog.js";
 import { useMarie } from "../hooks/useMarie.js";
 import { useSessions } from "../hooks/useSessions.js";
 import { useGit } from "../hooks/useGit.js";
+import { useUpdateCheck } from "../hooks/useUpdateCheck.js";
 import { ViewMode } from "../types/cli.js";
 import { marieTheme } from "../styles/theme.js";
 import { Storage } from "../../monolith/cli/storage.js";
@@ -54,6 +55,8 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
   const { gitStatus, createCheckpoint, undoLastCommit } = useGit({
     workingDir,
   });
+
+  const updateInfo = useUpdateCheck();
 
   // Get current session title
   const currentSession = sessions.find((s) => s.id === currentSessionId);
@@ -202,7 +205,12 @@ export const App: React.FC<AppProps> = ({ workingDir }) => {
 
       {pendingApproval && <ApprovalDialog request={pendingApproval} />}
 
-      {messages.length === 0 && !isLoading && <Banner />}
+      {messages.length === 0 && !isLoading && (
+        <Banner
+          isUpdateAvailable={updateInfo?.isUpdateAvailable}
+          latestVersion={updateInfo?.latestVersion}
+        />
+      )}
 
       <ChatArea messages={messages} streamingState={streamingState} />
 

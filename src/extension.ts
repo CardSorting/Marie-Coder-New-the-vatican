@@ -3,6 +3,7 @@ import { Marie } from "./monolith/adapters/VscodeMarieAdapter.js";
 import { JoyService } from "./monolith/services/JoyService.js";
 import { JoyLogService } from "./monolith/services/JoyLogService.js";
 import { ConfigService } from "./monolith/infrastructure/config/ConfigService.js";
+import { UpdateService } from "./monolith/services/UpdateService.js";
 
 let marie: Marie | undefined;
 let joyService: JoyService | undefined;
@@ -540,6 +541,28 @@ export function activate(context: vscode.ExtensionContext) {
 
   webviewHost = new MarieWebviewHost(context, marie);
   console.log("[Marie] MarieWebviewHost initialized");
+
+  // Check for updates
+  const currentVersion = context.extension.packageJSON.version;
+  UpdateService.checkUpdate(currentVersion).then((info) => {
+    if (info?.isUpdateAvailable) {
+      vscode.window
+        .showInformationMessage(
+          `A new version of Marie (${info.latestVersion}) is available.`,
+          "Update Now",
+          "View Release Notes",
+        )
+        .then((selection) => {
+          if (selection === "Update Now" || selection === "View Release Notes") {
+            vscode.env.openExternal(
+              vscode.Uri.parse(
+                "https://github.com/DreamBeesAI/Marie-Coder-New-the-vatican/releases",
+              ),
+            );
+          }
+        });
+    }
+  });
 
   // Register commands
   const disposable = vscode.commands.registerCommand("marie.start", () => {
