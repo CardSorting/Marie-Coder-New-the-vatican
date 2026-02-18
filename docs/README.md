@@ -11,9 +11,10 @@ Welcome to the heart of the MarieCoder project. This garden of knowledge is desi
 - **[Contributing](CONTRIBUTING.md)**: How to nurture the garden together.
 - **[Troubleshooting](TROUBLESHOOTING.md)**: What to do when things don't spark joy.
 
-### 🏗️ Core Architecture
-- **[Architectural Overview](ARCHITECTURE.md)**: The "Downwards Flow Law" and Joy Zoning.
-- **[Joy Zoning Protocol](JOY_ZONING_GUIDE.md)**: Deep dive into the three zones (Domain, Infrastructure, Plumbing).
+### 🏗️ Core Components
+- **[ARCHITECTURE.md](file:///Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/docs/ARCHITECTURE.md)**: The structural law.
+- **[NAVIGATION_ARCHITECTURE.md](file:///Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/docs/NAVIGATION_ARCHITECTURE.md)**: Senior-level URL and routing strategy.
+- **[AGENT_STREAM_CONTROL_PLANE.md](file:///Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/docs/AGENT_STREAM_CONTROL_PLANE.md)**: How agents think and move.
 - **[Rituals & Memory](RITUALS_AND_MEMORY.md)**: Strategic context and gratefulness rituals.
 - **[Tidying & Health](TIDYING_GUIDE.md)**: Joy scores and the Tidying Checklist.
 - **[Living Project Lifecycle](LIVING_PROJECT.md)**: Understanding Sprouts, Blooms, and Compost.

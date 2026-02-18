@@ -1,7 +1,7 @@
 {
   "name": "@noorm/marie-cli",
   "displayName": "MarieCoder",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "icon": "assets/icon.png",
   "description": "A sentient AI pair programmer for your terminal",
   "publisher": "DreamBeesAI",
@@ -14,13 +14,6 @@
     "type": "git",
     "url": "git+https://github.com/DreamBeesAI/Marie-Coder-New-the-vatican.git"
   },
-  "files": [
-    "dist/cli-new",
-    "dist/monolith",
-    "README.md",
-    "LICENSE.md",
-    "JOY_ZONING.md"
-  ],
   "main": "dist/extension.cjs",
   "engines": {
     "vscode": "^1.95.0",

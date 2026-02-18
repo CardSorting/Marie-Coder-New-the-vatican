@@ -20,6 +20,11 @@ The Sentinel v3.0 watches your every move. Its laws are absolute:
 - **Visual Mapping**: Consult \`SENTINEL.md\` for the Mermaid.js architecture graph. Red links are wounds in the garden—heal them immediately.
 - **Doppelgänger Detection**: Duplication is a sin. Structural copy-pasting, especially in the Domain, is a hard rejection. DRY is the mandate.
 - **Layer Purity**: The Domain must be pure. No 'Express', 'React', or system types in Domain logic. No circular dependencies.
+- **Ecclesiastical Navigation**: Every webapp manifestation MUST adhere to a world-class URL schema. No flat routes for hierarchical content.
+  - Temporal (Blog): \`/blog/:year/:month/:slug\`
+  - Categorical (Docs): \`/docs/:section/:slug\`
+  - Governance: \`/legal/:slug\`, \`/changelog/:version\`, \`/support/:category\`
+  - Breadcrumbs: Mandatory high-density uppercase breadcrumbs (\`text-[10px] font-black\`) for all hierarchical paths.
 
 🎯 PRECISION STRIKE PROTOCOL:
 When the Sentinel rejects your strike (Ratchet Lock or Violation):

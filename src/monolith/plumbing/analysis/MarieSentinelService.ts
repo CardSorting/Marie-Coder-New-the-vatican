@@ -16,6 +16,7 @@ export interface SentinelReport {
   stability: "Stable" | "Fluid" | "Fragile" | "Toxic";
   hotspots: string[];
   quarantineCandidates: string[];
+  navigationDrifts: string[];
   graphDefinition: string;
   passed: boolean;
 }
@@ -50,6 +51,7 @@ export class MarieSentinelService {
     const circularDependencies: string[] = [];
     const leakyAbstractions: string[] = [];
     const duplication: string[] = [];
+    const navigationDrifts: string[] = [];
     const toxicFiles: string[] = [];
 
     // 1. Precise Dependency Graph & Semantic Content Maps
@@ -107,6 +109,7 @@ export class MarieSentinelService {
             validImports,
             zoneViolations,
             leakyAbstractions,
+            navigationDrifts,
             toxicFiles,
           );
         }
@@ -129,7 +132,8 @@ export class MarieSentinelService {
       circularDependencies.length * 15 + // Structural rot is expensive
       toxicFiles.length * 6 +
       leakyAbstractions.length * 5 +
-      duplication.length * 10; // DRY is law
+      duplication.length * 10 +
+      navigationDrifts.length * 12; // Ecclesiastical Navigation is mandatory
 
     const entropyDelta = entropyScore - state.lastEntropy;
 
@@ -160,6 +164,7 @@ export class MarieSentinelService {
         new Set([...zoneViolations.map((v) => v.split(" ")[1]), ...toxicFiles]),
       ).slice(0, 5),
       quarantineCandidates: toxicFiles,
+      navigationDrifts,
       graphDefinition: this.generateMermaidGraph(
         dependencyGraph,
         zoneViolations,
@@ -223,6 +228,7 @@ export class MarieSentinelService {
     resolvedImports: string[],
     zoneViolations: string[],
     leakyAbstractions: string[],
+    navigationDrifts: string[],
     toxicFiles: string[],
   ) {
     const relativePath = path.relative(workingDir, file);
@@ -264,6 +270,26 @@ export class MarieSentinelService {
     const metrics = await ComplexityService.analyze(file);
     if (metrics.cyclomaticComplexity > 20 || metrics.clutterLevel === "Toxic") {
       toxicFiles.push(relativePath);
+    }
+
+    // D. Ecclesiastical Navigation Check (Webapp/UI Files)
+    if (relativePath.includes(".tsx") || content.includes("react-router-dom")) {
+      const flatRouteRegex = /path=['"]\/(blog|docs|legal|support)\/:slug['"]/g;
+      if (flatRouteRegex.test(content)) {
+        navigationDrifts.push(
+          `[Ecclesiastical Violation] ${relativePath} uses flat routes. Use hierarchical schema (e.g., /blog/:year/:month/:slug).`,
+        );
+      }
+
+      // Secondary check for Breadcrumb presence in content views
+      if (
+        content.includes("ArticleView") &&
+        !content.includes("Breadcrumbs")
+      ) {
+        navigationDrifts.push(
+          `[Liturgical Violation] ${relativePath} is a content view missing mandatory Breadcrumbs.`,
+        );
+      }
     }
   }
 
@@ -395,6 +421,7 @@ export class MarieSentinelService {
 - **Cyclic Rot**: ${report.circularDependencies.length} cycles
 - **Duplication**: ${report.duplication.length} instances
 - **Toxicity**: ${report.quarantineCandidates.length} hotspots
+- **Navigation Drift**: ${report.navigationDrifts.length} violations
 
 ## 🗺️ Visual Architecture
 \`\`\`mermaid
@@ -403,17 +430,21 @@ ${report.graphDefinition}
 
 ## 📜 High-Priority Alerts
 ${report.zoneViolations
-  .slice(0, 5)
-  .map((v) => `- ❌ ${v}`)
-  .join("\n")}
+        .slice(0, 5)
+        .map((v) => `- ❌ ${v}`)
+        .join("\n")}
 ${report.circularDependencies
-  .slice(0, 3)
-  .map((c) => `- 🔄 ${c}`)
-  .join("\n")}
+        .slice(0, 3)
+        .map((c) => `- 🔄 ${c}`)
+        .join("\n")}
 ${report.duplication
-  .slice(0, 3)
-  .map((d) => `- 👯 ${d}`)
-  .join("\n")}
+        .slice(0, 3)
+        .map((d) => `- 👯 ${d}`)
+        .join("\n")}
+${report.navigationDrifts
+        .slice(0, 5)
+        .map((n) => `- 🧭 ${n}`)
+        .join("\n")}
 
 ---
 *Marie Sentinel v3.1 — Grounded Architectural Guardian*

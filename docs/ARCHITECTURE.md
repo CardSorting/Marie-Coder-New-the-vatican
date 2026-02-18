@@ -131,4 +131,11 @@ MarieYOLO emits a normalized decision payload including:
 - YOLO telemetry is included in runtime snapshots for observability.
 
 ---
+
+## 🧭 Navigation & URL Strategy
+
+Strategic navigation is governed by the **Ecclesiastical Hierarchy**. For detailed schema directives and breadcrumb standards, refer to:
+- [NAVIGATION_ARCHITECTURE.md](file:///Users/bozoegg/Downloads/Marie-Coder-New-the-vatican/docs/NAVIGATION_ARCHITECTURE.md)
+
+---
 *Verified and Documented with Love. ✨*
