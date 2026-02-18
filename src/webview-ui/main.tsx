@@ -1,5 +1,8 @@
+console.log("[Webview] main.tsx entry point hit");
 import { createRoot } from "react-dom/client";
+console.log("[Webview] react-dom/client imported");
 import App from "./App.js";
+console.log("[Webview] App component imported");
 
 import "./styles/theme.css";
 import "./styles/base.css";
@@ -28,6 +31,7 @@ function showFatalError(error: unknown): void {
 }
 
 try {
+  console.log("[Webview] Bootstrapping React app...");
   createRoot(getRootElement()).render(<App />);
 } catch (error) {
   showFatalError(error);

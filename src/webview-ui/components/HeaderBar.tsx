@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UiConfig } from "../types.js";
 import { CloseIcon, SettingsIcon } from "./Icons.js";
 
@@ -31,11 +31,11 @@ export function HeaderBar({
   const toastTimerRef = useRef<number | null>(null);
   const modelSaveTimerRef = useRef<number | null>(null);
 
-  const resetDrafts = () => {
+  const resetDrafts = useCallback(() => {
     setModelDraft(config.model);
     setProviderDraft(config.provider);
     setApiKeyDraft("");
-  };
+  }, [config.model, config.provider]);
 
   const showToast = (message: string, tone: "success" | "info" = "success") => {
     setToast({ message, tone });
@@ -53,7 +53,19 @@ export function HeaderBar({
     return Array.from(new Set(merged.filter(Boolean)));
   }, [availableModels, config.model]);
 
-  const closeConfig = () => {
+  const commitModel = useCallback(
+    (next: string, toastOnSave = true) => {
+      const trimmed = next.trim();
+      if (!trimmed || trimmed === config.model) return;
+      onModel(trimmed);
+      if (toastOnSave) {
+        showToast(`Model set to ${trimmed}`, "success");
+      }
+    },
+    [config.model, onModel],
+  );
+
+  const closeConfig = useCallback(() => {
     if (modelSaveTimerRef.current) {
       window.clearTimeout(modelSaveTimerRef.current);
       modelSaveTimerRef.current = null;
@@ -64,16 +76,8 @@ export function HeaderBar({
     }
     resetDrafts();
     setIsConfigOpen(false);
-  };
+  }, [modelDraft, config.model, commitModel, resetDrafts]);
 
-  const commitModel = (next: string, toastOnSave = true) => {
-    const trimmed = next.trim();
-    if (!trimmed || trimmed === config.model) return;
-    onModel(trimmed);
-    if (toastOnSave) {
-      showToast(`Model set to ${trimmed}`, "success");
-    }
-  };
 
   useEffect(() => {
     if (!isConfigOpen) return;

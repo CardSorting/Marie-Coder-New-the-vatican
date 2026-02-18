@@ -88,6 +88,7 @@ export function ChatPanel({
   stageHint?: string;
   stageSummary?: string;
 }) {
+  console.log("[Webview] Render ChatPanel", { msgCount: messages.length, isLoading });
   const chatRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -157,11 +158,11 @@ export function ChatPanel({
         const allItems: (
           | UiMessage
           | {
-              role: "assistant";
-              type: "buffer";
-              content: string;
-              tool?: string;
-            }
+            role: "assistant";
+            type: "buffer";
+            content: string;
+            tool?: string;
+          }
         )[] = [...messages];
         if (toolStreamingBuffer) {
           allItems.push({

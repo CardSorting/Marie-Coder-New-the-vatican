@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 import type {
@@ -142,6 +143,16 @@ function newMessage(role: UiMessage["role"], content: string): UiMessage {
 
 export function WebviewStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WebviewState>(initialState);
+  console.log("[Webview] Render Provider", {
+    hasConfig: !!state.config,
+    hasSessions: !!state.sessions,
+    hasMessages: (state.messages || []).length,
+  });
+  const stateRef = useRef(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   const addMessage = useCallback((role: UiMessage["role"], content: string) => {
     setState((prev) => ({
@@ -153,6 +164,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       const message = event.data;
+      console.log("[Webview] Received message:", message?.type);
 
       switch (message?.type) {
         case "init_state":
@@ -301,8 +313,8 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             ...prev,
             availableModels: Array.isArray(message.models)
               ? message.models
-                  .map((m: any) => String(m?.id || m?.name || m))
-                  .filter(Boolean)
+                .map((m: any) => String(m?.id || m?.name || m))
+                .filter(Boolean)
               : prev.availableModels,
           }));
           return;
@@ -334,6 +346,17 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
     };
   }, [addMessage]);
 
+  const approveTool = useCallback((approved: boolean) => {
+    const p = stateRef.current.pendingApproval;
+    if (!p) return;
+    vscode.postMessage({
+      type: "approval_response",
+      id: p.id,
+      approved,
+    });
+    setState((prev) => ({ ...prev, pendingApproval: null }));
+  }, []);
+
   const actions = useMemo<WebviewActions>(
     () => ({
       sendMessage: (text: string) =>
@@ -344,16 +367,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
         vscode.postMessage({ type: "load_session", id }),
       clearSession: () => vscode.postMessage({ type: "clear_session" }),
       stopGeneration: () => vscode.postMessage({ type: "stop_generation" }),
-      approveTool: (approved: boolean) =>
-        setState((prev) => {
-          if (!prev.pendingApproval) return prev;
-          vscode.postMessage({
-            type: "approval_response",
-            id: prev.pendingApproval.id,
-            approved,
-          });
-          return { ...prev, pendingApproval: null };
-        }),
+      approveTool,
       getModels: () => vscode.postMessage({ type: "get_models" }),
       setProvider: (provider: string) =>
         vscode.postMessage({ type: "set_provider", provider }),
@@ -368,14 +382,20 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
       setMissionBrief: (brief: string) =>
         setState((prev) => ({
           ...prev,
-          missionBrief: brief.trim() || prev.missionBrief,
+          missionBrief: brief.trim() || stateRef.current.missionBrief,
         })),
     }),
-    [],
+    [approveTool],
+  );
+
+
+  const contextValue = useMemo(
+    () => ({ state, actions }),
+    [state, actions]
   );
 
   return (
-    <WebviewStateContext.Provider value={{ state, actions }}>
+    <WebviewStateContext.Provider value={contextValue}>
       {children}
     </WebviewStateContext.Provider>
   );

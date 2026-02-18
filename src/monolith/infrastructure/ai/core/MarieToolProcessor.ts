@@ -3,7 +3,27 @@ import { ToolRegistry } from "../../tools/ToolRegistry.js";
 import * as path from "path";
 import { createRequire } from "module";
 
-const require = createRequire(import.meta.url);
+// ISOMORPHIC REQUIRE: Resolves the correct require function for both ESM and CJS
+const nodeRequire = (() => {
+  // Use globalThis to avoid shadowing/hoisting issues with 'require'
+  const g = globalThis as any;
+  if (typeof g.require !== "undefined") {
+    return g.require;
+  }
+  // In ESM environments, we must create a require function
+  try {
+    const metaUrl = (0, eval)("import.meta.url");
+    return createRequire(metaUrl);
+  } catch {
+    return (id: string) => {
+      throw new Error(`Cannot require ${id} in this environment`);
+    };
+  }
+})();
+
+const require = nodeRequire;
+
+
 
 // Lazy-load vscode to avoid CLI errors
 
@@ -52,7 +72,7 @@ export class MarieToolProcessor {
     ) => Promise<boolean>,
     private state: AscensionState,
     private fs?: FileSystemPort,
-  ) {}
+  ) { }
 
   public async process(
     toolCall: { id: string; name: string; input: any; repaired?: boolean },

@@ -15,6 +15,7 @@ export function Composer({
   pendingApproval: ApprovalRequest | null;
   onSend: (text: string) => void;
 }) {
+  console.log("[Webview] Render Composer", { isLoading, stage });
   const [input, setInput] = useState("");
   const [showThinking, setShowThinking] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);

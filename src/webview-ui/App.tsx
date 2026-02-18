@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Providers } from "./Providers.js";
 import { ApprovalPanel } from "./components/ApprovalPanel.js";
 import { ChatPanel } from "./components/ChatPanel.js";
@@ -9,17 +9,23 @@ import { useWebviewState } from "./context/WebviewStateContext.js";
 
 function AppContent() {
   const { state, actions } = useWebviewState();
+  console.log("[Webview] Render AppContent", { msgCount: state.messages.length });
+  console.log("[Webview] Render AppContent (Provider State)", { hasConfig: !!state.config, hasSessions: !!state.sessions, hasMessages: state.messages.length });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleLoadSession = (id: string) => {
-    actions.loadSession(id);
-    setIsSidebarOpen(false);
-  };
+  const handleLoadSession = useCallback(
+    (id: string) => {
+      actions.loadSession(id);
+      setIsSidebarOpen(false);
+    },
+    [actions],
+  );
 
-  const handleCreateSession = () => {
+  const handleCreateSession = useCallback(() => {
     actions.createSession();
     setIsSidebarOpen(false);
-  };
+  }, [actions]);
+
 
   useEffect(() => {
     if (!isSidebarOpen) return;

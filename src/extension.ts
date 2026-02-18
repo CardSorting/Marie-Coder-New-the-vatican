@@ -22,9 +22,10 @@ class MarieWebviewHost {
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly marieInstance: Marie,
-  ) {}
+  ) { }
 
   public attach(webview: vscode.Webview): void {
+    console.log("[MarieHost] Attaching new webview");
     this.webviews.add(webview);
 
     webview.options = {
@@ -67,6 +68,7 @@ class MarieWebviewHost {
   }
 
   private async onMessage(message: any): Promise<void> {
+    console.log("[MarieHost] Received message from webview:", message?.type);
     switch (message?.type) {
       case "ready":
         await this.pushInitState();
@@ -295,12 +297,23 @@ class MarieWebviewHost {
   }
 
   private async pushInitState(): Promise<void> {
+    console.log("[MarieHost] Pushing initial state...");
+    const config = this.getConfigSnapshot();
+    const messages = this.getUiMessages();
+    const sessions = await this.marieInstance.listSessions(); // Changed from getSessions() to listSessions() to match existing API
+    const currentSessionId = this.marieInstance.getCurrentSessionId();
+
+    console.log("[MarieHost] State ready, posting...", {
+      msgCount: messages.length,
+      sessionCount: sessions.length,
+    });
+
     this.post({
       type: "init_state",
       state: {
-        messages: this.getUiMessages(),
-        config: this.getConfigSnapshot(),
-        currentSessionId: this.marieInstance.getCurrentSessionId(),
+        messages: messages,
+        config: config,
+        currentSessionId: currentSessionId,
       },
     });
     await this.pushSessions();

@@ -23,7 +23,7 @@
   ],
   "main": "dist/extension.cjs",
   "engines": {
-    "vscode": "^1.105.0",
+    "vscode": "^1.95.0",
     "node": ">=18.0.0"
   },
   "categories": [
@@ -144,7 +144,7 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "@types/vscode": "^1.105.0",
+    "@types/vscode": "^1.95.0",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.55.0",
     "@vscode/test-electron": "^2.5.1",
