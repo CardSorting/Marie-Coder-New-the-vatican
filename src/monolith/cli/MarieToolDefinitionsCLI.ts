@@ -9,7 +9,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { RuntimeAutomationPort } from "../runtime/types.js";
 import { registerSharedToolDefinitions } from "../infrastructure/tools/SharedToolDefinitions.js";
-import { cherishFile, generateJoyDashboard } from "../domain/joy/JoyTools.js";
+import { cherishFile, generateJoyDashboard } from "../infrastructure/joy/JoyTools.js";
 import { checkCodeHealth } from "../plumbing/analysis/CodeHealthService.js";
 import { JoyAutomationServiceCLI } from "../cli/services/JoyAutomationServiceCLI.js";
 import { LintService } from "../plumbing/analysis/LintService.js";
@@ -21,8 +21,9 @@ async function readFile(
   filePath: string,
   startLine?: number,
   endLine?: number,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const content = await fsPromises.readFile(filePath, "utf-8");
+  const content = await fsPromises.readFile(filePath, { encoding: "utf-8", signal });
   const lines = content.split("\n");
 
   if (startLine && endLine) {
@@ -86,15 +87,21 @@ async function getGitDiff(root: string, staged: boolean): Promise<string> {
   }
 }
 
-async function runCommand(command: string, cwd: string): Promise<string> {
+async function runCommand(
+  command: string,
+  cwd: string,
+  signal?: AbortSignal,
+): Promise<string> {
   try {
     const { stdout, stderr } = await execAsync(command, {
       cwd,
       timeout: 60000,
       maxBuffer: 1024 * 1024,
+      signal,
     });
     return stdout + (stderr ? `\nstderr: ${stderr}` : "");
   } catch (e: any) {
+    if (signal?.aborted) return "Command aborted by user.";
     return `Error: ${e.message}\n${e.stdout || ""}\n${e.stderr || ""}`;
   }
 }
@@ -165,7 +172,8 @@ export function registerMarieToolsCLI(
         await fsPort.writeFile(p, content, signal, onProgress),
       appendFile: async (p, content, signal, onProgress) =>
         await fsPort.appendFile(p, content, signal, onProgress),
-      readFile: async (p, start, end) => await readFile(p, start, end),
+      readFile: async (p, start, end, signal) =>
+        await readFile(p, start, end, signal),
       listDir: async (p) => await listFiles(p),
       grepSearch: async (q, p) => await searchFiles(q, p),
       getGitContext: async () => {
@@ -176,7 +184,8 @@ export function registerMarieToolsCLI(
         ]);
         return `# Git Context\n\n## Status\n\`\`\`\n${status}\n\`\`\`\n\n## Staged Changes\n\`\`\`\n${staged}\n\`\`\`\n\n## Unstaged Changes\n\`\`\`\n${unstaged}\n\`\`\``;
       },
-      runCommand: async (cmd) => await runCommand(cmd, workingDir),
+      runCommand: async (cmd, signal) =>
+        await runCommand(cmd, workingDir, signal),
       getFolderStructure: async (p, depth) => await getFolderTree(p, depth),
       replaceInFile: async (p, s, r) => {
         if (process.env.MARIE_DEBUG) {

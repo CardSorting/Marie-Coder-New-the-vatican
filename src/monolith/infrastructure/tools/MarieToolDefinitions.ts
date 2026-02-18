@@ -15,7 +15,7 @@ import {
   foldCode,
   cherishFile,
   generateJoyDashboard,
-} from "../../domain/joy/JoyTools.js";
+} from "../joy/JoyTools.js";
 import { getLettingGoMessage } from "../../../prompts.js";
 import {
   gitStatus,
@@ -1313,7 +1313,7 @@ export function registerMarieTools(
     execute: async (args, onProgress, signal) => {
       const p = getStringArg(args, "directoryPath");
       const { proposeClustering } =
-        await import("../../domain/joy/JoyTools.js");
+        await import("../joy/JoyTools.js");
       const clusters = await proposeClustering(p);
 
       if (clusters.length === 0)
@@ -1610,7 +1610,7 @@ export function registerMarieTools(
       if (!root) return "No workspace detected.";
 
       const { isProjectJoyful, proposeClustering } =
-        await import("../../domain/joy/JoyTools.js");
+        await import("../joy/JoyTools.js");
       const isJoyful = await isProjectJoyful(root);
       const clustering = await proposeClustering(root);
 

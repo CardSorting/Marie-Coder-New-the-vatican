@@ -326,6 +326,7 @@ export class MarieToolProcessor {
       this.tracker.emitProgressUpdate();
 
       // TRANSACTIONAL RECOVERY: Restore state on failure
+      let rollbackErrorMsg = "";
       try {
         console.log(
           `[Marie] Initiating systemic rollback for tool failure: ${name}`,
@@ -337,6 +338,7 @@ export class MarieToolProcessor {
         }
       } catch (restoreError) {
         console.error(`[Marie] Transactional recovery failed: ${restoreError}`);
+        rollbackErrorMsg = `\n\n🚨 CRITICAL: Systemic rollback failed. File system may be in an inconsistent state. Manual verification required. Error: ${restoreError}`;
       }
 
       // CIRCUIT BREAKER RECORD: Increment failure count for same tool/input
@@ -378,11 +380,11 @@ export class MarieToolProcessor {
       if (isTerminal || state.count >= 3) {
         const circuitBreakerSuffix =
           state.count >= 3 ? " [CIRCUIT BREAKER TRIPPED]" : "";
-        return `HALT: Critical protocol or parsing failure in ${name}: ${rawMsg}${circuitBreakerSuffix}`;
+        return `HALT: Critical protocol or parsing failure in ${name}: ${rawMsg}${circuitBreakerSuffix}${rollbackErrorMsg}`;
       }
 
       // Constructive Feedback Layer
-      const msgParts: string[] = [`Error executing ${name}: ${rawMsg}`];
+      const msgParts: string[] = [`Error executing ${name}: ${rawMsg}${rollbackErrorMsg}`];
 
       // Ascension-Aware Error Hotspot Hint
       if (failFile && typeof failFile === "string") {

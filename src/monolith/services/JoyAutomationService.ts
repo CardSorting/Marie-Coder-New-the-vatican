@@ -12,7 +12,7 @@ import {
   generateJoyDashboard,
   generateTidyChecklist,
   ensureJoyZoningFolders,
-} from "../domain/joy/JoyTools.js";
+} from "../infrastructure/joy/JoyTools.js";
 import { JoyService } from "./JoyService.js";
 import { RunTelemetry } from "../domain/marie/MarieTypes.js";
 import { MarieSentinelService } from "../plumbing/analysis/MarieSentinelService.js";

@@ -668,11 +668,14 @@ export class MarieEngine {
   ): any | null {
     try {
       return JSON.parse(rawInput);
-    } catch {
+    } catch (e) {
       const repaired = this.toolMender.repairJsonString(rawInput);
       try {
         return JSON.parse(repaired);
-      } catch {
+      } catch (e2) {
+        console.warn(
+          `[MarieEngine] JSON Parse Failed for ${toolName}: ${e instanceof Error ? e.message : String(e)}`,
+        );
         return null;
       }
     }
@@ -783,7 +786,9 @@ export class MarieEngine {
           elapsedMs: tracker.elapsedMs(),
         });
       } catch (e) {
-        console.warn("[Zenith] Failed proactive anchoring", e);
+        if (!signal?.aborted) {
+          console.warn("[Zenith] Failed proactive anchoring", e);
+        }
       }
     }
   }

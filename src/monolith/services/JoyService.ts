@@ -5,7 +5,7 @@ import {
 } from "../plumbing/analysis/CodeHealthService.js";
 
 import { JoyLogService } from "./JoyLogService.js";
-import { proposeClustering, isProjectJoyful } from "../domain/joy/JoyTools.js";
+import { proposeClustering, isProjectJoyful } from "../infrastructure/joy/JoyTools.js";
 
 export class JoyService implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;

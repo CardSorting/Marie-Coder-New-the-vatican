@@ -13,7 +13,7 @@ import {
   generateJoyDashboard,
   generateTidyChecklist,
   executeRestoration,
-} from "../../domain/joy/JoyTools.js";
+} from "../../infrastructure/joy/JoyTools.js";
 import { FileSystemPort } from "../../infrastructure/ai/core/FileSystemPort.js";
 
 export class JoyAutomationServiceCLI implements RuntimeAutomationPort {
