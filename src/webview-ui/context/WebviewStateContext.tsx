@@ -174,6 +174,9 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
               ? message.state.messages
               : [],
             config: message.state?.config || prev.config,
+            sessions: Array.isArray(message.state?.sessions)
+              ? message.state.sessions
+              : prev.sessions,
             currentSessionId:
               message.state?.currentSessionId || prev.currentSessionId,
             streamingBuffer: "",
@@ -181,6 +184,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             activeToolName: "",
             pendingApproval: null,
           }));
+
           return;
 
         case "sessions":

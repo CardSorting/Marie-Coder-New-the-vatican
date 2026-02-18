@@ -15,6 +15,9 @@ async function main() {
         outfile: "dist/extension.cjs",
         external: ["vscode"],
         logLevel: "info",
+        logOverride: {
+            "empty-import-meta": "error",
+        },
     })
 
     const webviewCtx = await esbuild.context({

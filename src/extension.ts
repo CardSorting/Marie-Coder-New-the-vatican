@@ -314,9 +314,9 @@ class MarieWebviewHost {
         messages: messages,
         config: config,
         currentSessionId: currentSessionId,
+        sessions: sessions, // Include sessions in init_state to avoid separate message
       },
     });
-    await this.pushSessions();
   }
 
   private async pushSessions(): Promise<void> {

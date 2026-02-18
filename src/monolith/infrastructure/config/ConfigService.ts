@@ -2,36 +2,13 @@
 // Works in both VSCode extension and CLI environments
 
 import type * as vscodeTypes from "vscode";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
-
-// ISOMORPHIC REQUIRE: Resolves the correct require function for both ESM and CJS
-const nodeRequire = (() => {
-  if (typeof require !== "undefined") {
-    return require;
-  }
-  // In ESM environments (CLI), we must create a require function
-  // We use an indirect eval to prevent esbuild from complaining during bundling
-  try {
-    const metaUrl = (0, eval)("import.meta.url");
-    return createRequire(metaUrl);
-  } catch {
-    return (id: string) => {
-      throw new Error(`Cannot require ${id} in this environment`);
-    };
-  }
-})();
+import { isVsCodeExtension, nodeRequire } from "../../plumbing/utils/EnvironmentUtils.js";
 
 let vscodeModule: typeof vscodeTypes | null = null;
 let hasAttemptedVscodeLoad = false;
 
 function isLikelyVscodeExtensionHost(): boolean {
-  return Boolean(
-    process.env.VSCODE_IPC_HOOK ||
-    process.env.VSCODE_PID ||
-    process.env.VSCODE_CWD ||
-    process.env.VSCODE_NLS_CONFIG,
-  );
+  return isVsCodeExtension();
 }
 
 function getVscode(): typeof vscodeTypes | null {
