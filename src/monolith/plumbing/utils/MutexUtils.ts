@@ -1,18 +1,36 @@
 /**
  * REFINED ROBUSTNESS: MarieMutex
- * A robust promise-based mutex with built-in timeout and queueing.
+ * A robust promise-based mutex with built-in timeout, queueing, and re-entrancy support.
  */
 export class MarieMutex {
   private queue: Promise<void> = Promise.resolve();
   private isLocked: boolean = false;
+  private currentContext: string | null = null;
+  private lockCount: number = 0;
 
   constructor(private readonly name: string = "GenericMutex") {}
 
   /**
    * Acquires the lock. Returns an unlock function.
    * @param timeoutMs Maximum time to wait for the lock before throwing.
+   * @param contextId Optional identifier for re-entrancy. If the same contextId 
+   *                  tries to acquire the lock again, it will succeed immediately.
    */
-  public async acquire(timeoutMs: number = 30000): Promise<() => void> {
+  public async acquire(timeoutMs: number = 30000, contextId: string | null = null): Promise<() => void> {
+    // RE-ENTRANCY CHECK
+    if (contextId && this.currentContext === contextId) {
+      this.lockCount++;
+      let released = false;
+      return () => {
+        if (released) return;
+        released = true;
+        this.lockCount--;
+        if (this.lockCount === 0) {
+          this.currentContext = null;
+        }
+      };
+    }
+
     const previousTask = this.queue;
     let resolver: () => void;
     
@@ -25,6 +43,8 @@ export class MarieMutex {
     const acquirePromise = (async () => {
       await previousTask;
       this.isLocked = true;
+      this.currentContext = contextId;
+      this.lockCount = 1;
     })();
 
     if (timeoutMs > 0) {
@@ -39,7 +59,6 @@ export class MarieMutex {
         await Promise.race([acquirePromise, timeoutPromise]);
       } catch (e) {
         // On timeout, we must still resolve the resolver to avoid blocking the queue permanently
-        // but we throw to notify the caller we didn't get the lock.
         resolver!(); 
         throw e;
       } finally {
@@ -53,8 +72,12 @@ export class MarieMutex {
     return () => {
       if (released) return;
       released = true;
-      this.isLocked = false;
-      resolver!();
+      this.lockCount--;
+      if (this.lockCount === 0) {
+        this.isLocked = false;
+        this.currentContext = null;
+        resolver!();
+      }
     };
   }
 

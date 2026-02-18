@@ -59,6 +59,9 @@ export abstract class RuntimeAdapterBase<
   public getCurrentSessionId(): string {
     return this.runtime.getCurrentSessionId();
   }
+  public getSequenceNumber(): number {
+    return this.runtime.getSequenceNumber();
+  }
   public getCurrentRun(): RunTelemetry | undefined {
     return this.runtime.getCurrentRun();
   }

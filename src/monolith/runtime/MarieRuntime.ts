@@ -115,6 +115,80 @@ export class MarieRuntime<
     }
   }
 
+  private async saveHistoryInternal(
+    telemetry?: any,
+    specificSessionId?: string,
+    runStartTime?: number,
+  ): Promise<void> {
+    if (this.messages.length > 50) {
+      this.messages = this.messages.slice(this.messages.length - 50);
+    }
+
+
+    const sid = specificSessionId || this.currentSessionId;
+    const historyMap = await this.options.sessionStore.getSessions();
+
+    const currentSessionMatches = sid === this.currentSessionId;
+    const isSessionStillValid = runStartTime ? true : currentSessionMatches;
+
+    if (sid === this.currentSessionId && isSessionStillValid) {
+      historyMap[sid] = this.messages;
+    } else {
+      if (!historyMap[sid]) {
+        historyMap[sid] = [];
+      }
+    }
+
+    await this.options.sessionStore.saveSessions(historyMap);
+
+    const sessionMetadata =
+      await this.options.sessionStore.getSessionMetadata();
+    const index = sessionMetadata.findIndex(
+      (s: SessionMetadata) => s.id === sid,
+    );
+
+    const targetMessages =
+      sid === this.currentSessionId ? this.messages : historyMap[sid];
+    const firstMsg =
+      targetMessages && targetMessages.length > 0
+        ? targetMessages[0].content
+        : "";
+    const title =
+      targetMessages && targetMessages.length > 0
+        ? this.generateSessionTitle(firstMsg)
+        : "New Session";
+
+    if (index >= 0) {
+      sessionMetadata[index].lastModified = Date.now();
+      if (sessionMetadata[index].title === "New Session") {
+        sessionMetadata[index].title = title;
+      }
+    } else if (sid !== "default") {
+      sessionMetadata.unshift({
+        id: sid,
+        title,
+        lastModified: Date.now(),
+        isPinned: false,
+      });
+    }
+
+    await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+
+    if (sid === this.currentSessionId) {
+      await this.options.sessionStore.setCurrentSessionId(sid);
+    }
+
+    if (telemetry !== undefined) {
+      await this.options.sessionStore.setLastTelemetry(
+        telemetry === null ? undefined : telemetry,
+      );
+    }
+    
+    if (sid === this.currentSessionId) {
+      this.emitStateChanged();
+    }
+  }
+
   private async saveHistory(
     telemetry?: any,
     specificSessionId?: string,
@@ -122,73 +196,7 @@ export class MarieRuntime<
   ): Promise<void> {
     const unlock = await this.persistenceMutex.acquire();
     try {
-      if (this.messages.length > 50) {
-        this.messages = this.messages.slice(this.messages.length - 50);
-      }
-
-
-      const sid = specificSessionId || this.currentSessionId;
-      const historyMap = await this.options.sessionStore.getSessions();
-
-      const currentSessionMatches = sid === this.currentSessionId;
-      const isSessionStillValid = runStartTime ? true : currentSessionMatches;
-
-      if (sid === this.currentSessionId && isSessionStillValid) {
-        historyMap[sid] = this.messages;
-      } else {
-        if (!historyMap[sid]) {
-          historyMap[sid] = [];
-        }
-      }
-
-      await this.options.sessionStore.saveSessions(historyMap);
-
-      const sessionMetadata =
-        await this.options.sessionStore.getSessionMetadata();
-      const index = sessionMetadata.findIndex(
-        (s: SessionMetadata) => s.id === sid,
-      );
-
-      const targetMessages =
-        sid === this.currentSessionId ? this.messages : historyMap[sid];
-      const firstMsg =
-        targetMessages && targetMessages.length > 0
-          ? targetMessages[0].content
-          : "";
-      const title =
-        targetMessages && targetMessages.length > 0
-          ? this.generateSessionTitle(firstMsg)
-          : "New Session";
-
-      if (index >= 0) {
-        sessionMetadata[index].lastModified = Date.now();
-        if (sessionMetadata[index].title === "New Session") {
-          sessionMetadata[index].title = title;
-        }
-      } else if (sid !== "default") {
-        sessionMetadata.unshift({
-          id: sid,
-          title,
-          lastModified: Date.now(),
-          isPinned: false,
-        });
-      }
-
-      await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
-
-      if (sid === this.currentSessionId) {
-        await this.options.sessionStore.setCurrentSessionId(sid);
-      }
-
-      if (telemetry !== undefined) {
-        await this.options.sessionStore.setLastTelemetry(
-          telemetry === null ? undefined : telemetry,
-        );
-      }
-      
-      if (sid === this.currentSessionId) {
-        this.emitStateChanged();
-      }
+      await this.saveHistoryInternal(telemetry, specificSessionId, runStartTime);
     } finally {
       unlock();
     }
@@ -226,10 +234,15 @@ export class MarieRuntime<
 
   public async createSession(): Promise<string> {
     await this.ensureInitialized();
-    this.currentSessionId = `session_${Date.now()}`;
-    this.messages = [];
-    await this.saveHistory();
-    return this.currentSessionId;
+    const unlock = await this.persistenceMutex.acquire();
+    try {
+      this.currentSessionId = `session_${Date.now()}`;
+      this.messages = [];
+      await this.saveHistoryInternal();
+      return this.currentSessionId;
+    } finally {
+      unlock();
+    }
   }
 
   public async listSessions(): Promise<SessionMetadata[]> {
@@ -239,11 +252,17 @@ export class MarieRuntime<
 
   public async loadSession(id: string): Promise<string> {
     await this.ensureInitialized();
-    this.stopGeneration();
-    this.currentSessionId = id;
-    await this.loadHistory();
-    await this.options.sessionStore.setCurrentSessionId(id);
-    return this.currentSessionId;
+    const unlock = await this.persistenceMutex.acquire();
+    try {
+      this.stopGeneration();
+      this.currentSessionId = id;
+      await this.loadHistory();
+      await this.options.sessionStore.setCurrentSessionId(id);
+      this.emitStateChanged();
+      return this.currentSessionId;
+    } finally {
+      unlock();
+    }
   }
 
   public async deleteSession(id: string): Promise<void> {
@@ -275,14 +294,19 @@ export class MarieRuntime<
           shouldCreateNew = true;
         }
       }
+
+      if (shouldLoadFirst && firstSessionId) {
+        this.currentSessionId = firstSessionId;
+        await this.loadHistory();
+        await this.options.sessionStore.setCurrentSessionId(this.currentSessionId);
+        this.emitStateChanged();
+      } else if (shouldCreateNew) {
+        this.currentSessionId = `session_${Date.now()}`;
+        this.messages = [];
+        await this.saveHistoryInternal();
+      }
     } finally {
       unlock();
-    }
-
-    if (shouldLoadFirst && firstSessionId) {
-      await this.loadSession(firstSessionId);
-    } else if (shouldCreateNew) {
-      await this.createSession();
     }
   }
 
@@ -296,6 +320,7 @@ export class MarieRuntime<
       if (index >= 0) {
         sessionMetadata[index].title = newTitle;
         await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+        this.emitStateChanged();
       }
     } finally {
       unlock();
@@ -312,6 +337,7 @@ export class MarieRuntime<
       if (index >= 0) {
         sessionMetadata[index].isPinned = !sessionMetadata[index].isPinned;
         await this.options.sessionStore.saveSessionMetadata(sessionMetadata);
+        this.emitStateChanged();
       }
     } finally {
       unlock();
@@ -322,7 +348,24 @@ export class MarieRuntime<
     text: string,
     callbacks?: MarieCallbacks,
   ): Promise<string> {
-    const unlock = await this.processingMutex.acquire();
+    let unlock: (() => void) | undefined;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        unlock = await this.processingMutex.acquire(10000); // 10s timeout per attempt
+        break;
+      } catch (e) {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          return `Error: System is currently busy with another task. Please wait a moment and try again. (Mutex Timeout)`;
+        }
+        console.warn(`[MarieRuntime] Mutex acquisition attempt ${attempts} failed, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
     try {
       await this.ensureInitialized();
 
@@ -485,7 +528,7 @@ export class MarieRuntime<
     } finally {
       this.abortController = null;
       this.currentRun = undefined;
-      unlock();
+      if (unlock) unlock();
     }
   }
 
@@ -554,6 +597,10 @@ export class MarieRuntime<
 
   public getCurrentSessionId(): string {
     return this.currentSessionId;
+  }
+
+  public getSequenceNumber(): number {
+    return this.sequenceNumber;
   }
 
   public getCurrentRun(): RunTelemetry | undefined {

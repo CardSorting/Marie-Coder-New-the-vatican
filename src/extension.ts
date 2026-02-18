@@ -75,8 +75,12 @@ class MarieWebviewHost {
   }
 
   private post(message: any): void {
+    const enriched = {
+      ...message,
+      sequenceNumber: this.marieInstance.getSequenceNumber(),
+    };
     for (const webview of this.webviews) {
-      void webview.postMessage(message);
+      void webview.postMessage(enriched);
     }
   }
 

@@ -52,4 +52,5 @@ export type WebviewState = {
   stageHint: string;
   stageActions: string[];
   missionBrief: string;
+  sequenceNumber: number;
 };

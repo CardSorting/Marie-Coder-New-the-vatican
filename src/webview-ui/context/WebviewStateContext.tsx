@@ -44,6 +44,7 @@ const initialState: WebviewState = {
     "Confirm success criteria",
   ],
   missionBrief: "Set a mission brief to guide the session.",
+  sequenceNumber: 0,
 };
 
 const stageMeta: Record<
@@ -162,16 +163,19 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
     const onMessage = (event: MessageEvent) => {
       const message = event.data;
 
+      // STALE STATE GUARD: Ignore any message with an older sequence number
+      if (message?.sequenceNumber !== undefined) {
+        if (message.sequenceNumber < sequenceRef.current) {
+          console.log(`[Webview] Ignoring stale '${message.type}' update: ${message.sequenceNumber} < ${sequenceRef.current}`);
+          return;
+        }
+        sequenceRef.current = message.sequenceNumber;
+      }
 
       switch (message?.type) {
-        case "init_state":
-          if (message.state?.sequenceNumber !== undefined) {
-            if (message.state.sequenceNumber < sequenceRef.current) {
-              console.log(`[Webview] Ignoring stale state update: ${message.state.sequenceNumber} < ${sequenceRef.current}`);
-              return;
-            }
-            sequenceRef.current = message.state.sequenceNumber;
-          }
+        case "init_state": {
+          const nextSessionId = message.state?.currentSessionId || "default";
+          const isSessionChanging = nextSessionId !== stateRef.current.currentSessionId;
 
           setState((prev) => ({
             ...prev,
@@ -185,22 +189,23 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             availableModels: Array.isArray(message.state?.availableModels)
               ? message.state.availableModels
               : prev.availableModels,
-            currentSessionId:
-              message.state?.currentSessionId || prev.currentSessionId,
-            streamingBuffer: "",
-            toolStreamingBuffer: "",
-            activeToolName: "",
-            pendingApproval: null,
+            currentSessionId: nextSessionId,
+            sequenceNumber: message.state?.sequenceNumber || prev.sequenceNumber,
+            // Only wipe buffers if the session actually changed to prevent streaming flicker
+            streamingBuffer: isSessionChanging ? "" : prev.streamingBuffer,
+            toolStreamingBuffer: isSessionChanging ? "" : prev.toolStreamingBuffer,
+            activeToolName: isSessionChanging ? "" : prev.activeToolName,
+            pendingApproval: isSessionChanging ? null : prev.pendingApproval,
           }));
-
-
           return;
+        }
 
         case "sessions":
           setState((prev) => ({
             ...prev,
             sessions: Array.isArray(message.sessions) ? message.sessions : [],
             currentSessionId: message.currentSessionId || prev.currentSessionId,
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
           }));
           return;
 
@@ -221,12 +226,13 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                   ...prev.messages,
                   newMessage("assistant", prev.streamingBuffer),
                 ],
+                sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
               };
             }
             const nextStage: AgentStage = nextLoading ? "execute" : prev.stage;
             const summary = nextLoading ? "Executing tasks" : prev.stageSummary;
             return applyStage(
-              { ...prev, isLoading: nextLoading },
+              { ...prev, isLoading: nextLoading, sequenceNumber: message.sequenceNumber || prev.sequenceNumber },
               nextStage,
               summary,
             );
@@ -235,13 +241,17 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
         case "user_echo":
           addMessage("user", String(message.text || ""));
-          setState((prev) => applyStage(prev, "plan", "Refining the plan"));
+          setState((prev) => ({
+            ...applyStage(prev, "plan", "Refining the plan"),
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber
+          }));
           return;
 
         case "message_stream":
           setState((prev) => ({
             ...prev,
             streamingBuffer: prev.streamingBuffer + String(message.chunk || ""),
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
           }));
           return;
 
@@ -254,6 +264,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
               {
                 ...prev,
                 messages: [...prev.messages, newMessage("assistant", content)],
+                sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
               },
               nextStage,
               stageMeta[nextStage].label,
@@ -275,6 +286,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             setState((prev) => ({
               ...prev,
               stageSummary: runtimeEvent.text || prev.stageSummary,
+              sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
             }));
 
             // If it's a decree or a high-value thought, add to logs
@@ -293,19 +305,21 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
 
         case "tool_event":
           addMessage("system", `Tool: ${message.tool?.name || "unknown"}`);
-          setState((prev) =>
-            applyStage(
+          setState((prev) => ({
+            ...applyStage(
               prev,
               "execute",
               `Running ${message.tool?.name || "tool"}`,
             ),
-          );
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber
+          }));
           return;
 
         case "approval_request":
           setState((prev) => ({
             ...prev,
             pendingApproval: message.request || null,
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
           }));
           return;
 
@@ -318,6 +332,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
             activeToolName: String(
               message.delta?.name || prev.activeToolName || "tool",
             ),
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
           }));
           return;
 
@@ -329,6 +344,7 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
                 .map((m: any) => String(m?.id || m?.name || m))
                 .filter(Boolean)
               : prev.availableModels,
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
           }));
           return;
 
@@ -336,12 +352,16 @@ export function WebviewStateProvider({ children }: { children: ReactNode }) {
           setState((prev) => ({
             ...prev,
             config: message.config || prev.config,
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber,
           }));
           return;
 
         case "error":
           addMessage("system", String(message.message || "Unknown error"));
-          setState((prev) => applyStage(prev, "review", "Review needed"));
+          setState((prev) => ({
+            ...applyStage(prev, "review", "Review needed"),
+            sequenceNumber: message.sequenceNumber || prev.sequenceNumber
+          }));
           return;
 
         default:
