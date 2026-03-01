@@ -155,4 +155,29 @@ export function registerCoreTools() {
       return await listFiles(getStringArg(args, "path"));
     },
   });
+
+  registerTool({
+    name: "spawn_subagent",
+    description: "Delegate a sub-task to a parallel agent stream. Used for complex, multi-layered problems.",
+    input_schema: {
+      type: "object",
+      properties: {
+        focus: { type: "string", description: "The specific architectural goal for the subagent." },
+        tasks: { type: "array", items: { type: "string" }, description: "Specific sub-tasks to complete." },
+      },
+      required: ["focus", "tasks"],
+    },
+    execute: async (args) => {
+      const { orchestrator } = await import("../ai/Orchestrator.js");
+      const focus = getStringArg(args, "focus");
+      const tasks = args.tasks as string[];
+
+      const stream = await orchestrator.createStream(focus);
+      for (const t of tasks) {
+        await orchestrator.createTask(stream.id, t);
+      }
+
+      return `Subagent stream '${stream.id}' spawned for: ${focus}. Tasks initialized. coordination required.`;
+    },
+  });
 }

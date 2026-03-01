@@ -70,6 +70,20 @@ export interface Schema {
   current_session: {
     id: string;
   };
+  agent_streams: {
+    id: string;
+    parentId: string | null;
+    focus: string;
+    status: "active" | "completed" | "failed";
+    createdAt: number;
+  };
+  agent_tasks: {
+    id: string;
+    streamId: string;
+    description: string;
+    status: "pending" | "running" | "completed" | "failed";
+    result: string | null;
+  };
 }
 
 let _db: Kysely<Schema> | null = null;
@@ -100,6 +114,12 @@ export async function getDb(): Promise<Kysely<Schema>> {
   );
   await execute(
     `CREATE TABLE IF NOT EXISTS current_session (id TEXT PRIMARY KEY)`,
+  );
+  await execute(
+    `CREATE TABLE IF NOT EXISTS agent_streams (id TEXT PRIMARY KEY, parentId TEXT, focus TEXT, status TEXT, createdAt BIGINT)`,
+  );
+  await execute(
+    `CREATE TABLE IF NOT EXISTS agent_tasks (id TEXT PRIMARY KEY, streamId TEXT, description TEXT, status TEXT, result TEXT)`,
   );
 
   return _db;
