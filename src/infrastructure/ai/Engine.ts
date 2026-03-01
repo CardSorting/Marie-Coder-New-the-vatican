@@ -5,7 +5,7 @@ import { getSystemPrompt } from "../../prompts.js";
 import { Callbacks, RunTelemetry } from "../../domain/types.js";
 
 export class Engine {
-  constructor(private readonly provider: AIProvider) {}
+  constructor(private readonly provider: AIProvider) { }
 
   public async chatLoop(
     messages: any[],
@@ -22,7 +22,14 @@ export class Engine {
         model: "google/gemini-2.0-flash-001",
         system: systemPrompt,
         messages,
-        tools: getRegisteredTools(),
+        tools: getRegisteredTools().map((t) => ({
+          type: "function",
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: t.input_schema,
+          },
+        })),
       });
 
       const content = response.content;

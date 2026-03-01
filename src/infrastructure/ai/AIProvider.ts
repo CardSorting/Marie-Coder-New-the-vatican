@@ -17,6 +17,11 @@ export function createAIProvider(
 
   return {
     async createMessage(params: any): Promise<any> {
+      const messages = [...(params.messages || [])];
+      if (params.system && !messages.some((m: any) => m.role === "system")) {
+        messages.unshift({ role: "system", content: params.system });
+      }
+
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
@@ -26,8 +31,9 @@ export function createAIProvider(
         },
         body: safeStringify({
           model: params.model,
-          messages: params.messages,
+          messages,
           tools: params.tools,
+          tool_choice: params.tools ? "auto" : undefined,
           response_format: params.response_format,
         }),
       });
