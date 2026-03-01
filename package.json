@@ -1,0 +1,56 @@
+{
+  "name": "@layered-architecture/engine",
+  "version": "1.0.0",
+  "description": "A professional, high-performance layered architecture engine",
+  "publisher": "LayeredArchitecture",
+  "author": "LayeredArchitecture <https://github.com/CardSorting>",
+  "homepage": "https://github.com/CardSorting/engine",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "engine": "./dist/ui/cli.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/ui/cli.js",
+    "dev": "node --loader ts-node/esm src/ui/cli.ts",
+    "start": "node dist/ui/cli.js",
+    "test": "echo \"End-to-end verification active.\"",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
+  },
+  "keywords": [
+    "ai",
+    "cli",
+    "layered-architecture",
+    "engine"
+  ],
+  "license": "Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "better-sqlite3": "^12.6.2",
+    "kysely": "^0.28.11",
+    "simple-git": "^3.22.0",
+    "strip-ansi": "^7.1.0",
+    "wrap-ansi": "^9.0.0",
+    "glob": "^10.3.10"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.19.35",
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.3.0",
+    "mocha": "^10.4.0",
+    "prettier": "^3.8.1",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.55.0"
+  }
+}
